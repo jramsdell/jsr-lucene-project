@@ -49,8 +49,8 @@ public class EntityGraphBuilder {
     private void addToGraph(int docID) {
         // Oh my god I hate Java
         try {
-            if (docID % 1000 == 0) {
-                System.out.println(".");
+            if (docID % 100000 == 0) {
+                System.out.println((double)docID / (double)29794697);
             }
             Document doc = indexReader.document(docID);
             String[] entities = doc.getValues("spotlight");
