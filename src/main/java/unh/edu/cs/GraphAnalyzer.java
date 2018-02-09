@@ -119,10 +119,11 @@ public class GraphAnalyzer {
         GraphAnalyzer ga = new GraphAnalyzer(is);
         Model m = ga.getModel(2);
 //        System.out.println(m.parModel);
+        System.out.println(is.doc(2).getField("text"));
         Seq.seq(m.entityModel.entrySet())
                 .sorted(Map.Entry::getValue)
                 .reverse()
-                .take(50)
+                .take(60)
                 .forEach(System.out::println);
 //        EntityGraphBuilder eb = new EntityGraphBuilder(args[0]);
 //        GraphAnalyzer eb = new GraphAnalyzer("/home/hcgs/Desktop/myindex");
