@@ -1,7 +1,5 @@
 package unh.edu.cs;
 
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
