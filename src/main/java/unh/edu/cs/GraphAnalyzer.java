@@ -74,8 +74,8 @@ public class GraphAnalyzer {
     public Model getModel(int docID) throws IOException {
         final Model model = new Model();
 
-        int nSteps = 8;
-        int nWalks = 500;
+        int nSteps = 5;
+        int nWalks = 800;
         Document baseDoc = indexSearcher.doc(docID);
 
         for (int walk = 0; walk < nWalks; walk++) {
