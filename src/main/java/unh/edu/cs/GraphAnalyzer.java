@@ -23,6 +23,7 @@ public class GraphAnalyzer {
     private IndexSearcher indexSearcher;
     Random rand = new Random();
     HashMap<String, TopDocs> storedQueries = new HashMap<>();
+    HashMap<String, String[]> storedEntities = new HashMap<>();
 //    HashMap<String, HashMap<String, Double>> parModel = new HashMap<>();
 //    HashMap<String, HashMap<String, Double>> entityModel = new HashMap<>();
 
@@ -68,10 +69,19 @@ public class GraphAnalyzer {
 
         for (int walk = 0; walk < nWalks; walk++) {
             Document doc = indexSearcher.doc(docID);
+            System.out.println(walk);
 
             for (int step = 0; step < nSteps; step++) {
-                System.out.println(step);
-                String[] entities = doc.getValues("spotlight");
+                String pid = doc.get("paragraphid");
+                String[] entities;
+                if (!storedEntities.containsKey(pid)) {
+                    entities = doc.getValues("spotlight");
+                    storedEntities.put(pid, entities);
+                } else {
+                    entities = storedEntities.get(pid);
+                }
+
+//                String[] entities = doc.getValues("spotlight");
                 String entity = entities[rand.nextInt(entities.length)];
                 doc = graphTransition(entity);
                 model.entityModel.merge(entity, 1.0, Double::sum);
