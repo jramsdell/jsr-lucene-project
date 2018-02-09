@@ -1,0 +1,6 @@
+package unh.edu.cs;
+
+public enum QueryType {
+    PAGE, SECTION, PAGE_VECTOR, SECTION_VECTOR,
+    PAGE_BIGRAM, SECTION_BIGRAM, PAGE_ENTITY, SECTION_ENTITY;
+}
