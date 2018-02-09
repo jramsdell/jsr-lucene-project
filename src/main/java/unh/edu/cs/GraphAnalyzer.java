@@ -9,12 +9,14 @@ import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.jooq.lambda.Seq;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 //TODO: instead weight edges by BM25 score
@@ -24,6 +26,7 @@ public class GraphAnalyzer {
     Random rand = new Random();
     HashMap<String, TopDocs> storedQueries = new HashMap<>();
     HashMap<String, String[]> storedEntities = new HashMap<>();
+    HashMap<Integer, Document> storedDocuments = new HashMap<>();
 //    HashMap<String, HashMap<String, Double>> parModel = new HashMap<>();
 //    HashMap<String, HashMap<String, Double>> entityModel = new HashMap<>();
 
@@ -58,18 +61,26 @@ public class GraphAnalyzer {
             td = storedQueries.get(entity);
         }
         ScoreDoc sc = td.scoreDocs[rand.nextInt(td.scoreDocs.length)];
-        return indexSearcher.doc(sc.doc);
+        Document doc;
+        if (!storedDocuments.containsKey(sc.doc)) {
+            doc = indexSearcher.doc(sc.doc);
+            storedDocuments.put(sc.doc, doc);
+        } else {
+            doc = storedDocuments.get(sc.doc);
+        }
+        return doc;
     }
 
     public Model getModel(int docID) throws IOException {
         final Model model = new Model();
 
         int nSteps = 8;
-        int nWalks = 1000;
+        int nWalks = 500;
+        Document baseDoc = indexSearcher.doc(docID);
 
         for (int walk = 0; walk < nWalks; walk++) {
-            Document doc = indexSearcher.doc(docID);
             System.out.println(walk);
+            Document doc = baseDoc;
 
             for (int step = 0; step < nSteps; step++) {
                 String pid = doc.get("paragraphid");
@@ -107,8 +118,12 @@ public class GraphAnalyzer {
         IndexSearcher is = createIndexSearcher(args[0]);
         GraphAnalyzer ga = new GraphAnalyzer(is);
         Model m = ga.getModel(2);
-        System.out.println(m.parModel);
-        System.out.println(m.entityModel);
+//        System.out.println(m.parModel);
+        Seq.seq(m.entityModel.entrySet())
+                .sorted(Map.Entry::getValue)
+                .reverse()
+                .take(50)
+                .forEach(System.out::println);
 //        EntityGraphBuilder eb = new EntityGraphBuilder(args[0]);
 //        GraphAnalyzer eb = new GraphAnalyzer("/home/hcgs/Desktop/myindex");
 //        eb.getQueryDocs();
