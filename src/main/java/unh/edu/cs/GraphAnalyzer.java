@@ -117,9 +117,10 @@ public class GraphAnalyzer {
 //        IndexSearcher is = createIndexSearcher("/home/hcgs/Desktop/myindex");
         IndexSearcher is = createIndexSearcher(args[0]);
         GraphAnalyzer ga = new GraphAnalyzer(is);
-        Model m = ga.getModel(2);
+        Integer index = Integer.parseInt(args[1]);
+        Model m = ga.getModel(index);
 //        System.out.println(m.parModel);
-        System.out.println(is.doc(2).getField("text"));
+        System.out.println(is.doc(index).get("text"));
         Seq.seq(m.entityModel.entrySet())
                 .sorted(Map.Entry::getValue)
                 .reverse()
