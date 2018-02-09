@@ -49,6 +49,9 @@ public class EntityGraphBuilder {
     private void addToGraph(int docID) {
         // Oh my god I hate Java
         try {
+            if (docID % 1000 == 0) {
+                System.out.println(".");
+            }
             Document doc = indexReader.document(docID);
             String[] entities = doc.getValues("spotlight");
             String id = doc.get("paragraphid");
@@ -137,6 +140,7 @@ public class EntityGraphBuilder {
 
     public static void main (String[] args) throws IOException {
         EntityGraphBuilder eb = new EntityGraphBuilder(args[0]);
+//        EntityGraphBuilder eb = new EntityGraphBuilder("/home/hcgs/Desktop/myindex");
         eb.buildGraph();
         eb.buildModel();
         eb.writeModels();
