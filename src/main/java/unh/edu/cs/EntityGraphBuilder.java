@@ -4,6 +4,11 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.jooq.lambda.Seq;
@@ -21,6 +26,7 @@ import java.util.Random;
 
 public class EntityGraphBuilder {
     private IndexReader indexReader;
+    private IndexSearcher indexSearcher;
     Random rand = new Random();
     HashMap<String, ArrayList<String>> parToEntity = new HashMap<>();
     HashMap<String, ArrayList<String>> entityToPar = new HashMap<>();
@@ -36,6 +42,7 @@ public class EntityGraphBuilder {
         Path indexPath = Paths.get(iPath);
         Directory indexDir = FSDirectory.open(indexPath);
         indexReader = DirectoryReader.open(indexDir);
+        indexSearcher = new IndexSearcher(indexReader);
     }
 
     private void addToMap(HashMap<String, ArrayList<String>> map, String key, String val) {
@@ -138,11 +145,33 @@ public class EntityGraphBuilder {
         }
     }
 
+    public void doQuery() throws IOException {
+        for (int i = 0; i < indexReader.maxDoc(); i++) {
+            Document doc = indexReader.document(i);
+        }
+    }
+
+    public void getQueryDocs() throws IOException {
+        TermQuery tq = new TermQuery(new Term("text", "hello"));
+        TopDocs td = indexSearcher.search(tq, 1000000);
+        System.out.println(td.scoreDocs.length);
+        for (ScoreDoc sc : td.scoreDocs) {
+            System.out.println(indexReader.document(sc.doc).getField("text"));
+        }
+    }
+
+    public void getModels(int docID) throws IOException {
+        Document doc = indexReader.document(docID);
+        String[] entities = doc.getValues("spotlight");
+        String entity = entities[rand.nextInt(entities.length)];
+    }
+
     public static void main (String[] args) throws IOException {
-        EntityGraphBuilder eb = new EntityGraphBuilder(args[0]);
-//        EntityGraphBuilder eb = new EntityGraphBuilder("/home/hcgs/Desktop/myindex");
-        eb.buildGraph();
-        eb.buildModel();
-        eb.writeModels();
+//        EntityGraphBuilder eb = new EntityGraphBuilder(args[0]);
+        EntityGraphBuilder eb = new EntityGraphBuilder("/home/hcgs/Desktop/myindex");
+        eb.getQueryDocs();
+//        eb.buildGraph();
+//        eb.buildModel();
+//        eb.writeModels();
     }
 }
