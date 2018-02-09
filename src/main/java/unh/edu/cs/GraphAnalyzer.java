@@ -22,8 +22,7 @@ import java.util.Random;
 public class GraphAnalyzer {
     private IndexSearcher indexSearcher;
     Random rand = new Random();
-    HashMap<String, ArrayList<String>> parToEntity = new HashMap<>();
-    HashMap<String, ArrayList<String>> entityToPar = new HashMap<>();
+    HashMap<String, TopDocs> storedQueries = new HashMap<>();
 //    HashMap<String, HashMap<String, Double>> parModel = new HashMap<>();
 //    HashMap<String, HashMap<String, Double>> entityModel = new HashMap<>();
 
@@ -49,8 +48,14 @@ public class GraphAnalyzer {
 //    }
 
     public Document graphTransition(String entity) throws IOException {
-        TermQuery tq = new TermQuery(new Term("spotlight", entity));
-        TopDocs td = indexSearcher.search(tq, 1000000);
+        TopDocs td;
+        if (!storedQueries.containsKey(entity)) {
+            TermQuery tq = new TermQuery(new Term("spotlight", entity));
+            td = indexSearcher.search(tq, 1000000);
+            storedQueries.put(entity, td);
+        } else {
+            td = storedQueries.get(entity);
+        }
         ScoreDoc sc = td.scoreDocs[rand.nextInt(td.scoreDocs.length)];
         return indexSearcher.doc(sc.doc);
     }
@@ -65,6 +70,7 @@ public class GraphAnalyzer {
             Document doc = indexSearcher.doc(docID);
 
             for (int step = 0; step < nSteps; step++) {
+                System.out.println(step);
                 String[] entities = doc.getValues("spotlight");
                 String entity = entities[rand.nextInt(entities.length)];
                 doc = graphTransition(entity);
