@@ -14,19 +14,19 @@ import org.jooq.lambda.Seq;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.StreamSupport;
 
 //TODO: instead weight edges by BM25 score
 
 public class GraphAnalyzer {
     private IndexSearcher indexSearcher;
     Random rand = new Random();
-    HashMap<String, TopDocs> storedQueries = new HashMap<>();
-    HashMap<String, String[]> storedEntities = new HashMap<>();
-    HashMap<Integer, Document> storedDocuments = new HashMap<>();
+    ConcurrentHashMap<String, TopDocs> storedQueries = new ConcurrentHashMap<>();
+    ConcurrentHashMap<String, String[]> storedEntities = new ConcurrentHashMap<>();
+    ConcurrentHashMap<Integer, Document> storedDocuments = new ConcurrentHashMap<>();
 //    HashMap<String, HashMap<String, Double>> parModel = new HashMap<>();
 //    HashMap<String, HashMap<String, Double>> entityModel = new HashMap<>();
 
@@ -113,19 +113,32 @@ public class GraphAnalyzer {
         return new IndexSearcher(indexReader);
     }
 
+    public Model gett(Integer i) {
+        try {
+            return getModel(i);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static void main (String[] args) throws IOException {
 //        IndexSearcher is = createIndexSearcher("/home/hcgs/Desktop/myindex");
         IndexSearcher is = createIndexSearcher(args[0]);
         GraphAnalyzer ga = new GraphAnalyzer(is);
         Integer index = Integer.parseInt(args[1]);
-        Model m = ga.getModel(index);
+        List<Model> models = Seq.range(2, 10)
+                .parallel()
+                .map(ga::gett)
+                .toList();
+//        Model m = ga.getModel(index);
 //        System.out.println(m.parModel);
-        System.out.println(is.doc(index).get("text"));
-        Seq.seq(m.entityModel.entrySet())
-                .sorted(Map.Entry::getValue)
-                .reverse()
-                .take(60)
-                .forEach(System.out::println);
+//        System.out.println(is.doc(index).get("text"));
+//        Seq.seq(m.entityModel.entrySet())
+//                .sorted(Map.Entry::getValue)
+//                .reverse()
+//                .take(60)
+//                .forEach(System.out::println);
 //        EntityGraphBuilder eb = new EntityGraphBuilder(args[0]);
 //        GraphAnalyzer eb = new GraphAnalyzer("/home/hcgs/Desktop/myindex");
 //        eb.getQueryDocs();
