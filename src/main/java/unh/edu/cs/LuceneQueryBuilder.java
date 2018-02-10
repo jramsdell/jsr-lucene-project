@@ -227,14 +227,16 @@ class LuceneQueryBuilder {
 
     // Reranks according to cosine similarity
     private void rerankByCosineSim(TopDocs tops, String query) throws IOException {
-        List<String> queryTokens = getVectorWordTokens(query);
-        INDArray queryVector = gloveReader.getWordVector(queryTokens);
-        Seq.seq(Arrays.stream(tops.scoreDocs))
-                .map(sd -> new ImmutablePair<ScoreDoc, Double>(sd, getDocumentVectorScore(queryVector, sd)))
-                .sorted(ImmutablePair::getRight)
-                .reverse()
-                .map(ImmutablePair::getLeft)
-                .zip(Seq.range(0, tops.scoreDocs.length))
-                .forEach(it -> tops.scoreDocs[it.v2] = it.v1);
+        GraphAnalyzer ga = new GraphAnalyzer(indexSearcher);
+        ga.rerankTopDocs(tops);
+//        List<String> queryTokens = getVectorWordTokens(query);
+//        INDArray queryVector = gloveReader.getWordVector(queryTokens);
+//        Seq.seq(Arrays.stream(tops.scoreDocs))
+//                .map(sd -> new ImmutablePair<ScoreDoc, Double>(sd, getDocumentVectorScore(queryVector, sd)))
+//                .sorted(ImmutablePair::getRight)
+//                .reverse()
+//                .map(ImmutablePair::getLeft)
+//                .zip(Seq.range(0, tops.scoreDocs.length))
+//                .forEach(it -> tops.scoreDocs[it.v2] = it.v1);
     }
 }

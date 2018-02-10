@@ -36,6 +36,8 @@ public class GraphAnalyzer {
     }
 
     class Model {
+        int docId = 0;
+        String pid = "";
         public final HashMap<String, Double> parModel = new HashMap<>();
         public final HashMap<String, Double> entityModel = new HashMap<>();
     }
@@ -77,9 +79,10 @@ public class GraphAnalyzer {
         int nSteps = 5;
         int nWalks = 300;
         Document baseDoc = indexSearcher.doc(docID);
+        model.pid = baseDoc.get("paragraphid");
+        model.docId = docID;
 
         for (int walk = 0; walk < nWalks; walk++) {
-            System.out.println(walk);
             Document doc = baseDoc;
 
             for (int step = 0; step < nSteps; step++) {
@@ -120,6 +123,35 @@ public class GraphAnalyzer {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public void rerankTopDocs(TopDocs tops) {
+        ArrayList<Integer> ids = new ArrayList<>();
+        HashMap<Integer, Integer> indexMappings = new HashMap<>();
+        HashMap<String, Double> sinks = new HashMap<>();
+        for (int i = 0; i < tops.scoreDocs.length; i++) {
+            ids.add(tops.scoreDocs[i].doc);
+            indexMappings.put(tops.scoreDocs[i].doc, i);
+        }
+
+        ArrayList<Model> models = new ArrayList<>();
+        StreamSupport.stream(ids.spliterator(), true)
+                .parallel()
+                .map(this::gett)
+                .forEach(models::add);
+
+        Seq.seq(models)
+                .forEach( m -> {
+                    Double score = (double)tops.scoreDocs[indexMappings.get(m.docId)].score;
+                    m.entityModel.forEach(
+                            (k,v) -> sinks.merge(k, v * score, Double::sum));
+                });
+
+        Seq.seq(sinks.entrySet())
+                .sorted(Map.Entry::getValue)
+                .reverse()
+                .forEach(System.out::println);
+
     }
 
     public static void main (String[] args) throws IOException {
