@@ -1,8 +1,7 @@
 package unh.edu.cs;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.Term;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.*;
+import org.apache.lucene.index.*;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
@@ -23,10 +22,11 @@ import java.util.stream.StreamSupport;
 
 public class GraphAnalyzer {
     private IndexSearcher indexSearcher;
+    private IndexWriter indexWriter;
     Random rand = new Random();
-    ConcurrentHashMap<String, TopDocs> storedQueries = new ConcurrentHashMap<>();
-    ConcurrentHashMap<String, String[]> storedEntities = new ConcurrentHashMap<>();
-    ConcurrentHashMap<Integer, Document> storedDocuments = new ConcurrentHashMap<>();
+//    ConcurrentHashMap<String, TopDocs> storedQueries = new ConcurrentHashMap<>();
+//    ConcurrentHashMap<String, String[]> storedEntities = new ConcurrentHashMap<>();
+//    ConcurrentHashMap<Integer, Document> storedDocuments = new ConcurrentHashMap<>();
 //    HashMap<String, HashMap<String, Double>> parModel = new HashMap<>();
 //    HashMap<String, HashMap<String, Double>> entityModel = new HashMap<>();
 
@@ -53,7 +53,7 @@ public class GraphAnalyzer {
 //        }
 //    }
 
-    public Document graphTransition(String entity) throws IOException {
+    public Document graphTransition(String entity, HashMap<String, TopDocs> storedQueries, HashMap<Integer, Document> storedDocuments) throws IOException {
         TopDocs td;
         if (!storedQueries.containsKey(entity)) {
             TermQuery tq = new TermQuery(new Term("spotlight", entity));
@@ -74,6 +74,11 @@ public class GraphAnalyzer {
     }
 
     public Model getModel(int docID) throws IOException {
+        HashMap<String, TopDocs> storedQueries = new HashMap<>();
+        HashMap<String, String[]> storedEntities = new HashMap<>();
+        HashMap<Integer, Document> storedDocuments = new HashMap<>();
+
+
         final Model model = new Model();
 
         int nSteps = 5;
@@ -100,7 +105,7 @@ public class GraphAnalyzer {
                 if (entities.length <= 0)
                     break;
                 String entity = entities[rand.nextInt(entities.length)];
-                doc = graphTransition(entity);
+                doc = graphTransition(entity, storedQueries, storedDocuments);
                 model.entityModel.merge(entity, 1.0, Double::sum);
                 model.parModel.merge(doc.get("paragraphid"), 1.0, Double::sum);
             }
@@ -158,27 +163,68 @@ public class GraphAnalyzer {
 
     }
 
+    void initializeWriter(String indexOutLocation) throws IOException {
+        Path indexPath = Paths.get(indexOutLocation);
+        Directory indexOutDirectory = FSDirectory.open(indexPath);
+        IndexWriterConfig indexConfig = new IndexWriterConfig(new StandardAnalyzer());
+        indexWriter = new IndexWriter(indexOutDirectory, indexConfig);
+    }
+
+    public void writeModel(Model model) {
+        Document doc = new Document();
+        doc.add(new StringField("paragraphid", model.pid, Field.Store.YES));
+        model.entityModel.forEach((k,v) -> {
+            if (v >= 0.01) {
+                doc.add(new StringField("entity_distribution", k + " " + v.toString(), Field.Store.YES));
+            }
+        });
+
+        model.parModel.forEach((k,v) -> {
+            if (v >= 0.01) {
+                doc.add(new StringField("paragraph_distribution", k + " " + v.toString(), Field.Store.YES));
+            }
+        });
+
+        try {
+            indexWriter.addDocument(doc);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void main (String[] args) throws IOException {
 //        IndexSearcher is = createIndexSearcher("/home/hcgs/Desktop/myindex");
         IndexSearcher is = createIndexSearcher(args[0]);
         GraphAnalyzer ga = new GraphAnalyzer(is);
-        Integer index = Integer.parseInt(args[1]);
+        ga.initializeWriter(args[1]);
+        int maxCount = is.getIndexReader().maxDoc();
         ArrayList<Integer> indices = new ArrayList<>();
-        for (int i = 2; i < 10; i++) {
+        for (int i = 0; i < maxCount; i++) {
             indices.add(i);
         }
-        ArrayList<Model> models = new ArrayList<>();
-        StreamSupport.stream(indices.spliterator(), true)
-                .parallel()
+
+        indices.parallelStream()
                 .map(ga::gett)
-                .forEach(models::add);
-        models.forEach(m ->{
-            Seq.seq(m.parModel.entrySet())
-                    .sorted(Map.Entry::getValue)
-                    .reverse()
-                    .take(8)
-                    .forEach(System.out::println);
-        });
+                .forEach(ga::writeModel);
+
+
+//        Integer index = Integer.parseInt(args[1]);
+//        ArrayList<Integer> indices = new ArrayList<>();
+//        for (int i = 2; i < 10; i++) {
+//            indices.add(i);
+//        }
+//        ArrayList<Model> models = new ArrayList<>();
+//        StreamSupport.stream(indices.spliterator(), true)
+//                .parallel()
+//                .map(ga::gett)
+//                .forEach(models::add);
+//        models.forEach(m ->{
+//            Seq.seq(m.parModel.entrySet())
+//                    .sorted(Map.Entry::getValue)
+//                    .reverse()
+//                    .take(8)
+//                    .forEach(System.out::println);
+//        });
 //        List<Model> models = Seq.range(2, 10)
 //                .parallel()
 //                .map(ga::gett)
