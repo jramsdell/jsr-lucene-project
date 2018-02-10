@@ -96,6 +96,7 @@ public class GraphAnalyzer {
                 }
 
 //                String[] entities = doc.getValues("spotlight");
+                // TODO: fix this
                 if (entities.length <= 0)
                     break;
                 String entity = entities[rand.nextInt(entities.length)];
@@ -152,6 +153,7 @@ public class GraphAnalyzer {
         Seq.seq(sinks.entrySet())
                 .sorted(Map.Entry::getValue)
                 .reverse()
+                .take(12)
                 .forEach(System.out::println);
 
     }
