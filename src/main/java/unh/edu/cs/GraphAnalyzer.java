@@ -75,7 +75,7 @@ public class GraphAnalyzer {
         final Model model = new Model();
 
         int nSteps = 5;
-        int nWalks = 800;
+        int nWalks = 300;
         Document baseDoc = indexSearcher.doc(docID);
 
         for (int walk = 0; walk < nWalks; walk++) {
@@ -136,6 +136,13 @@ public class GraphAnalyzer {
                 .parallel()
                 .map(ga::gett)
                 .forEach(models::add);
+        models.forEach(m ->{
+            Seq.seq(m.parModel.entrySet())
+                    .sorted(Map.Entry::getValue)
+                    .reverse()
+                    .take(8)
+                    .forEach(System.out::println);
+        });
 //        List<Model> models = Seq.range(2, 10)
 //                .parallel()
 //                .map(ga::gett)
