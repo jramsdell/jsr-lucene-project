@@ -96,6 +96,8 @@ public class GraphAnalyzer {
                 }
 
 //                String[] entities = doc.getValues("spotlight");
+                if (entities.length <= 0)
+                    continue;
                 String entity = entities[rand.nextInt(entities.length)];
                 doc = graphTransition(entity);
                 model.entityModel.merge(entity, 1.0, Double::sum);
