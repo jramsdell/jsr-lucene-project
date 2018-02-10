@@ -127,10 +127,19 @@ public class GraphAnalyzer {
         IndexSearcher is = createIndexSearcher(args[0]);
         GraphAnalyzer ga = new GraphAnalyzer(is);
         Integer index = Integer.parseInt(args[1]);
-        List<Model> models = Seq.range(2, 10)
+        ArrayList<Integer> indices = new ArrayList<>();
+        for (int i = 2; i < 10; i++) {
+            indices.add(i);
+        }
+        ArrayList<Model> models = new ArrayList<>();
+        StreamSupport.stream(indices.spliterator(), true)
                 .parallel()
                 .map(ga::gett)
-                .toList();
+                .forEach(models::add);
+//        List<Model> models = Seq.range(2, 10)
+//                .parallel()
+//                .map(ga::gett)
+//                .toList();
 //        Model m = ga.getModel(index);
 //        System.out.println(m.parModel);
 //        System.out.println(is.doc(index).get("text"));
