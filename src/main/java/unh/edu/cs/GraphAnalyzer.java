@@ -172,6 +172,9 @@ public class GraphAnalyzer {
 
     public void writeModel(Model model) {
         Document doc = new Document();
+        if (model.docId % 10000 == 0) {
+            System.out.println(model.docId);
+        }
         doc.add(new StringField("paragraphid", model.pid, Field.Store.YES));
         model.entityModel.forEach((k,v) -> {
             if (v >= 0.01) {
