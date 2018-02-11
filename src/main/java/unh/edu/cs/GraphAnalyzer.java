@@ -8,6 +8,7 @@ import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.BytesRef;
 import org.jooq.lambda.Seq;
 
 import java.io.IOException;
@@ -199,7 +200,14 @@ public class GraphAnalyzer {
 //        IndexSearcher is = createIndexSearcher("/home/hcgs/Desktop/myindex");
         IndexSearcher is = createIndexSearcher(args[0]);
         Fields fields = MultiFields.getFields(is.getIndexReader());
-        System.out.println(fields.terms("spotlight").size());
+        TermsEnum terms = fields.terms("spotlight").iterator();
+        BytesRef bytesRef = terms.next();
+        int counter = 0;
+        while (bytesRef != null) {
+            counter += 1;
+            bytesRef = terms.next();
+        }
+        System.out.println(counter);
 
 //        IndexSearcher is = createIndexSearcher(args[0]);
 
