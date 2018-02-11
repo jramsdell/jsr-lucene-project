@@ -1,5 +1,6 @@
 package unh.edu.cs;
 
+import com.sun.corba.se.impl.orbutil.graph.Graph;
 import edu.unh.cs.treccar_v2.Data;
 import edu.unh.cs.treccar_v2.read_data.DeserializeData;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -37,6 +38,7 @@ class LuceneQueryBuilder {
     private IndexSearcher indexSearcher;
     private Analyzer analyzer;
     private QueryType queryType;
+    private GraphAnalyzer graphAnalyzer;
     private GloveReader gloveReader;
     private final String command;
 
@@ -47,6 +49,7 @@ class LuceneQueryBuilder {
         queryType = qType;
         createIndexSearcher(indexPath);
         indexSearcher.setSimilarity(sim);
+        graphAnalyzer = new GraphAnalyzer(indexSearcher);
     }
 
     // Used by word vector variation: creates a reader from 50D GloVE word vector file.
@@ -164,11 +167,12 @@ class LuceneQueryBuilder {
             if (command.equals("query_vector")) {
                 rerankByCosineSim(tops, queryStr);
             } else if (command.equals("query_special")) {
-                rerankBySpecial(tops);;
+                rerankBySpecial(tops);
             }
             ScoreDoc[] scoreDoc = tops.scoreDocs;
             writeRankingsToFile(scoreDoc, queryId, out, ids);
         }
+        graphAnalyzer.writeTerms();
     }
 
     void writeSectionRankings(FileInputStream inputStream, BufferedWriter out) throws IOException {
@@ -231,7 +235,8 @@ class LuceneQueryBuilder {
 
     private void rerankBySpecial(TopDocs tops) throws IOException {
         GraphAnalyzer ga = new GraphAnalyzer(indexSearcher);
-        ga.rerankTopDocs(tops);
+//        ga.rerankTopDocs(tops);
+        ga.recordTerms(tops);
     }
 
     // Reranks according to cosine similarity

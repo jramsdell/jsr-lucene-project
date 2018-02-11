@@ -169,6 +169,32 @@ public class GraphAnalyzer {
         return null;
     }
 
+    public void recordTerms(TopDocs tops) throws IOException {
+        for (int i = 0; i < tops.scoreDocs.length; i++) {
+            String[] terms = indexSearcher.doc(tops.scoreDocs[i].doc).getValues("spotlight");
+            for (String term : terms) {
+                getTermMap(term);
+            }
+        }
+        System.out.println(".");
+    }
+
+    public void writeTerms() throws IOException {
+        initializeWriter("termMaps");
+        storedTerms.forEach((k,v) -> {
+            Document doc = new Document();
+            doc.add(new StringField("term", k, Field.Store.YES));
+            v.forEach((tmap, tvalue) -> {
+                doc.add(new StringField("distribution", tmap + " " + tvalue.toString(), Field.Store.YES));
+            });
+            try {
+                indexWriter.addDocument(doc);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
     public void rerankTopDocs(TopDocs tops) {
         ArrayList<Integer> ids = new ArrayList<>();
         HashMap<Integer, Integer> indexMappings = new HashMap<>();
