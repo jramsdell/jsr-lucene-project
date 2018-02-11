@@ -170,12 +170,21 @@ public class GraphAnalyzer {
     }
 
     public void recordTerms(TopDocs tops) throws IOException {
+        ArrayList<Integer> ids = new ArrayList<>();
         for (int i = 0; i < tops.scoreDocs.length; i++) {
-            String[] terms = indexSearcher.doc(tops.scoreDocs[i].doc).getValues("spotlight");
-            for (String term : terms) {
-                getTermMap(term);
-            }
+            ids.add(i);
         }
+        ids.parallelStream()
+                .forEach(v -> {
+                    try {
+                        String[] terms = indexSearcher.doc(tops.scoreDocs[v].doc).getValues("spotlight");
+                        for (String term : terms) {
+                            getTermMap(term);
+                        }
+                    } catch (IOException e) {
+                    }
+                });
+
         System.out.println(".");
     }
 
