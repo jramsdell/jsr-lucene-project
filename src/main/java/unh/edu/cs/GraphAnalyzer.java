@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.StreamSupport;
 
 //TODO: instead weight edges by BM25 score
@@ -28,7 +29,7 @@ public class GraphAnalyzer {
 //    ConcurrentHashMap<Integer, Document> storedDocuments = new ConcurrentHashMap<>();
 //    HashMap<String, HashMap<String, Double>> parModel = new HashMap<>();
 //    HashMap<String, HashMap<String, Double>> entityModel = new HashMap<>();
-    HashMap<String, HashMap<String, Double>> storedTerms = new HashMap<>();
+    ConcurrentHashMap<String, HashMap<String, Double>> storedTerms = new ConcurrentHashMap<>();
 
     GraphAnalyzer(IndexSearcher id) throws IOException {
         indexSearcher = id;
@@ -38,6 +39,7 @@ public class GraphAnalyzer {
     class Model {
         int docId = 0;
         String pid = "";
+        Double score = 0.0;
         public final HashMap<String, Double> parModel = new HashMap<>();
         public final HashMap<String, Double> entityModel = new HashMap<>();
     }
@@ -185,15 +187,34 @@ public class GraphAnalyzer {
         Seq.seq(models)
                 .forEach( m -> {
                     Double score = (double)tops.scoreDocs[indexMappings.get(m.docId)].score;
+                    m.score = score;
                     m.entityModel.forEach(
                             (k,v) -> sinks.merge(k, v * score, Double::sum));
                 });
 
-        Seq.seq(sinks.entrySet())
-                .sorted(Map.Entry::getValue)
+//        Seq.seq(sinks.entrySet())
+//                .sorted(Map.Entry::getValue)
+//                .reverse()
+//                .take(12)
+//                .forEach(System.out::println);
+
+        Seq.seq(models)
+                .forEach( m -> {
+                    if (!m.entityModel.isEmpty()) {
+                        m.score = 0.0;
+                    }
+                    m.entityModel.forEach((k,v) -> m.score += sinks.get(k) * v);
+                });
+        Seq.seq(models)
+                .sorted(m -> m.score)
                 .reverse()
-                .take(12)
-                .forEach(System.out::println);
+                .zip(Seq.range(0, tops.scoreDocs.length))
+                .forEach(m -> {
+                    tops.scoreDocs[m.v2].score = m.v1.score.floatValue();
+                    tops.scoreDocs[m.v2].doc = m.v1.docId;
+                });
+        System.out.print(".");
+
 
     }
 
