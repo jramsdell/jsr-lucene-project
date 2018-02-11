@@ -28,6 +28,7 @@ public class GraphAnalyzer {
 //    ConcurrentHashMap<Integer, Document> storedDocuments = new ConcurrentHashMap<>();
 //    HashMap<String, HashMap<String, Double>> parModel = new HashMap<>();
 //    HashMap<String, HashMap<String, Double>> entityModel = new HashMap<>();
+    HashMap<String, HashMap<String, Double>> storedTerms = new HashMap<>();
 
     GraphAnalyzer(IndexSearcher id) throws IOException {
         indexSearcher = id;
@@ -73,6 +74,10 @@ public class GraphAnalyzer {
     }
 
     public HashMap<String, Double> getTermMap(String entity) throws IOException {
+        if (storedTerms.containsKey(entity)) {
+            return storedTerms.get(entity);
+        }
+
         TermQuery tq = new TermQuery(new Term("spotlight", entity));
         TopDocs td = indexSearcher.search(tq, 1000000);
         HashMap<String, Double> termCounts = new HashMap<>();
@@ -88,6 +93,7 @@ public class GraphAnalyzer {
 
         final Double total = (double)counter;
         termCounts.replaceAll((k,v) -> v / total);
+        storedTerms.put(entity, termCounts);
         return termCounts;
     }
 
@@ -104,34 +110,41 @@ public class GraphAnalyzer {
         Document baseDoc = indexSearcher.doc(docID);
         model.pid = baseDoc.get("paragraphid");
         model.docId = docID;
-
-        for (int walk = 0; walk < nWalks; walk++) {
-            Document doc = baseDoc;
-
-            for (int step = 0; step < nSteps; step++) {
-                String pid = doc.get("paragraphid");
-                String[] entities;
-                if (!storedEntities.containsKey(pid)) {
-                    entities = doc.getValues("spotlight");
-                    storedEntities.put(pid, entities);
-                } else {
-                    entities = storedEntities.get(pid);
-                }
-
-//                String[] entities = doc.getValues("spotlight");
-                // TODO: fix this
-                if (entities.length <= 0)
-                    break;
-                String entity = entities[rand.nextInt(entities.length)];
-                doc = graphTransition(entity, storedQueries, storedDocuments);
-                model.entityModel.merge(entity, 1.0, Double::sum);
-                model.parModel.merge(doc.get("paragraphid"), 1.0, Double::sum);
-            }
+        String[] entities = baseDoc.getValues("spotlight");
+        for (String entity : entities) {
+            HashMap<String, Double> termCounts = getTermMap(entity);
+            termCounts.forEach((k,v) -> model.entityModel.merge(k, v, Double::sum));
         }
-
-        Double total = (double)nSteps * nWalks;
+        Double total = Seq.seq(model.entityModel.values()).sum().get();
         model.entityModel.replaceAll((k,v) -> v / total);
-        model.parModel.replaceAll((k,v) -> v / total);
+
+//        for (int walk = 0; walk < nWalks; walk++) {
+//            Document doc = baseDoc;
+//
+//            for (int step = 0; step < nSteps; step++) {
+//                String pid = doc.get("paragraphid");
+//                String[] entities;
+//                if (!storedEntities.containsKey(pid)) {
+//                    entities = doc.getValues("spotlight");
+//                    storedEntities.put(pid, entities);
+//                } else {
+//                    entities = storedEntities.get(pid);
+//                }
+//
+////                String[] entities = doc.getValues("spotlight");
+//                // TODO: fix this
+//                if (entities.length <= 0)
+//                    break;
+//                String entity = entities[rand.nextInt(entities.length)];
+//                doc = graphTransition(entity, storedQueries, storedDocuments);
+//                model.entityModel.merge(entity, 1.0, Double::sum);
+//                model.parModel.merge(doc.get("paragraphid"), 1.0, Double::sum);
+//            }
+//        }
+//
+//        Double total = (double)nSteps * nWalks;
+//        model.entityModel.replaceAll((k,v) -> v / total);
+//        model.parModel.replaceAll((k,v) -> v / total);
         return model;
     }
 
