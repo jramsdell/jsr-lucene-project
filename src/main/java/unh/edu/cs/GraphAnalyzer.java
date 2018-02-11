@@ -76,9 +76,9 @@ public class GraphAnalyzer {
     }
 
     public HashMap<String, Double> getTermMap(String entity) throws IOException {
-        if (storedTerms.containsKey(entity)) {
-            return storedTerms.get(entity);
-        }
+//        if (storedTerms.containsKey(entity)) {
+//            return storedTerms.get(entity);
+//        }
 
         TermQuery tq = new TermQuery(new Term("spotlight", entity));
         TopDocs td = indexSearcher.search(tq, 1000000);
@@ -95,7 +95,7 @@ public class GraphAnalyzer {
 
         final Double total = (double)counter;
         termCounts.replaceAll((k,v) -> v / total);
-        storedTerms.put(entity, termCounts);
+//        storedTerms.put(entity, termCounts);
         return termCounts;
     }
 

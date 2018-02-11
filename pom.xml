@@ -65,7 +65,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>unh.edu.cs.Main</mainClass>
+                            <mainClass>unh.edu.cs.GraphAnalyzer</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
