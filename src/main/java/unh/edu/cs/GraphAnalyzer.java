@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.stream.StreamSupport;
 
 //TODO: instead weight edges by BM25 score
@@ -285,27 +286,60 @@ public class GraphAnalyzer {
         }
     }
 
+    public void writeTermMap(HashMap<String, Double> termMap, String entity) throws IOException {
+        Document doc = new Document();
+        doc.add(new StringField("term", entity, Field.Store.YES));
+        termMap.forEach((k,v) -> {
+            doc.add(new StringField("distribution", k + " " + v.toString(), Field.Store.YES));
+        });
+        indexWriter.addDocument(doc);
+    }
+
+
+
+
     public static void main (String[] args) throws IOException {
 //        IndexSearcher is = createIndexSearcher("/home/hcgs/Desktop/myindex");
         IndexSearcher is = createIndexSearcher(args[0]);
         GraphAnalyzer ga = new GraphAnalyzer(is);
+        ga.initializeWriter("entity_index");
         Fields fields = MultiFields.getFields(is.getIndexReader());
         TermsEnum terms = fields.terms("spotlight").iterator();
+        ArrayList<String> termList = new ArrayList<>();
         BytesRef bytesRef = terms.next();
         int counter = 0;
         while (bytesRef != null) {
             String term = bytesRef.utf8ToString();
+            termList.add(term);
+            if (termList.size() >= 1000) {
+                termList.parallelStream()
+                        .forEach(entity -> {
+                            try {
+                                HashMap<String, Double> termMap = ga.getTermMap(entity);
+                                ga.writeTermMap(termMap, entity);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        });
+
+                termList.clear();
+            }
             counter += 1;
-            HashMap<String, Double> termCounts = ga.getTermMap(term);
             if (counter % 100 == 0) {
-                Seq.seq(termCounts.entrySet())
-                        .sorted(Map.Entry::getValue)
-                        .reverse()
-                        .take(20)
-                        .forEach(System.out::println);
+                System.out.println(counter);
             }
             bytesRef = terms.next();
         }
+
+        termList.parallelStream()
+                .forEach(entity -> {
+                    try {
+                        HashMap<String, Double> termMap = ga.getTermMap(entity);
+                        ga.writeTermMap(termMap, entity);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
 
 //        IndexSearcher is = createIndexSearcher(args[0]);
 
