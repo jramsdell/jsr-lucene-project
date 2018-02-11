@@ -15,8 +15,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
 //TODO: instead weight edges by BM25 score
@@ -72,6 +70,25 @@ public class GraphAnalyzer {
             doc = storedDocuments.get(sc.doc);
         }
         return doc;
+    }
+
+    public HashMap<String, Double> getTermMap(String entity) throws IOException {
+        TermQuery tq = new TermQuery(new Term("spotlight", entity));
+        TopDocs td = indexSearcher.search(tq, 1000000);
+        HashMap<String, Double> termCounts = new HashMap<>();
+        int counter = 0;
+        for (ScoreDoc sc : td.scoreDocs) {
+            Document doc = indexSearcher.doc(sc.doc);
+            String[] terms = doc.getValues("spotlight");
+            for (String term : terms) {
+                counter++;
+                termCounts.merge(term, 1.0, Double::sum);
+            }
+        }
+
+        final Double total = (double)counter;
+        termCounts.replaceAll((k,v) -> v / total);
+        return termCounts;
     }
 
     public Model getModel(int docID) throws IOException {
@@ -199,15 +216,20 @@ public class GraphAnalyzer {
     public static void main (String[] args) throws IOException {
 //        IndexSearcher is = createIndexSearcher("/home/hcgs/Desktop/myindex");
         IndexSearcher is = createIndexSearcher(args[0]);
+        GraphAnalyzer ga = new GraphAnalyzer(is);
         Fields fields = MultiFields.getFields(is.getIndexReader());
         TermsEnum terms = fields.terms("spotlight").iterator();
         BytesRef bytesRef = terms.next();
         int counter = 0;
         while (bytesRef != null) {
+            String term = bytesRef.utf8ToString();
             counter += 1;
+            if (counter % 1000 == 0) {
+                System.out.println(counter);
+            }
+            ga.getTermMap(term);
             bytesRef = terms.next();
         }
-        System.out.println(counter);
 
 //        IndexSearcher is = createIndexSearcher(args[0]);
 
