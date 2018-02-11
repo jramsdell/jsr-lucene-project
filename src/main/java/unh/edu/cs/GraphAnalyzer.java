@@ -198,17 +198,24 @@ public class GraphAnalyzer {
     public static void main (String[] args) throws IOException {
 //        IndexSearcher is = createIndexSearcher("/home/hcgs/Desktop/myindex");
         IndexSearcher is = createIndexSearcher(args[0]);
-        GraphAnalyzer ga = new GraphAnalyzer(is);
-        ga.initializeWriter(args[1]);
-        int maxCount = is.getIndexReader().maxDoc();
-        ArrayList<Integer> indices = new ArrayList<>();
-        for (int i = 0; i < maxCount; i++) {
-            indices.add(i);
-        }
+        Fields fields = MultiFields.getFields(is.getIndexReader());
+        System.out.println(fields.terms("spotlight").size());
 
-        indices.parallelStream()
-                .map(ga::gett)
-                .forEach(ga::writeModel);
+//        IndexSearcher is = createIndexSearcher(args[0]);
+
+
+
+//        GraphAnalyzer ga = new GraphAnalyzer(is);
+//        ga.initializeWriter(args[1]);
+//        int maxCount = is.getIndexReader().maxDoc();
+//        ArrayList<Integer> indices = new ArrayList<>();
+//        for (int i = 0; i < maxCount; i++) {
+//            indices.add(i);
+//        }
+//
+//        indices.parallelStream()
+//                .map(ga::gett)
+//                .forEach(ga::writeModel);
 
 
 //        Integer index = Integer.parseInt(args[1]);
