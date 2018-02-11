@@ -224,10 +224,14 @@ public class GraphAnalyzer {
         while (bytesRef != null) {
             String term = bytesRef.utf8ToString();
             counter += 1;
-            if (counter % 1000 == 0) {
-                System.out.println(counter);
+            HashMap<String, Double> termCounts = ga.getTermMap(term);
+            if (counter % 100 == 0) {
+                Seq.seq(termCounts.entrySet())
+                        .sorted(Map.Entry::getValue)
+                        .reverse()
+                        .take(20)
+                        .forEach(System.out::println);
             }
-            ga.getTermMap(term);
             bytesRef = terms.next();
         }
 
