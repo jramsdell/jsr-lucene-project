@@ -1,15 +1,15 @@
 package unh.edu.cs;
+import edu.unh.cs.treccar_v2.Data;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.*;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TermQuery;
-import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
+import org.apache.lucene.util.QueryBuilder;
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple2;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -17,12 +17,14 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 //TODO: instead weight edges by BM25 score
 
 public class GraphAnalyzer {
     private IndexSearcher indexSearcher;
+    private IndexSearcher entitySearcher;
     private IndexWriter indexWriter;
     Random rand = new Random();
 //    ConcurrentHashMap<String, TopDocs> storedQueries = new ConcurrentHashMap<>();
@@ -34,7 +36,11 @@ public class GraphAnalyzer {
 
     GraphAnalyzer(IndexSearcher id) throws IOException {
         indexSearcher = id;
+    }
 
+    GraphAnalyzer(IndexSearcher id, IndexSearcher ed) throws IOException {
+        indexSearcher = id;
+        entitySearcher = ed;
     }
 
     class Model {
@@ -43,6 +49,12 @@ public class GraphAnalyzer {
         Double score = 0.0;
         public final HashMap<String, Double> parModel = new HashMap<>();
         public final HashMap<String, Double> entityModel = new HashMap<>();
+    }
+
+    class ParagraphMixture {
+        int docId = 0;
+        Double score = 0.0;
+        public HashMap<String, Double> entityMixture = new HashMap<>();
     }
 
 
@@ -215,33 +227,22 @@ public class GraphAnalyzer {
         }
 
         ArrayList<Model> models = new ArrayList<>();
-        StreamSupport.stream(ids.spliterator(), true)
-                .parallel()
-                .map(this::gett)
-                .forEach(models::add);
 
-        Seq.seq(models)
-                .forEach( m -> {
-                    Double score = (double)tops.scoreDocs[indexMappings.get(m.docId)].score;
-                    m.score = score;
-                    m.entityModel.forEach(
-                            (k,v) -> sinks.merge(k, v * score, Double::sum));
+        List<ParagraphMixture> mixtures =
+                ids.parallelStream()
+                .map(this::getParagraphMixture)
+                .collect(Collectors.toList());
+
+        mixtures.forEach(pm -> pm.entityMixture.forEach((k, v) -> sinks.merge(k, v * pm.score, Double::sum)));
+        mixtures.forEach(pm -> {
+            if (pm.entityMixture.isEmpty()) {
+                pm.score = 0.0;
+            }
+            pm.entityMixture.forEach((k,v) -> pm.score += sinks.get(k) * v);
                 });
 
-//        Seq.seq(sinks.entrySet())
-//                .sorted(Map.Entry::getValue)
-//                .reverse()
-//                .take(12)
-//                .forEach(System.out::println);
 
-        Seq.seq(models)
-                .forEach( m -> {
-                    if (!m.entityModel.isEmpty()) {
-                        m.score = 0.0;
-                    }
-                    m.entityModel.forEach((k,v) -> m.score += sinks.get(k) * v);
-                });
-        Seq.seq(models)
+        Seq.seq(mixtures)
                 .sorted(m -> m.score)
                 .reverse()
                 .zip(Seq.range(0, tops.scoreDocs.length))
@@ -249,9 +250,6 @@ public class GraphAnalyzer {
                     tops.scoreDocs[m.v2].score = m.v1.score.floatValue();
                     tops.scoreDocs[m.v2].doc = m.v1.docId;
                 });
-        System.out.print(".");
-
-
     }
 
     void initializeWriter(String indexOutLocation) throws IOException {
@@ -290,12 +288,53 @@ public class GraphAnalyzer {
         Document doc = new Document();
         doc.add(new StringField("term", entity, Field.Store.YES));
         termMap.forEach((k,v) -> {
-            doc.add(new StringField("distribution", k + " " + v.toString(), Field.Store.YES));
+            doc.add(new StringField("distribution", k + " " + v.toString(), Field.Store.NO));
         });
         indexWriter.addDocument(doc);
     }
 
 
+    public HashMap<String, Double> getEntityMixture(String[] entities) throws IOException {
+        HashMap<String, Double> mixture = new HashMap<>();
+        int counter = 0;
+        for (String entity : entities) {
+            counter++;
+            TermQuery tq = new TermQuery(new Term("term", entity));
+            String[] distribution;
+            TopDocs td = entitySearcher.search(tq, 1);
+            distribution = entitySearcher.doc(td.scoreDocs[0].doc).getValues("distribution");
+            Seq.of(distribution)
+                    .map(m -> {
+                        String[] elements = m.split(" ");
+                        return new Tuple2<String, Double>(elements[0], Double.parseDouble(elements[1]));
+                            })
+                    .forEach(t -> mixture.merge(t.v1, t.v2, Double::sum));
+        }
+
+        Double total = (double)counter;
+        mixture.replaceAll((k,v) -> v / total);
+        return mixture;
+    }
+
+    public ParagraphMixture getParagraphMixture(int docId) {
+        ParagraphMixture pm = new ParagraphMixture();
+        pm.docId = docId;
+        Document doc;
+        try {
+            doc = indexSearcher.doc(docId);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return pm;
+        }
+
+        String[] entities = doc.getValues("spotlight");
+        try {
+            pm.entityMixture = getEntityMixture(entities);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return pm;
+    }
 
 
     public static void main (String[] args) throws IOException {

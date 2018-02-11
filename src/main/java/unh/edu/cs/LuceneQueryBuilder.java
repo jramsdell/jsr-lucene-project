@@ -47,9 +47,11 @@ class LuceneQueryBuilder {
         analyzer = ana;
         command = com;
         queryType = qType;
-        createIndexSearcher(indexPath);
+        indexSearcher = createIndexSearcher(indexPath);
         indexSearcher.setSimilarity(sim);
-        graphAnalyzer = new GraphAnalyzer(indexSearcher);
+
+        IndexSearcher entitySearcher = createIndexSearcher("distribution_index");
+        graphAnalyzer = new GraphAnalyzer(indexSearcher, entitySearcher);
     }
 
     // Used by word vector variation: creates a reader from 50D GloVE word vector file.
@@ -201,11 +203,11 @@ class LuceneQueryBuilder {
     }
 
     // Initializes index searcher that will be used to query indexed Lucene database
-    private void createIndexSearcher(String iPath) throws IOException {
+    private IndexSearcher createIndexSearcher(String iPath) throws IOException {
         Path indexPath = Paths.get(iPath);
         Directory indexDir = FSDirectory.open(indexPath);
         IndexReader indexReader = DirectoryReader.open(indexDir);
-        indexSearcher = new IndexSearcher(indexReader);
+        return new IndexSearcher(indexReader);
     }
 
     // Tokenizes a string
