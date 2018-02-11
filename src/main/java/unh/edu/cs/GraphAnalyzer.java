@@ -115,6 +115,9 @@ public class GraphAnalyzer {
             HashMap<String, Double> termCounts = getTermMap(entity);
             termCounts.forEach((k,v) -> model.entityModel.merge(k, v, Double::sum));
         }
+        if (model.entityModel.isEmpty()) {
+            return model;
+        }
         Double total = Seq.seq(model.entityModel.values()).sum().get();
         model.entityModel.replaceAll((k,v) -> v / total);
 
