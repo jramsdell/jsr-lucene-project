@@ -384,7 +384,7 @@ public class GraphAnalyzer {
 //                    })
 //                    .forEach(t -> mixture.merge(t.v1, t.v2, Double::sum));
         }
-        System.out.println("Failures: " + failures);
+        System.out.println("Failures: " + failures + ", entities: " + entities.length);
 
         Double total = 0.0;
         for (Double v: mixture.values()) {
