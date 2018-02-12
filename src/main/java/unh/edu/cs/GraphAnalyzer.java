@@ -343,7 +343,6 @@ public class GraphAnalyzer {
 //                break;
 //            }
         }
-        System.out.println("Yay");
         return pairs;
     }
 
