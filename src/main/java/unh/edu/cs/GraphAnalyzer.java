@@ -322,36 +322,13 @@ public class GraphAnalyzer {
                 String entity = s.substring(cur + 1, space);
                 String value = s.substring(space + 1, next);
                 mixture.merge(entity, Double.parseDouble(value), Double::sum);
+                cur = next;
             } catch (StringIndexOutOfBoundsException e) {
-                System.out.println("cur: " + cur + "space: " + space);
-                throw e;
+                cur = next;
+                continue;
             }
-//            System.out.println(entity + " " + value);
-//            pairs.add(new ImmutablePair<String,Double>(entity, Double.parseDouble(value)));
 
-            cur = next;
 
-//            if (space > 0) {
-//                String entity = s.substring(last, space);
-//                Double value;
-//                if (cur < 0) {
-//                    value = Double.parseDouble(s.substring(space));
-//                } else {
-//                    try {
-//                        value = Double.parseDouble(s.substring(space, s.indexOf("$", cur)));
-//                    } catch (StringIndexOutOfBoundsException e) {
-//                        System.out.println("Space: " + space + " cur: " + cur);
-//                        value = 0.0;
-//                    }
-//                }
-//                System.out.println("Got here");
-//
-//                pairs.add(new ImmutablePair<String,Double>(entity, value));
-//            }
-//
-//            if (cur == -1) {
-//                break;
-//            }
         }
         return pairs;
     }
