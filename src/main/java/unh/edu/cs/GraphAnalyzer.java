@@ -352,7 +352,6 @@ public class GraphAnalyzer {
         HashMap<String, Double> mixture = new HashMap<>();
         int counter = 0;
         for (String entity : entities) {
-            counter++;
 //            TermQuery tq = new TermQuery(new Term("term", entity));
 //            String[] distribution;
 //            TopDocs td = entitySearcher.search(tq, 1);
@@ -363,6 +362,7 @@ public class GraphAnalyzer {
             } catch (StringIndexOutOfBoundsException e) {
                 continue;
             }
+            counter++;
 
 
 //            String[] distribution = cmap.get(entity).split("w");
@@ -381,6 +381,8 @@ public class GraphAnalyzer {
 
         Double total = (double)counter;
         mixture.replaceAll((k,v) -> v / total);
+        mixture.forEach((k,v) -> System.out.println(k + ": " + v));
+        System.out.println("_____");
         return mixture;
     }
 
