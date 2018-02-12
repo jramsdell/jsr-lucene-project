@@ -40,11 +40,12 @@ public class GraphAnalyzer {
     ConcurrentHashMap<String, HashMap<String, Double>> storedTerms = new ConcurrentHashMap<>();
 
     GraphAnalyzer(IndexSearcher id) throws IOException {
+//        DB.HashMapMaker<?, ?> something = DBMaker.memoryShardedHashMap(30);
         indexSearcher = id;
-        db = DBMaker.fileDB("entity_db.db").fileLockDisable().fileMmapEnable().make();
-        cmap = db.hashMap("map", Serializer.STRING, Serializer.STRING).createOrOpen();
-        db.close();
-        db = DBMaker.fileDB("entity_db.db").fileMmapEnable().make();
+//        db = DBMaker.fileDB("entity_db.db").fileLockDisable().fileMmapEnable().make();
+//        cmap = db.hashMap("map", Serializer.STRING, Serializer.STRING).createOrOpen();
+//        db.close();
+        db = DBMaker.fileDB("entity_db.db").fileMmapEnable().concurrencyScale(60).make();
         cmap = db.hashMap("map", Serializer.STRING, Serializer.STRING).createOrOpen();
     }
 
