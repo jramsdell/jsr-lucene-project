@@ -1,5 +1,4 @@
 package unh.edu.cs;
-import com.sun.xml.internal.fastinfoset.util.CharArray;
 import edu.unh.cs.treccar_v2.Data;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
