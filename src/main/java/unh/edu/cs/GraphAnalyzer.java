@@ -317,6 +317,7 @@ public class GraphAnalyzer {
             String entity = s.substring(cur + 1, space);
             String value = s.substring(space + 1, next);
 //            System.out.println(entity + " " + value);
+            pairs.add(new ImmutablePair<String,Double>(entity, Double.parseDouble(value)));
 
             cur = next;
 
