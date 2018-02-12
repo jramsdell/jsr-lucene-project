@@ -322,8 +322,8 @@ public class GraphAnalyzer {
                 String entity = s.substring(cur + 1, space);
                 String value = s.substring(space + 1, next);
                 mixture.merge(entity, Double.parseDouble(value), Double::sum);
-                System.out.println("cur: " + cur + "space: " + space);
             } catch (StringIndexOutOfBoundsException e) {
+                System.out.println("cur: " + cur + "space: " + space);
                 throw e;
             }
 //            System.out.println(entity + " " + value);
