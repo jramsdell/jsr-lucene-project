@@ -75,13 +75,13 @@ class LuceneIndexBuilder {
         }
 
         // index DBpedia entities
-        if (indexType == IndexType.SPOTLIGHT) {
+//        if (indexType == IndexType.SPOTLIGHT) {
             // Query local spotlight server using EntityLinker
             EntityLinker entityLinker = new EntityLinker(content);
             for (String entity : entityLinker.run()) {
                 doc.add(new StringField("spotlight", entity, Field.Store.YES));
             }
-        }
+//        }
 
         // index top 10% bigrams
         BigramAnalyzer bigramAnalyzer = new BigramAnalyzer(content);
