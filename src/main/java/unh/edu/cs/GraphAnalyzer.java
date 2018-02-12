@@ -43,6 +43,8 @@ public class GraphAnalyzer {
         indexSearcher = id;
         db = DBMaker.fileDB("entity_db.db").fileLockDisable().fileMmapEnable().make();
         cmap = db.hashMap("map", Serializer.STRING, Serializer.STRING).createOrOpen();
+        db.close();
+        System.exit(0);
     }
 
 
@@ -185,24 +187,6 @@ public class GraphAnalyzer {
         return null;
     }
 
-    public void recordTerms(TopDocs tops) throws IOException {
-        ArrayList<Integer> ids = new ArrayList<>();
-        for (int i = 0; i < tops.scoreDocs.length; i++) {
-            ids.add(i);
-        }
-        ids.parallelStream()
-                .forEach(v -> {
-                    try {
-                        String[] terms = indexSearcher.doc(tops.scoreDocs[v].doc).getValues("spotlight");
-                        for (String term : terms) {
-                            getTermMap(term);
-                        }
-                    } catch (IOException e) {
-                    }
-                });
-
-        System.out.println(".");
-    }
 
     public void writeTerms() throws IOException {
         initializeWriter("termMaps");
@@ -231,8 +215,9 @@ public class GraphAnalyzer {
 
         ArrayList<Model> models = new ArrayList<>();
 
+        // Switch back to concurrent
         List<ParagraphMixture> mixtures =
-                ids.parallelStream()
+                ids.stream()
                 .map(this::getParagraphMixture)
                 .collect(Collectors.toList());
 
