@@ -296,9 +296,10 @@ public class GraphAnalyzer {
         ArrayList<ImmutablePair<String,Double>> pairs = new ArrayList<>();
         int cur = s.indexOf("$");
         int last = 0;
+        int counter = 0;
         while (true) {
             int space = s.indexOf(" ", last);
-            if (space < 0 || cur < 0) {
+            if (space < 0 || cur < 0 || counter++ > 10) {
                 break;
             }
 //            if (space > 0) {
