@@ -362,13 +362,7 @@ public class GraphAnalyzer {
 //            TopDocs td = entitySearcher.search(tq, 1);
 //            distribution = entitySearcher.doc(td.scoreDocs[0].doc).getValues("distribution");
             String wee = cmap.get(entity);
-            try {
-                myTokenizer(wee, mixture);
-            } catch (StringIndexOutOfBoundsException e) {
-                System.out.println(wee);
-                failures++;
-                continue;
-            }
+            myTokenizer(wee, mixture);
             counter++;
 
 
