@@ -41,14 +41,10 @@ public class GraphAnalyzer {
 
     GraphAnalyzer(IndexSearcher id) throws IOException {
         indexSearcher = id;
-        DBMaker.fileDB("entity_db.db").fileLockDisable();
-        db = DBMaker.fileDB("entity_db.db").fileMmapEnable().make();
+        db = DBMaker.fileDB("entity_db.db").fileLockDisable().fileMmapEnable().make();
         cmap = db.hashMap("map", Serializer.STRING, Serializer.STRING).createOrOpen();
     }
 
-    GraphAnalyzer(IndexSearcher id, IndexSearcher ed) throws IOException {
-        indexSearcher = id;
-    }
 
     class Model {
         int docId = 0;
