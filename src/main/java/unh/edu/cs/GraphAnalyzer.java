@@ -348,9 +348,11 @@ public class GraphAnalyzer {
 //            String[] distribution;
 //            TopDocs td = entitySearcher.search(tq, 1);
 //            distribution = entitySearcher.doc(td.scoreDocs[0].doc).getValues("distribution");
-            String wee = cmap.get(entity);
-            myTokenizer(wee, mixture);
-            counter++;
+            String wee = cmap.getOrDefault(entity, "");
+            if (!wee.equals("")) {
+                myTokenizer(wee, mixture);
+                counter++;
+            }
 
 
 //            String[] distribution = cmap.get(entity).split("w");
