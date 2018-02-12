@@ -138,9 +138,15 @@ public class Main {
                     String indexLocation = args[2];
                     String queryLocation = args[3];
                     String rankingOutputLocation = args[4];
-                    runQuery(command, queryType, indexLocation, queryLocation, rankingOutputLocation);
                 } catch (ArrayIndexOutOfBoundsException e) {
                     printQueryUsage();
+                } finally {
+                    String command = args[0];
+                    String queryType = args[1].toUpperCase();
+                    String indexLocation = args[2];
+                    String queryLocation = args[3];
+                    String rankingOutputLocation = args[4];
+                    runQuery(command, queryType, indexLocation, queryLocation, rankingOutputLocation);
                 }
                 break;
             // Runs query_vector command (sub-command of query, but also requires a vector file)
