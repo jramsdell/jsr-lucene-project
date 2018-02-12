@@ -379,6 +379,7 @@ public class GraphAnalyzer {
 //        mixture.replaceAll((k,v) -> v / total);
 //        mixture.forEach((k,v) -> System.out.println(k + ": " + v));
 //        System.out.println("_____");
+        System.out.println("Yay: " + counter);
         return mixture;
     }
 
