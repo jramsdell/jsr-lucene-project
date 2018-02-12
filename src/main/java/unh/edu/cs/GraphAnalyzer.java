@@ -301,27 +301,27 @@ public class GraphAnalyzer {
             if (space < 0 || cur < 0) {
                 break;
             }
-            if (space > 0) {
-                String entity = s.substring(last, space);
-                Double value;
-                if (cur < 0) {
-                    value = Double.parseDouble(s.substring(space));
-                } else {
-                    try {
-                        value = Double.parseDouble(s.substring(space, s.indexOf("$", cur)));
-                    } catch (StringIndexOutOfBoundsException e) {
-                        System.out.println("Space: " + space + " cur: " + cur);
-                        value = 0.0;
-                    }
-                }
-                System.out.println("Got here");
-
-                pairs.add(new ImmutablePair<String,Double>(entity, value));
-            }
-
-            if (cur == -1) {
-                break;
-            }
+//            if (space > 0) {
+//                String entity = s.substring(last, space);
+//                Double value;
+//                if (cur < 0) {
+//                    value = Double.parseDouble(s.substring(space));
+//                } else {
+//                    try {
+//                        value = Double.parseDouble(s.substring(space, s.indexOf("$", cur)));
+//                    } catch (StringIndexOutOfBoundsException e) {
+//                        System.out.println("Space: " + space + " cur: " + cur);
+//                        value = 0.0;
+//                    }
+//                }
+//                System.out.println("Got here");
+//
+//                pairs.add(new ImmutablePair<String,Double>(entity, value));
+//            }
+//
+//            if (cur == -1) {
+//                break;
+//            }
             cur = s.indexOf("$", cur);
             if (cur > 0) {
                 last = cur;
