@@ -314,6 +314,7 @@ public class GraphAnalyzer {
                         value = 0.0;
                     }
                 }
+                System.out.println("Got here");
 
                 pairs.add(new ImmutablePair<String,Double>(entity, value));
             }
