@@ -214,7 +214,6 @@ class LuceneQueryBuilder {
 
     private void rerankBySpecial(TopDocs tops) throws IOException {
         graphAnalyzer.rerankTopDocs(tops);
-        System.out.println("Done");
 //        ga.recordTerms(tops);
     }
 
