@@ -232,8 +232,10 @@ public class GraphAnalyzer {
             if (pm.entityMixture.isEmpty()) {
                 pm.score = 0.0;
             }
-            pm.entityMixture.forEach((k,v) -> pm.score += sinks.get(k) * v);
-                });
+            pm.entityMixture.forEach((k, v) -> pm.score += sinks.get(k) * v);
+            System.out.println(pm.score);
+
+        });
 
 
         Seq.seq(mixtures)
@@ -385,8 +387,8 @@ public class GraphAnalyzer {
         }
         final Double mytotal = total;
         mixture.replaceAll((k,v) -> v / mytotal);
-        mixture.forEach((k,v) -> System.out.println(k + ": " + v));
-        System.out.println("_____");
+//        mixture.forEach((k,v) -> System.out.println(k + ": " + v));
+//        System.out.println("_____");
         return mixture;
     }
 
