@@ -318,11 +318,16 @@ public class GraphAnalyzer {
                 continue;
             }
 
-            String entity = s.substring(cur + 1, space);
-            String value = s.substring(space + 1, next);
+            try {
+                String entity = s.substring(cur + 1, space);
+                String value = s.substring(space + 1, next);
+                mixture.merge(entity, Double.parseDouble(value), Double::sum);
+                System.out.println("cur: " + cur + "space: " + space);
+            } catch (StringIndexOutOfBoundsException e) {
+                throw e;
+            }
 //            System.out.println(entity + " " + value);
 //            pairs.add(new ImmutablePair<String,Double>(entity, Double.parseDouble(value)));
-            mixture.merge(entity, Double.parseDouble(value), Double::sum);
 
             cur = next;
 
