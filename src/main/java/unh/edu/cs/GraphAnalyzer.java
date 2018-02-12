@@ -234,8 +234,8 @@ public class GraphAnalyzer {
 //            if (!pm.entityMixture.isEmpty()) {
 //                pm.score = 0.0;
 //            }
-            pm.entityMixture.forEach((k, v) -> pm.finalScore += sinks.get(k) * v);
-            pm.score = Math.max(pm.score, pm.finalScore);
+            pm.entityMixture.forEach((k, v) -> pm.score += sinks.get(k) * v);
+//            pm.score = Math.max(pm.score, pm.finalScore);
 //            System.out.println(pm.score);
 
         });
