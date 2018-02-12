@@ -298,7 +298,7 @@ public class GraphAnalyzer {
         int counter = 0;
         int cur = 0;
         while (true) {
-            int next = s.indexOf("$", cur);
+            int next = s.indexOf("$", cur + 1);
             System.out.println(cur + " " + next);
             cur = next;
             if (counter++ > 10) {
