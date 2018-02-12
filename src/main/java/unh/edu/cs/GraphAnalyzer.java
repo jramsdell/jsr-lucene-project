@@ -194,18 +194,20 @@ public class GraphAnalyzer {
 
             for (int step = 0; step < nSteps; step++) {
                 String parString = entityMap.get(curEntity);
-                if (!storedEntities.contains(curEntity)) {
-                    storedEntities.put(curEntity, getJumpPlaces(parString));
-                }
-                ArrayList<ImmutablePair<Integer, Integer>> parPlaces = storedEntities.get(curEntity);
+//                if (!storedEntities.contains(curEntity)) {
+//                    storedEntities.put(curEntity, getJumpPlaces(parString));
+//                }
+//                ArrayList<ImmutablePair<Integer, Integer>> parPlaces = storedEntities.get(curEntity);
+                ArrayList<ImmutablePair<Integer, Integer>> parPlaces = getJumpPlaces(parString);
 
                 String nextPar = useJumpPlaces(parString, parPlaces);
                 String entityString = parMap.get(nextPar);
-                if (!storedParagraphs.contains(nextPar)) {
-                    storedParagraphs.put(nextPar, getJumpPlaces(entityString));
-                }
+//                if (!storedParagraphs.contains(nextPar)) {
+//                    storedParagraphs.put(nextPar, getJumpPlaces(entityString));
+//                }
 
-                ArrayList<ImmutablePair<Integer, Integer>> entityPlaces = storedEntities.get(nextPar);
+//                ArrayList<ImmutablePair<Integer, Integer>> entityPlaces = storedEntities.get(nextPar);
+                ArrayList<ImmutablePair<Integer, Integer>> entityPlaces = getJumpPlaces(entityString);
                 curEntity = useJumpPlaces(entityString, entityPlaces);
 
                 counts.merge(curEntity, 1, Integer::sum);
