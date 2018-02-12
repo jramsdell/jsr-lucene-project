@@ -209,6 +209,7 @@ public class GraphAnalyzer {
                 curEntity = useJumpPlaces(entityString, entityPlaces);
 
                 counts.merge(curEntity, 1, Integer::sum);
+                System.out.println("YAY");
             }
         }
 
