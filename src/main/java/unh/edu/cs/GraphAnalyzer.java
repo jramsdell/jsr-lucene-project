@@ -307,7 +307,12 @@ public class GraphAnalyzer {
                 if (cur < 0) {
                     value = Double.parseDouble(s.substring(space));
                 } else {
-                    value = Double.parseDouble(s.substring(space, cur));
+                    try {
+                        value = Double.parseDouble(s.substring(space, cur));
+                    } catch (StringIndexOutOfBoundsException e) {
+                        System.out.println("Space: " + space + " cur: " + cur);
+                        value = 0.0;
+                    }
                 }
 
                 pairs.add(new ImmutablePair<String,Double>(entity, value));
