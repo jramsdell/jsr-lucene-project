@@ -169,11 +169,19 @@ public class GraphAnalyzer {
     }
 
     public void doJumps(String entity) {
-        String[] pars = entityMap.get(entity).split(" ");
-        String nextPar = pars[rand.nextInt(pars.length)];
-        String[] entities = parMap.get(nextPar).split(" ");
-        String nextEntity = entities[rand.nextInt(entities.length)];
-        System.out.println(nextEntity);
+        HashMap<String, Integer> counts = new HashMap<>();
+        for (int i = 0; i < 1000; i++) {
+            String[] pars = entityMap.get(entity).split(" ");
+            String nextPar = pars[rand.nextInt(pars.length)];
+            String[] entities = parMap.get(nextPar).split(" ");
+            entity = entities[rand.nextInt(entities.length)];
+            counts.merge(entity, 1, Integer::sum);
+        }
+        Seq.seq(counts.entrySet())
+                .sorted(Map.Entry::getValue)
+                .reverse()
+                .take(10)
+                .forEach(entry -> System.out.println(entry.getKey() + " " + entry.getValue()));
     }
 
     public void rerankTopDocs(TopDocs tops) {
