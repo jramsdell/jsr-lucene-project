@@ -105,6 +105,7 @@ public class Main {
 
     }
 
+
     public static void main(String[] args) throws IOException {
         String mode = "";
         try {
@@ -160,6 +161,13 @@ public class Main {
                     String rankingOutputLocation = args[5];
                     runQuery(command, queryType, indexLocation, queryLocation, rankingOutputLocation,
                             vectorLocation);
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    printQueryVectorUsage();
+                }
+                break;
+            case "make_db":
+                try {
+                    GraphAnalyzer.makeDB(args);
                 } catch (ArrayIndexOutOfBoundsException e) {
                     printQueryVectorUsage();
                 }
