@@ -447,7 +447,7 @@ public class GraphAnalyzer {
 
 
     public static void main (String[] args) throws IOException {
-        makeDB(args);
+//        makeDB(args);
 
 
 //        IndexSearcher is = createIndexSearcher(args[0]);
