@@ -1,4 +1,5 @@
 package unh.edu.cs;
+import com.sun.xml.internal.fastinfoset.util.CharArray;
 import edu.unh.cs.treccar_v2.Data;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -32,6 +33,8 @@ public class GraphAnalyzer {
     private IndexWriter indexWriter;
     private DB db;
     private ConcurrentMap<String, String> cmap;
+    private ConcurrentMap<String, String> entityMap;
+    private ConcurrentMap<String, String> parMap;
     Random rand = new Random();
 //    ConcurrentHashMap<String, TopDocs> storedQueries = new ConcurrentHashMap<>();
 //    ConcurrentHashMap<String, String[]> storedEntities = new ConcurrentHashMap<>();
@@ -46,20 +49,13 @@ public class GraphAnalyzer {
 //        db = DBMaker.fileDB("entity_db.db").fileLockDisable().fileMmapEnable().make();
 //        cmap = db.hashMap("map", Serializer.STRING, Serializer.STRING).createOrOpen();
 //        db.close();
-        db = DBMaker.fileDB("entity_db_2.db")
+        db = DBMaker.fileDB("entity_db_3.db")
                 .fileMmapEnable()
                 .closeOnJvmShutdown()
                 .make();
-        cmap = db.hashMap("map", Serializer.STRING, Serializer.STRING).createOrOpen();
-    }
-
-
-    class Model {
-        int docId = 0;
-        String pid = "";
-        Double score = 0.0;
-        public final HashMap<String, Double> parModel = new HashMap<>();
-        public final HashMap<String, Double> entityModel = new HashMap<>();
+        cmap = db.hashMap("par_map", Serializer.STRING, Serializer.STRING).createOrOpen();
+        parMap = db.hashMap("par_map", Serializer.STRING, Serializer.STRING).createOrOpen();
+        entityMap = db.hashMap("entity_map", Serializer.STRING, Serializer.STRING).createOrOpen();
     }
 
     class ParagraphMixture {
@@ -100,6 +96,17 @@ public class GraphAnalyzer {
         return doc;
     }
 
+    public void recordTerms(String entity) throws IOException {
+        TermQuery tq = new TermQuery(new Term("spotlight", entity));
+        TopDocs td = indexSearcher.search(tq, 10000);
+        for (ScoreDoc sc : td.scoreDocs) {
+            Document doc = indexSearcher.doc(sc.doc);
+            String pid = doc.get("paragraphid");
+            entityMap.merge(entity, pid, (k,v) ->  k + " " + v);
+            parMap.merge(pid, entity, (k,v) ->  k + " " + v);
+        }
+    }
+
     public HashMap<String, Double> getTermMap(String entity) throws IOException {
 //        if (storedTerms.containsKey(entity)) {
 //            return storedTerms.get(entity);
@@ -125,74 +132,12 @@ public class GraphAnalyzer {
         return termCounts;
     }
 
-    public Model getModel(int docID) throws IOException {
-        HashMap<String, TopDocs> storedQueries = new HashMap<>();
-        HashMap<String, String[]> storedEntities = new HashMap<>();
-        HashMap<Integer, Document> storedDocuments = new HashMap<>();
-
-
-        final Model model = new Model();
-
-        int nSteps = 5;
-        int nWalks = 300;
-        Document baseDoc = indexSearcher.doc(docID);
-        model.pid = baseDoc.get("paragraphid");
-        model.docId = docID;
-        String[] entities = baseDoc.getValues("spotlight");
-        for (String entity : entities) {
-            HashMap<String, Double> termCounts = getTermMap(entity);
-            termCounts.forEach((k,v) -> model.entityModel.merge(k, v, Double::sum));
-        }
-        if (model.entityModel.isEmpty()) {
-            return model;
-        }
-        Double total = Seq.seq(model.entityModel.values()).sum().get();
-        model.entityModel.replaceAll((k,v) -> v / total);
-
-//        for (int walk = 0; walk < nWalks; walk++) {
-//            Document doc = baseDoc;
-//
-//            for (int step = 0; step < nSteps; step++) {
-//                String pid = doc.get("paragraphid");
-//                String[] entities;
-//                if (!storedEntities.containsKey(pid)) {
-//                    entities = doc.getValues("spotlight");
-//                    storedEntities.put(pid, entities);
-//                } else {
-//                    entities = storedEntities.get(pid);
-//                }
-//
-////                String[] entities = doc.getValues("spotlight");
-//                // TODO: fix this
-//                if (entities.length <= 0)
-//                    break;
-//                String entity = entities[rand.nextInt(entities.length)];
-//                doc = graphTransition(entity, storedQueries, storedDocuments);
-//                model.entityModel.merge(entity, 1.0, Double::sum);
-//                model.parModel.merge(doc.get("paragraphid"), 1.0, Double::sum);
-//            }
-//        }
-//
-//        Double total = (double)nSteps * nWalks;
-//        model.entityModel.replaceAll((k,v) -> v / total);
-//        model.parModel.replaceAll((k,v) -> v / total);
-        return model;
-    }
 
     public static IndexSearcher createIndexSearcher(String iPath) throws IOException {
         Path indexPath = Paths.get(iPath);
         Directory indexDir = FSDirectory.open(indexPath);
         IndexReader indexReader = DirectoryReader.open(indexDir);
         return new IndexSearcher(indexReader);
-    }
-
-    public Model gett(Integer i) {
-        try {
-            return getModel(i);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
 
@@ -256,31 +201,6 @@ public class GraphAnalyzer {
         Directory indexOutDirectory = FSDirectory.open(indexPath);
         IndexWriterConfig indexConfig = new IndexWriterConfig(new StandardAnalyzer());
         indexWriter = new IndexWriter(indexOutDirectory, indexConfig);
-    }
-
-    public void writeModel(Model model) {
-        Document doc = new Document();
-        if (model.docId % 100 == 0) {
-            System.out.println(model.docId);
-        }
-        doc.add(new StringField("paragraphid", model.pid, Field.Store.YES));
-        model.entityModel.forEach((k,v) -> {
-            if (v >= 0.01) {
-                doc.add(new StringField("entity_distribution", k + " " + v.toString(), Field.Store.YES));
-            }
-        });
-
-        model.parModel.forEach((k,v) -> {
-            if (v >= 0.01) {
-                doc.add(new StringField("paragraph_distribution", k + " " + v.toString(), Field.Store.YES));
-            }
-        });
-
-        try {
-            indexWriter.addDocument(doc);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public void writeTermMap(HashMap<String, Double> termMap, String entity) throws IOException {
@@ -421,13 +341,18 @@ public class GraphAnalyzer {
                 termList.parallelStream()
                         .forEach(entity -> {
                             try {
-                                HashMap<String, Double> termMap = ga.getTermMap(entity);
-                                if (termMap.size() <= 200) {
-                                    ga.writeTermMap(termMap, entity);
-                                }
+                                ga.recordTerms(entity);
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
+//                            try {
+//                                HashMap<String, Double> termMap = ga.getTermMap(entity);
+//                                if (termMap.size() <= 200) {
+//                                    ga.writeTermMap(termMap, entity);
+//                                }
+//                            } catch (IOException e) {
+//                                e.printStackTrace();
+//                            }
                         });
 
                 termList.clear();
