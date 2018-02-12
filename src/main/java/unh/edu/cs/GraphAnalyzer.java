@@ -302,18 +302,18 @@ public class GraphAnalyzer {
 //            TopDocs td = entitySearcher.search(tq, 1);
 //            distribution = entitySearcher.doc(td.scoreDocs[0].doc).getValues("distribution");
             String wee = cmap.get(entity);
-//            String[] distribution = cmap.get(entity).split("\\$");
+            String[] distribution = cmap.get(entity).split("\\$");
 //
-//            Seq.of(distribution)
-//                    .map(m -> {
-//                        String[] elements = m.split(" ");
-//                        if (elements.length == 2) {
-//                            return new Tuple2<String, Double>(elements[0], Double.parseDouble(elements[1]));
-//                        } else {
-//                            return new Tuple2<String, Double>(elements[0], 0.0);
-//                        }
-//                    })
-//                    .forEach(t -> mixture.merge(t.v1, t.v2, Double::sum));
+            Seq.of(distribution)
+                    .map(m -> {
+                        String[] elements = m.split(" ");
+                        if (elements.length == 2) {
+                            return new Tuple2<String, Double>(elements[0], Double.parseDouble(elements[1]));
+                        } else {
+                            return new Tuple2<String, Double>(elements[0], 0.0);
+                        }
+                    })
+                    .forEach(t -> mixture.merge(t.v1, t.v2, Double::sum));
         }
 
         Double total = (double)counter;
