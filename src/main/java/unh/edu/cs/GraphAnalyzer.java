@@ -352,6 +352,8 @@ public class GraphAnalyzer {
             if (!wee.equals("")) {
                 myTokenizer(wee, mixture);
                 counter++;
+            } else {
+                System.out.println(entity);
             }
 
 
