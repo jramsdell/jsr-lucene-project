@@ -300,7 +300,7 @@ public class GraphAnalyzer {
             int space = s.indexOf(" ", last);
             String entity = s.substring(last, space);
             Double value;
-            if (cur == -1) {
+            if (cur < 0) {
                 value = Double.parseDouble(s.substring(space));
             } else {
                 value = Double.parseDouble(s.substring(space, cur));
