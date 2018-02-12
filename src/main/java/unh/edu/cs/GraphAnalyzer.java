@@ -170,13 +170,20 @@ public class GraphAnalyzer {
 
     public void doJumps(String entity) {
         HashMap<String, Integer> counts = new HashMap<>();
-        for (int i = 0; i < 1000; i++) {
-            String[] pars = entityMap.get(entity).split(" ");
-            String nextPar = pars[rand.nextInt(pars.length)];
-            String[] entities = parMap.get(nextPar).split(" ");
-            entity = entities[rand.nextInt(entities.length)];
-            counts.merge(entity, 1, Integer::sum);
+        int nWalks = 500;
+        int nSteps = 4;
+        for (int walk = 0; walk < nWalks; walk++) {
+            String curEntity = entity;
+
+            for (int step = 0; step < nSteps; step++) {
+                String[] pars = entityMap.get(curEntity).split(" ");
+                String nextPar = pars[rand.nextInt(pars.length)];
+                String[] entities = parMap.get(nextPar).split(" ");
+                curEntity = entities[rand.nextInt(entities.length)];
+                counts.merge(curEntity, 1, Integer::sum);
+            }
         }
+
         Seq.seq(counts.entrySet())
                 .sorted(Map.Entry::getValue)
                 .reverse()
