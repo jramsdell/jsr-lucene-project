@@ -218,7 +218,7 @@ public class GraphAnalyzer {
 
         // Switch back to concurrent
         List<ParagraphMixture> mixtures =
-                ids.stream()
+                ids.parallelStream()
                 .map(this::getParagraphMixture)
                 .collect(Collectors.toList());
 
