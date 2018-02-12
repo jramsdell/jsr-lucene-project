@@ -49,7 +49,7 @@ public class GraphAnalyzer {
                 .fileMmapEnable()
                 .closeOnJvmShutdown()
                 .make();
-        cmap = db.hashMap("par_map", Serializer.STRING, Serializer.STRING).createOrOpen();
+        cmap = db.hashMap("dist_map", Serializer.STRING, Serializer.STRING).createOrOpen();
         parMap = db.hashMap("par_map", Serializer.STRING, Serializer.STRING).createOrOpen();
         entityMap = db.hashMap("entity_map", Serializer.STRING, Serializer.STRING).createOrOpen();
     }
@@ -185,49 +185,83 @@ public class GraphAnalyzer {
         ImmutablePair<Integer, Integer> place = places.get(rand.nextInt(places.size()));
         return text.substring(place.left, place.right);
     }
+
     public void doJumps(String entity) {
         HashMap<String, Integer> counts = new HashMap<>();
         int nWalks = 2000;
         int nSteps = 5;
+        int counter = 0;
         for (int walk = 0; walk < nWalks; walk++) {
             String curEntity = entity;
 
             for (int step = 0; step < nSteps; step++) {
-//                if (!storedEntities.contains(curEntity)) {
-//                    storedEntities.putIfAbsent(curEntity, getJumpPlaces(parString));
-//                }
-                ImmutablePair<String, ArrayList<ImmutablePair<Integer, Integer>>> parData =
-                        storedEntities.computeIfAbsent(curEntity, (it -> {
-                            String parString = entityMap.get(it);
-                            ArrayList<ImmutablePair<Integer, Integer>> places = getJumpPlaces(parString);
-                            return ImmutablePair.of(parString, places);
-                        }));
-
-//                ArrayList<ImmutablePair<Integer, Integer>> parPlaces = storedEntities.get(curEntity);
-//                ArrayList<ImmutablePair<Integer, Integer>> parPlaces = getJumpPlaces(parString);
-
-                String nextPar = useJumpPlaces(parData.left, parData.right);
-
-                ImmutablePair<String, ArrayList<ImmutablePair<Integer, Integer>>> entityData =
-                        storedEntities.computeIfAbsent(nextPar, (it -> {
-                            String entityString = parMap.get(it);
-                            ArrayList<ImmutablePair<Integer, Integer>> places = getJumpPlaces(entityString);
-                            return ImmutablePair.of(entityString, places);
-                        }));
-
-                curEntity = useJumpPlaces(entityData.left, entityData.right);
-
+                counter++;
+                String parString = entityMap.get(curEntity);
+                ArrayList<ImmutablePair<Integer, Integer>> parJumpPlaces = getJumpPlaces(parString);
+                String nextPar = useJumpPlaces(parString, parJumpPlaces);
+                String entityString = parMap.get(nextPar);
+                ArrayList<ImmutablePair<Integer, Integer>> entityJumpPlaces = getJumpPlaces(entityString);
+                curEntity = useJumpPlaces(entityString, entityJumpPlaces);
                 counts.merge(curEntity, 1, Integer::sum);
-//                System.out.println("YAY");
             }
         }
-
-        Seq.seq(counts.entrySet())
-                .sorted(Map.Entry::getValue)
-                .reverse()
-                .take(10)
-                .forEach(entry -> System.out.println(entry.getKey() + " " + entry.getValue()));
+        Double total = (double)counter;
+        StringJoiner stringJoiner = new StringJoiner("$");
+        counts.forEach((k,v) -> {
+            stringJoiner.add(k + " " + ((double)v / total));
+        });
+        System.out.println(stringJoiner.toString());
+//        counts.replaceAll((k,v) -> v / total);
+//        Seq.seq(counts.entrySet())
+//                .sorted(Map.Entry::getValue)
+//                .reverse()
+//                .take(10)
+//                .forEach(entry -> System.out.println(entry.getKey() + " " + entry.getValue()));
     }
+
+//    public void doJumps(String entity) {
+//        HashMap<String, Integer> counts = new HashMap<>();
+//        int nWalks = 2000;
+//        int nSteps = 5;
+//        for (int walk = 0; walk < nWalks; walk++) {
+//            String curEntity = entity;
+//
+//            for (int step = 0; step < nSteps; step++) {
+////                if (!storedEntities.contains(curEntity)) {
+////                    storedEntities.putIfAbsent(curEntity, getJumpPlaces(parString));
+////                }
+//                ImmutablePair<String, ArrayList<ImmutablePair<Integer, Integer>>> parData =
+//                        storedEntities.computeIfAbsent(curEntity, (it -> {
+//                            String parString = entityMap.get(it);
+//                            ArrayList<ImmutablePair<Integer, Integer>> places = getJumpPlaces(parString);
+//                            return ImmutablePair.of(parString, places);
+//                        }));
+//
+////                ArrayList<ImmutablePair<Integer, Integer>> parPlaces = storedEntities.get(curEntity);
+////                ArrayList<ImmutablePair<Integer, Integer>> parPlaces = getJumpPlaces(parString);
+//
+//                String nextPar = useJumpPlaces(parData.left, parData.right);
+//
+//                ImmutablePair<String, ArrayList<ImmutablePair<Integer, Integer>>> entityData =
+//                        storedEntities.computeIfAbsent(nextPar, (it -> {
+//                            String entityString = parMap.get(it);
+//                            ArrayList<ImmutablePair<Integer, Integer>> places = getJumpPlaces(entityString);
+//                            return ImmutablePair.of(entityString, places);
+//                        }));
+//
+//                curEntity = useJumpPlaces(entityData.left, entityData.right);
+//
+//                counts.merge(curEntity, 1, Integer::sum);
+////                System.out.println("YAY");
+//            }
+//        }
+//
+//        Seq.seq(counts.entrySet())
+//                .sorted(Map.Entry::getValue)
+//                .reverse()
+//                .take(10)
+//                .forEach(entry -> System.out.println(entry.getKey() + " " + entry.getValue()));
+//    }
 
 //    public void doJumps(String entity) {
 //        HashMap<String, Integer> counts = new HashMap<>();
