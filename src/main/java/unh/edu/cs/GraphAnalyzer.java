@@ -227,6 +227,7 @@ public class GraphAnalyzer {
                 .map(this::getParagraphMixture)
                 .collect(Collectors.toList());
 
+        mixtures.forEach(pm -> System.out.println(pm.entityMixture.size()));
         mixtures.forEach(pm -> pm.entityMixture.forEach((k, v) -> sinks.merge(k, v * pm.score, Double::sum)));
         mixtures.forEach(pm -> {
             if (pm.entityMixture.isEmpty()) {
