@@ -1,5 +1,4 @@
 package unh.edu.cs;
-import edu.unh.cs.treccar_v2.Data;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.*;
@@ -8,9 +7,7 @@ import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
-import org.apache.lucene.util.QueryBuilder;
 import org.jooq.lambda.Seq;
-import org.jooq.lambda.tuple.Tuple2;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.Serializer;
@@ -21,9 +18,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 //TODO: instead weight edges by BM25 score
 
@@ -36,8 +31,10 @@ public class GraphAnalyzer {
     private ConcurrentMap<String, String> parMap;
     Random rand = new Random();
 //    ConcurrentHashMap<String, TopDocs> storedQueries = new ConcurrentHashMap<>();
-    ConcurrentHashMap<String, String[]> storedEntities = new ConcurrentHashMap<>();
-    ConcurrentHashMap<String, String[]> storedParagraphs = new ConcurrentHashMap<>();
+    ConcurrentHashMap<String, ArrayList<ImmutablePair<Integer, Integer>>> storedEntities = new ConcurrentHashMap<>();
+    ConcurrentHashMap<String, ArrayList<ImmutablePair<Integer, Integer>>> storedParagraphs = new ConcurrentHashMap<>();
+//    ConcurrentHashMap<String, String[]> storedEntities = new ConcurrentHashMap<>();
+//    ConcurrentHashMap<String, String[]> storedParagraphs = new ConcurrentHashMap<>();
 //    HashMap<String, HashMap<String, Double>> parModel = new HashMap<>();
 //    HashMap<String, HashMap<String, Double>> entityModel = new HashMap<>();
     ConcurrentHashMap<String, HashMap<String, Double>> storedTerms = new ConcurrentHashMap<>();
@@ -168,6 +165,26 @@ public class GraphAnalyzer {
         });
     }
 
+    public ArrayList<ImmutablePair<Integer, Integer>> getJumpPlaces(String text) {
+        ArrayList<ImmutablePair<Integer, Integer>> places = new ArrayList<>();
+        int cur = -1;
+        int next = text.indexOf(" ");
+        while (true) {
+            if (next < 0) {
+                places.add(ImmutablePair.of(cur + 1, text.length()));
+                break;
+            }
+            places.add(ImmutablePair.of(cur + 1, next));
+            cur = next;
+            next = text.indexOf(" ", next + 1);
+        }
+        return places;
+    }
+
+    public String useJumpPlaces(String text, ArrayList<ImmutablePair<Integer, Integer>> places) {
+        ImmutablePair<Integer, Integer> place = places.get(rand.nextInt(places.size()));
+        return text.substring(place.left, place.right);
+    }
     public void doJumps(String entity) {
         HashMap<String, Integer> counts = new HashMap<>();
         int nWalks = 800;
@@ -176,23 +193,21 @@ public class GraphAnalyzer {
             String curEntity = entity;
 
             for (int step = 0; step < nSteps; step++) {
-                String[] pars;
+                String parString = entityMap.get(curEntity);
                 if (!storedEntities.contains(curEntity)) {
-                    pars = entityMap.get(curEntity).split(" ");
-                    storedEntities.put(curEntity, pars);
-                } else {
-                    pars = storedEntities.get(curEntity);
+                    storedEntities.put(curEntity, getJumpPlaces(parString));
+                }
+                ArrayList<ImmutablePair<Integer, Integer>> parPlaces = storedEntities.get(curEntity);
+
+                String nextPar = useJumpPlaces(parString, parPlaces);
+                String entityString = parMap.get(nextPar);
+                if (!storedParagraphs.contains(nextPar)) {
+                    storedParagraphs.put(nextPar, getJumpPlaces(entityString));
                 }
 
-                String nextPar = pars[rand.nextInt(pars.length)];
-                String[] entities;
-                if (!storedParagraphs.contains(nextPar)) {
-                    entities = parMap.get(nextPar).split(" ");
-                    storedParagraphs.put(nextPar, entities);
-                } else {
-                    entities = storedParagraphs.get(nextPar);
-                }
-                curEntity = entities[rand.nextInt(entities.length)];
+                ArrayList<ImmutablePair<Integer, Integer>> entityPlaces = storedEntities.get(nextPar);
+                curEntity = useJumpPlaces(entityString, entityPlaces);
+
                 counts.merge(curEntity, 1, Integer::sum);
             }
         }
@@ -203,6 +218,42 @@ public class GraphAnalyzer {
                 .take(10)
                 .forEach(entry -> System.out.println(entry.getKey() + " " + entry.getValue()));
     }
+
+//    public void doJumps(String entity) {
+//        HashMap<String, Integer> counts = new HashMap<>();
+//        int nWalks = 800;
+//        int nSteps = 5;
+//        for (int walk = 0; walk < nWalks; walk++) {
+//            String curEntity = entity;
+//
+//            for (int step = 0; step < nSteps; step++) {
+//                String[] pars;
+//                if (!storedEntities.contains(curEntity)) {
+//                    pars = entityMap.get(curEntity).split(" ");
+//                    storedEntities.put(curEntity, pars);
+//                } else {
+//                    pars = storedEntities.get(curEntity);
+//                }
+//
+//                String nextPar = pars[rand.nextInt(pars.length)];
+//                String[] entities;
+//                if (!storedParagraphs.contains(nextPar)) {
+//                    entities = parMap.get(nextPar).split(" ");
+//                    storedParagraphs.put(nextPar, entities);
+//                } else {
+//                    entities = storedParagraphs.get(nextPar);
+//                }
+//                curEntity = entities[rand.nextInt(entities.length)];
+//                counts.merge(curEntity, 1, Integer::sum);
+//            }
+//        }
+//
+//        Seq.seq(counts.entrySet())
+//                .sorted(Map.Entry::getValue)
+//                .reverse()
+//                .take(10)
+//                .forEach(entry -> System.out.println(entry.getKey() + " " + entry.getValue()));
+//    }
 
     public void rerankTopDocs(TopDocs tops) {
         if (true) {
