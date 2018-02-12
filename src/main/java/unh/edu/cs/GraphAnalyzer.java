@@ -355,6 +355,7 @@ public class GraphAnalyzer {
     public HashMap<String, Double> getEntityMixture(String[] entities) throws IOException {
         HashMap<String, Double> mixture = new HashMap<>();
         int counter = 0;
+        int failures = 0;
         for (String entity : entities) {
 //            TermQuery tq = new TermQuery(new Term("term", entity));
 //            String[] distribution;
@@ -364,6 +365,7 @@ public class GraphAnalyzer {
             try {
                 myTokenizer(wee, mixture);
             } catch (StringIndexOutOfBoundsException e) {
+                failures++;
                 continue;
             }
             counter++;
@@ -382,6 +384,7 @@ public class GraphAnalyzer {
 //                    })
 //                    .forEach(t -> mixture.merge(t.v1, t.v2, Double::sum));
         }
+        System.out.println("Failures: " + failures);
 
         Double total = 0.0;
         for (Double v: mixture.values()) {
