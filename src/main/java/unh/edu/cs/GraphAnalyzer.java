@@ -168,7 +168,25 @@ public class GraphAnalyzer {
         });
     }
 
+    public void doJumps(String entity) {
+        String[] pars = entityMap.get(entity).split(" ");
+        String nextPar = pars[rand.nextInt(pars.length)];
+        String[] entities = parMap.get(nextPar).split(" ");
+        String nextEntity = entities[rand.nextInt(entities.length)];
+        System.out.println(nextEntity);
+    }
+
     public void rerankTopDocs(TopDocs tops) {
+        if (true) {
+            try {
+                Document doc = indexSearcher.doc(tops.scoreDocs[0].doc);
+                String[] entities = doc.getValues("spotlight");
+                doJumps(entities[0]);
+            } catch (IOException e) {
+
+            }
+            return;
+        }
         ArrayList<Integer> ids = new ArrayList<>();
         HashMap<Integer, Integer> indexMappings = new HashMap<>();
         HashMap<String, Double> sinks = new HashMap<>();
