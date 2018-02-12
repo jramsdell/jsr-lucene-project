@@ -294,12 +294,14 @@ public class GraphAnalyzer {
 
     public ArrayList<ImmutablePair<String,Double>> myTokenizer(String s) {
         ArrayList<ImmutablePair<String,Double>> pairs = new ArrayList<>();
-        int cur = s.indexOf("$");
         int last = 0;
         int counter = 0;
+        int cur = 0;
         while (true) {
-            int space = s.indexOf(" ", last);
-            if (space < 0 || cur < 0 || counter++ > 10) {
+            int next = s.indexOf("$", cur);
+            System.out.println(cur + " " + next);
+            cur = next;
+            if (counter++ > 10) {
                 break;
             }
 //            if (space > 0) {
