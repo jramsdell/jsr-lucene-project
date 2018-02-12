@@ -227,14 +227,14 @@ public class GraphAnalyzer {
                 .map(this::getParagraphMixture)
                 .collect(Collectors.toList());
 
-        mixtures.forEach(pm -> System.out.println(pm.entityMixture.size()));
         mixtures.forEach(pm -> pm.entityMixture.forEach((k, v) -> sinks.merge(k, v * pm.score, Double::sum)));
+        sinks.forEach((k,v) -> System.out.println(k + " " + v));
         mixtures.forEach(pm -> {
             if (pm.entityMixture.isEmpty()) {
                 pm.score = 0.0;
             }
             pm.entityMixture.forEach((k, v) -> pm.score += sinks.get(k) * v);
-            System.out.println(pm.score);
+//            System.out.println(pm.score);
 
         });
 
