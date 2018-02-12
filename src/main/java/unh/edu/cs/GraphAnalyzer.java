@@ -329,7 +329,7 @@ public class GraphAnalyzer {
 //            distribution = entitySearcher.doc(td.scoreDocs[0].doc).getValues("distribution");
             String wee = cmap.get(entity);
             myTokenizer(wee);
-            String[] distribution = cmap.get(entity).split("w");
+//            String[] distribution = cmap.get(entity).split("w");
 //
 //            Seq.of(distribution)
 //                    .map(m -> {
