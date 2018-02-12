@@ -200,7 +200,7 @@ public class GraphAnalyzer {
                         storedEntities.computeIfAbsent(curEntity, (it -> {
                             String parString = entityMap.get(it);
                             ArrayList<ImmutablePair<Integer, Integer>> places = getJumpPlaces(parString);
-                            return ImmutablePair.of(it, places);
+                            return ImmutablePair.of(parString, places);
                         }));
 
 //                ArrayList<ImmutablePair<Integer, Integer>> parPlaces = storedEntities.get(curEntity);
@@ -212,7 +212,7 @@ public class GraphAnalyzer {
                         storedEntities.computeIfAbsent(nextPar, (it -> {
                             String entityString = parMap.get(it);
                             ArrayList<ImmutablePair<Integer, Integer>> places = getJumpPlaces(entityString);
-                            return ImmutablePair.of(it, places);
+                            return ImmutablePair.of(entityString, places);
                         }));
 
                 curEntity = useJumpPlaces(entityData.left, entityData.right);
