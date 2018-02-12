@@ -42,7 +42,7 @@ public class GraphAnalyzer {
 
     GraphAnalyzer(IndexSearcher id) throws IOException {
         indexSearcher = id;
-        DB db = DBMaker.fileDB("entity_db.db").make();
+        db = DBMaker.fileDB("entity_db.db").fileMmapEnable().make();
         cmap = db.hashMap("map", Serializer.STRING, Serializer.STRING).createOrOpen();
     }
 
