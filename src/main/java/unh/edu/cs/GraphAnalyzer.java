@@ -342,11 +342,8 @@ public class GraphAnalyzer {
 //            if (cur == -1) {
 //                break;
 //            }
-            cur = s.indexOf("$", cur);
-            if (cur > 0) {
-                last = cur;
-            }
         }
+        System.out.println("Yay");
         return pairs;
     }
 
