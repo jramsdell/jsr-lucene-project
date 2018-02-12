@@ -298,6 +298,7 @@ public class GraphAnalyzer {
         int last = 0;
         while (true) {
             int space = s.indexOf(" ", last);
+            if (space > 0) {
             String entity = s.substring(last, space);
             Double value;
             if (cur < 0) {
@@ -307,6 +308,7 @@ public class GraphAnalyzer {
             }
 
             pairs.add(new ImmutablePair<String,Double>(entity, value));
+            }
 
             if (cur == -1) {
                 break;
