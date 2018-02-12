@@ -299,22 +299,24 @@ public class GraphAnalyzer {
         while (true) {
             int space = s.indexOf(" ", last);
             if (space > 0) {
-            String entity = s.substring(last, space);
-            Double value;
-            if (cur < 0) {
-                value = Double.parseDouble(s.substring(space));
-            } else {
-                value = Double.parseDouble(s.substring(space, cur));
-            }
+                String entity = s.substring(last, space);
+                Double value;
+                if (cur < 0) {
+                    value = Double.parseDouble(s.substring(space));
+                } else {
+                    value = Double.parseDouble(s.substring(space, cur));
+                }
 
-            pairs.add(new ImmutablePair<String,Double>(entity, value));
+                pairs.add(new ImmutablePair<String,Double>(entity, value));
             }
 
             if (cur == -1) {
                 break;
             }
             cur = s.indexOf("$", cur);
-            last = cur;
+            if (cur > 0) {
+                last = cur;
+            }
         }
         return pairs;
     }
