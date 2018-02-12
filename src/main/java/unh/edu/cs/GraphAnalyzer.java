@@ -326,6 +326,7 @@ public class GraphAnalyzer {
                 failures++;
                 if (failures > 1) {
                     System.out.println("Counter: " + counter);
+                    System.out.println(s);
                     break;
                 }
                 continue;
