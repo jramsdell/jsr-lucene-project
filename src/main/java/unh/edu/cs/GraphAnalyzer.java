@@ -65,6 +65,7 @@ public class GraphAnalyzer {
     class ParagraphMixture {
         int docId = 0;
         Double score = 0.0;
+        Double finalScore = 0.0;
         public HashMap<String, Double> entityMixture = new HashMap<>();
     }
 
@@ -233,7 +234,8 @@ public class GraphAnalyzer {
 //            if (pm.entityMixture.isEmpty()) {
 //                pm.score = 0.0;
 //            }
-            pm.entityMixture.forEach((k, v) -> pm.score += sinks.get(k) * v);
+            pm.entityMixture.forEach((k, v) -> pm.finalScore += sinks.get(k) * v);
+            pm.score = Math.max(pm.score, pm.finalScore);
 //            System.out.println(pm.score);
 
         });
