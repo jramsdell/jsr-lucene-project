@@ -316,7 +316,7 @@ public class GraphAnalyzer {
 
             String entity = s.substring(cur + 1, space);
             String value = s.substring(space + 1, next);
-            System.out.println(entity + " " + value);
+//            System.out.println(entity + " " + value);
 
             cur = next;
 
