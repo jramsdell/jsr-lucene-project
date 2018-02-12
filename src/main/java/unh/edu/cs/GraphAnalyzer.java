@@ -45,7 +45,10 @@ public class GraphAnalyzer {
 //        db = DBMaker.fileDB("entity_db.db").fileLockDisable().fileMmapEnable().make();
 //        cmap = db.hashMap("map", Serializer.STRING, Serializer.STRING).createOrOpen();
 //        db.close();
-        db = DBMaker.fileDB("entity_db.db").fileMmapEnable().concurrencyScale(600).make();
+        db = DBMaker.fileDB("entity_db.db")
+                .fileMmapEnable()
+                .closeOnJvmShutdown()
+                .concurrencyScale(600).make();
         cmap = db.hashMap("map", Serializer.STRING, Serializer.STRING).createOrOpen();
     }
 
@@ -223,23 +226,23 @@ public class GraphAnalyzer {
                 .map(this::getParagraphMixture)
                 .collect(Collectors.toList());
 
-        mixtures.forEach(pm -> pm.entityMixture.forEach((k, v) -> sinks.merge(k, v * pm.score, Double::sum)));
-        mixtures.forEach(pm -> {
-            if (pm.entityMixture.isEmpty()) {
-                pm.score = 0.0;
-            }
-            pm.entityMixture.forEach((k,v) -> pm.score += sinks.get(k) * v);
-                });
-
-
-        Seq.seq(mixtures)
-                .sorted(m -> m.score)
-                .reverse()
-                .zip(Seq.range(0, tops.scoreDocs.length))
-                .forEach(m -> {
-                    tops.scoreDocs[m.v2].score = m.v1.score.floatValue();
-                    tops.scoreDocs[m.v2].doc = m.v1.docId;
-                });
+//        mixtures.forEach(pm -> pm.entityMixture.forEach((k, v) -> sinks.merge(k, v * pm.score, Double::sum)));
+//        mixtures.forEach(pm -> {
+//            if (pm.entityMixture.isEmpty()) {
+//                pm.score = 0.0;
+//            }
+//            pm.entityMixture.forEach((k,v) -> pm.score += sinks.get(k) * v);
+//                });
+//
+//
+//        Seq.seq(mixtures)
+//                .sorted(m -> m.score)
+//                .reverse()
+//                .zip(Seq.range(0, tops.scoreDocs.length))
+//                .forEach(m -> {
+//                    tops.scoreDocs[m.v2].score = m.v1.score.floatValue();
+//                    tops.scoreDocs[m.v2].doc = m.v1.docId;
+//                });
     }
 
     void initializeWriter(String indexOutLocation) throws IOException {
@@ -299,18 +302,19 @@ public class GraphAnalyzer {
 //            String[] distribution;
 //            TopDocs td = entitySearcher.search(tq, 1);
 //            distribution = entitySearcher.doc(td.scoreDocs[0].doc).getValues("distribution");
-            String[] distribution = cmap.get(entity).split("\\$");
-
-            Seq.of(distribution)
-                    .map(m -> {
-                        String[] elements = m.split(" ");
-                        if (elements.length == 2) {
-                            return new Tuple2<String, Double>(elements[0], Double.parseDouble(elements[1]));
-                        } else {
-                            return new Tuple2<String, Double>(elements[0], 0.0);
-                        }
-                    })
-                    .forEach(t -> mixture.merge(t.v1, t.v2, Double::sum));
+            String wee = cmap.get(entity);
+//            String[] distribution = cmap.get(entity).split("\\$");
+//
+//            Seq.of(distribution)
+//                    .map(m -> {
+//                        String[] elements = m.split(" ");
+//                        if (elements.length == 2) {
+//                            return new Tuple2<String, Double>(elements[0], Double.parseDouble(elements[1]));
+//                        } else {
+//                            return new Tuple2<String, Double>(elements[0], 0.0);
+//                        }
+//                    })
+//                    .forEach(t -> mixture.merge(t.v1, t.v2, Double::sum));
         }
 
         Double total = (double)counter;
