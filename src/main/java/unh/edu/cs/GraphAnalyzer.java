@@ -10,12 +10,16 @@ import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.QueryBuilder;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
+import org.mapdb.DB;
+import org.mapdb.DBMaker;
+import org.mapdb.Serializer;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -26,6 +30,8 @@ public class GraphAnalyzer {
     private IndexSearcher indexSearcher;
     private IndexSearcher entitySearcher;
     private IndexWriter indexWriter;
+    private DB db;
+    private ConcurrentMap<String, String> cmap;
     Random rand = new Random();
 //    ConcurrentHashMap<String, TopDocs> storedQueries = new ConcurrentHashMap<>();
 //    ConcurrentHashMap<String, String[]> storedEntities = new ConcurrentHashMap<>();
@@ -36,6 +42,8 @@ public class GraphAnalyzer {
 
     GraphAnalyzer(IndexSearcher id) throws IOException {
         indexSearcher = id;
+        DB db = DBMaker.fileDB("entity_db.db").make();
+        cmap = db.hashMap("map", Serializer.STRING, Serializer.STRING).createOrOpen();
     }
 
     GraphAnalyzer(IndexSearcher id, IndexSearcher ed) throws IOException {
@@ -285,12 +293,17 @@ public class GraphAnalyzer {
     }
 
     public void writeTermMap(HashMap<String, Double> termMap, String entity) throws IOException {
-        Document doc = new Document();
-        doc.add(new StringField("term", entity, Field.Store.YES));
-        termMap.forEach((k,v) -> {
-            doc.add(new StringField("distribution", k + " " + v.toString(), Field.Store.NO));
-        });
-        indexWriter.addDocument(doc);
+        String out = Seq.seq(termMap.entrySet())
+                .map(entry -> entry.getKey() + " " + entry.getValue().toString())
+                .toString("$");
+        cmap.putIfAbsent(entity, out);
+
+//        Document doc = new Document();
+//        doc.add(new StringField("term", entity, Field.Store.YES));
+//        termMap.forEach((k,v) -> {
+//            doc.add(new StringField("distribution", k + " " + v.toString(), Field.Store.NO));
+//        });
+//        indexWriter.addDocument(doc);
     }
 
 
@@ -379,6 +392,7 @@ public class GraphAnalyzer {
                         e.printStackTrace();
                     }
                 });
+        ga.db.close();
 
 //        IndexSearcher is = createIndexSearcher(args[0]);
 
