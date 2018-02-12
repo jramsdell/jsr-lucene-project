@@ -39,6 +39,7 @@ class LuceneQueryBuilder {
     private QueryType queryType;
     private GraphAnalyzer graphAnalyzer;
     private final String command;
+    private int counter = 0;
 
     LuceneQueryBuilder(String com, QueryType qType, Analyzer ana,
                        Similarity sim, String indexPath) throws IOException {
@@ -213,8 +214,9 @@ class LuceneQueryBuilder {
 
 
     private void rerankBySpecial(TopDocs tops) throws IOException {
-        graphAnalyzer.rerankTopDocs(tops);
+//        graphAnalyzer.rerankTopDocs(tops);
 //        ga.recordTerms(tops);
+        System.out.println(counter++);
     }
 
 }
