@@ -309,7 +309,10 @@ public class GraphAnalyzer {
                         .forEach(t -> mixture.merge(t.v1, t.v2, Double::sum));
             } catch (ArrayIndexOutOfBoundsException e) {
                 for (String dist: distribution) {
-                    System.out.println(dist);
+                    String[] elements = dist.split(" ");
+                    if (elements.length < 2) {
+                        System.out.println(dist);
+                    }
                 }
                 System.exit(0);
             }
