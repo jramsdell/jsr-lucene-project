@@ -299,26 +299,18 @@ public class GraphAnalyzer {
 //            distribution = entitySearcher.doc(td.scoreDocs[0].doc).getValues("distribution");
             String[] distribution = cmap.get(entity).split("\\$");
 
-
-            try {
-                Seq.of(distribution)
-                        .map(m -> {
-                            String[] elements = m.split(" ");
+            Seq.of(distribution)
+                    .map(m -> {
+                        String[] elements = m.split(" ");
+                        if (elements.length == 2) {
                             return new Tuple2<String, Double>(elements[0], Double.parseDouble(elements[1]));
-                        })
-                        .forEach(t -> mixture.merge(t.v1, t.v2, Double::sum));
-            } catch (ArrayIndexOutOfBoundsException e) {
-                for (String dist: distribution) {
-                    String[] elements = dist.split(" ");
-                    if (elements.length < 2) {
-                        System.out.println(dist);
-                    }
-                }
-                System.exit(0);
-            }
+                        } else {
+                            return new Tuple2<String, Double>(elements[0], 0.0);
+                        }
+                    })
+                    .forEach(t -> mixture.merge(t.v1, t.v2, Double::sum));
         }
 
-        System.out.println("DONE");
         Double total = (double)counter;
         mixture.replaceAll((k,v) -> v / total);
         return mixture;
