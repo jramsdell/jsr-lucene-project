@@ -230,9 +230,9 @@ public class GraphAnalyzer {
 
         mixtures.forEach(pm -> pm.entityMixture.forEach((k, v) -> sinks.merge(k, v * pm.score, Double::sum)));
         mixtures.forEach(pm -> {
-            if (pm.entityMixture.isEmpty()) {
-                pm.score = 0.0;
-            }
+//            if (pm.entityMixture.isEmpty()) {
+//                pm.score = 0.0;
+//            }
             pm.entityMixture.forEach((k, v) -> pm.score += sinks.get(k) * v);
 //            System.out.println(pm.score);
 
