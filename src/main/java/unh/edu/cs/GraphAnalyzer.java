@@ -181,7 +181,9 @@ public class GraphAnalyzer {
             try {
                 Document doc = indexSearcher.doc(tops.scoreDocs[0].doc);
                 String[] entities = doc.getValues("spotlight");
-                doJumps(entities[0]);
+                if (entities.length > 0) {
+                    doJumps(entities[0]);
+                }
             } catch (IOException e) {
 
             }
