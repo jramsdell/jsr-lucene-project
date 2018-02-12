@@ -298,13 +298,21 @@ public class GraphAnalyzer {
 //            TopDocs td = entitySearcher.search(tq, 1);
 //            distribution = entitySearcher.doc(td.scoreDocs[0].doc).getValues("distribution");
             String[] distribution = cmap.get(entity).split("\\$");
-            System.exit(0);
-            Seq.of(distribution)
-                    .map(m -> {
-                        String[] elements = m.split(" ");
-                        return new Tuple2<String, Double>(elements[0], Double.parseDouble(elements[1]));
-                            })
-                    .forEach(t -> mixture.merge(t.v1, t.v2, Double::sum));
+
+
+            try {
+                Seq.of(distribution)
+                        .map(m -> {
+                            String[] elements = m.split(" ");
+                            return new Tuple2<String, Double>(elements[0], Double.parseDouble(elements[1]));
+                        })
+                        .forEach(t -> mixture.merge(t.v1, t.v2, Double::sum));
+            } catch (ArrayIndexOutOfBoundsException e) {
+                for (String dist: distribution) {
+                    System.out.println(dist);
+                }
+                System.exit(0);
+            }
         }
 
         System.out.println("DONE");
