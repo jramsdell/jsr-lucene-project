@@ -1,5 +1,6 @@
 package unh.edu.cs;
 import edu.unh.cs.treccar_v2.Data;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.*;
@@ -291,6 +292,31 @@ public class GraphAnalyzer {
 //        indexWriter.addDocument(doc);
     }
 
+    public ArrayList<ImmutablePair<String,Double>> myTokenizer(String s) {
+        ArrayList<ImmutablePair<String,Double>> pairs = new ArrayList<>();
+        int cur = s.indexOf("$");
+        int last = 0;
+        while (true) {
+            int space = s.indexOf(" ", last);
+            String entity = s.substring(last, space);
+            Double value;
+            if (cur == -1) {
+                value = Double.parseDouble(s.substring(space));
+            } else {
+                value = Double.parseDouble(s.substring(space, cur));
+            }
+
+            pairs.add(new ImmutablePair<String,Double>(entity, value));
+
+            if (cur == -1) {
+                break;
+            }
+            cur = s.indexOf("$", cur);
+            last = cur;
+        }
+        return pairs;
+    }
+
 
     public HashMap<String, Double> getEntityMixture(String[] entities) throws IOException {
         HashMap<String, Double> mixture = new HashMap<>();
@@ -302,6 +328,7 @@ public class GraphAnalyzer {
 //            TopDocs td = entitySearcher.search(tq, 1);
 //            distribution = entitySearcher.doc(td.scoreDocs[0].doc).getValues("distribution");
             String wee = cmap.get(entity);
+            myTokenizer(wee);
             String[] distribution = cmap.get(entity).split("w");
 //
 //            Seq.of(distribution)
