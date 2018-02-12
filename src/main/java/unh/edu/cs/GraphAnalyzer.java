@@ -298,6 +298,9 @@ public class GraphAnalyzer {
         int last = 0;
         while (true) {
             int space = s.indexOf(" ", last);
+            if (space < 0 || cur < 0) {
+                break;
+            }
             if (space > 0) {
                 String entity = s.substring(last, space);
                 Double value;
