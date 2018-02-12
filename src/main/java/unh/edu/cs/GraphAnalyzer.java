@@ -294,7 +294,6 @@ public class GraphAnalyzer {
 
     public HashMap<String, Double> getEntityMixture(String[] entities) throws IOException {
         HashMap<String, Double> mixture = new HashMap<>();
-        System.out.println("Entities: " + entities.length);
         int counter = 0;
         for (String entity : entities) {
             counter++;
