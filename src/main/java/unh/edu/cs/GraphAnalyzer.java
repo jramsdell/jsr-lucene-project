@@ -383,14 +383,14 @@ public class GraphAnalyzer {
 //                    .forEach(t -> mixture.merge(t.v1, t.v2, Double::sum));
         }
 
-//        Double total = 0.0;
-//        for (Double v: mixture.values()) {
-//            total += v;
-//        }
-//        final Double mytotal = total;
-//        mixture.replaceAll((k,v) -> v / mytotal);
-        Double total = (double)counter;
-        mixture.replaceAll((k,v) -> v / total);
+        Double total = 0.0;
+        for (Double v: mixture.values()) {
+            total += v;
+        }
+        final Double mytotal = total;
+        mixture.replaceAll((k,v) -> v / mytotal);
+//        Double total = (double)counter;
+//        mixture.replaceAll((k,v) -> v / total);
 //        mixture.forEach((k,v) -> System.out.println(k + ": " + v));
 //        System.out.println("_____");
         return mixture;
