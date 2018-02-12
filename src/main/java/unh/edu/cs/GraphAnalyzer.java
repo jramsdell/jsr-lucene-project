@@ -297,13 +297,29 @@ public class GraphAnalyzer {
         int last = 0;
         int counter = 0;
         int cur = 0;
-        while (true) {
+        int end = 0;
+        while (end == 0) {
             int next = s.indexOf("$", cur + 1);
-            System.out.println(cur + " " + next);
-            cur = next;
-            if (counter++ > 10) {
+            if (next < 0 || cur < 0) {
+                end = 1;
+                next = s.length();
+            }
+            if (counter++ > 100) {
                 break;
             }
+
+            int space = s.indexOf(" ", cur);
+            if (space < 0) {
+                cur = next;
+                continue;
+            }
+
+            String entity = s.substring(cur + 1, space);
+            String value = s.substring(space + 1, next);
+            System.out.println(entity + " " + value);
+
+            cur = next;
+
 //            if (space > 0) {
 //                String entity = s.substring(last, space);
 //                Double value;
