@@ -365,6 +365,7 @@ public class GraphAnalyzer {
             try {
                 myTokenizer(wee, mixture);
             } catch (StringIndexOutOfBoundsException e) {
+                System.out.println(wee);
                 failures++;
                 continue;
             }
