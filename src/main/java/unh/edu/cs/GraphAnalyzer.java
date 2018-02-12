@@ -309,9 +309,6 @@ public class GraphAnalyzer {
                 end = 1;
                 next = s.length();
             }
-            if (counter++ > 100) {
-                break;
-            }
 
             int space = s.indexOf(" ", cur);
             if (space < 0) {
