@@ -31,8 +31,8 @@ public class GraphAnalyzer {
     private ConcurrentMap<String, String> parMap;
     Random rand = new Random();
 //    ConcurrentHashMap<String, TopDocs> storedQueries = new ConcurrentHashMap<>();
-    ConcurrentHashMap<String, ArrayList<ImmutablePair<Integer, Integer>>> storedEntities = new ConcurrentHashMap<>();
-    ConcurrentHashMap<String, ArrayList<ImmutablePair<Integer, Integer>>> storedParagraphs = new ConcurrentHashMap<>();
+    ConcurrentHashMap<String, ImmutablePair<String, ArrayList<ImmutablePair<Integer, Integer>>>> storedEntities = new ConcurrentHashMap<>();
+    ConcurrentHashMap<String, ImmutablePair<String, ArrayList<ImmutablePair<Integer, Integer>>>> storedParagraphs = new ConcurrentHashMap<>();
 //    ConcurrentHashMap<String, String[]> storedEntities = new ConcurrentHashMap<>();
 //    ConcurrentHashMap<String, String[]> storedParagraphs = new ConcurrentHashMap<>();
 //    HashMap<String, HashMap<String, Double>> parModel = new HashMap<>();
@@ -193,22 +193,29 @@ public class GraphAnalyzer {
             String curEntity = entity;
 
             for (int step = 0; step < nSteps; step++) {
-                String parString = entityMap.get(curEntity);
 //                if (!storedEntities.contains(curEntity)) {
-//                    storedEntities.put(curEntity, getJumpPlaces(parString));
+//                    storedEntities.putIfAbsent(curEntity, getJumpPlaces(parString));
 //                }
+                ImmutablePair<String, ArrayList<ImmutablePair<Integer, Integer>>> parData =
+                        storedEntities.computeIfAbsent(curEntity, (it -> {
+                            String parString = entityMap.get(it);
+                            ArrayList<ImmutablePair<Integer, Integer>> places = getJumpPlaces(parString);
+                            return ImmutablePair.of(it, places);
+                        }));
+
 //                ArrayList<ImmutablePair<Integer, Integer>> parPlaces = storedEntities.get(curEntity);
-                ArrayList<ImmutablePair<Integer, Integer>> parPlaces = getJumpPlaces(parString);
+//                ArrayList<ImmutablePair<Integer, Integer>> parPlaces = getJumpPlaces(parString);
 
-                String nextPar = useJumpPlaces(parString, parPlaces);
-                String entityString = parMap.get(nextPar);
-//                if (!storedParagraphs.contains(nextPar)) {
-//                    storedParagraphs.put(nextPar, getJumpPlaces(entityString));
-//                }
+                String nextPar = useJumpPlaces(parData.left, parData.right);
 
-//                ArrayList<ImmutablePair<Integer, Integer>> entityPlaces = storedEntities.get(nextPar);
-                ArrayList<ImmutablePair<Integer, Integer>> entityPlaces = getJumpPlaces(entityString);
-                curEntity = useJumpPlaces(entityString, entityPlaces);
+                ImmutablePair<String, ArrayList<ImmutablePair<Integer, Integer>>> entityData =
+                        storedEntities.computeIfAbsent(nextPar, (it -> {
+                            String entityString = parMap.get(it);
+                            ArrayList<ImmutablePair<Integer, Integer>> places = getJumpPlaces(entityString);
+                            return ImmutablePair.of(it, places);
+                        }));
+
+                curEntity = useJumpPlaces(entityData.left, entityData.right);
 
                 counts.merge(curEntity, 1, Integer::sum);
 //                System.out.println("YAY");
