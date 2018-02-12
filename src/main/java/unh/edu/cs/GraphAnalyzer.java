@@ -285,7 +285,7 @@ public class GraphAnalyzer {
 
     public void writeTermMap(HashMap<String, Double> termMap, String entity) throws IOException {
         String out = Seq.seq(termMap.entrySet())
-                .filter(entry -> entry.getValue() >= 0.01)
+//                .filter(entry -> entry.getValue() >= 0.01)
                 .map(entry -> entry.getKey() + " " + entry.getValue().toString())
                 .toString("$");
         cmap.putIfAbsent(entity, out);
@@ -418,7 +418,9 @@ public class GraphAnalyzer {
                         .forEach(entity -> {
                             try {
                                 HashMap<String, Double> termMap = ga.getTermMap(entity);
-                                ga.writeTermMap(termMap, entity);
+                                if (termMap.size() <= 200) {
+                                    ga.writeTermMap(termMap, entity);
+                                }
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -447,7 +449,7 @@ public class GraphAnalyzer {
 
 
     public static void main (String[] args) throws IOException {
-//        makeDB(args);
+        makeDB(args);
 
 
 //        IndexSearcher is = createIndexSearcher(args[0]);
