@@ -298,10 +298,6 @@ public class GraphAnalyzer {
 //            TopDocs td = entitySearcher.search(tq, 1);
 //            distribution = entitySearcher.doc(td.scoreDocs[0].doc).getValues("distribution");
             String[] distribution = cmap.get(entity).split("\\$");
-            for (String dist : distribution) {
-                String[] elements = dist.split(" ");
-                System.out.println("Dist:" + elements.length + " " + dist);
-            }
             System.exit(0);
             Seq.of(distribution)
                     .map(m -> {
@@ -311,6 +307,7 @@ public class GraphAnalyzer {
                     .forEach(t -> mixture.merge(t.v1, t.v2, Double::sum));
         }
 
+        System.out.println("DONE");
         Double total = (double)counter;
         mixture.replaceAll((k,v) -> v / total);
         return mixture;
