@@ -109,6 +109,15 @@ public class GraphAnalyzer {
         entityMap.put(entity, pars.toString());
     }
 
+    public void recordParagraphs(int docID) throws IOException {
+        Document doc = indexSearcher.doc(docID);
+        StringBuilder pars = new StringBuilder();
+        for (String entity : doc.getValues("spotlight")) {
+            pars.append(entity);
+        }
+        parMap.put(doc.get("paragraphid"), pars.toString());
+    }
+
     public HashMap<String, Double> getTermMap(String entity) throws IOException {
 //        if (storedTerms.containsKey(entity)) {
 //            return storedTerms.get(entity);
@@ -369,12 +378,38 @@ public class GraphAnalyzer {
         termList.parallelStream()
                 .forEach(entity -> {
                     try {
-                        HashMap<String, Double> termMap = ga.getTermMap(entity);
-                        ga.writeTermMap(termMap, entity);
+                        ga.recordTerms(entity);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+//                    try {
+//                        HashMap<String, Double> termMap = ga.getTermMap(entity);
+//                        ga.writeTermMap(termMap, entity);
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
                 });
+
+
+        ArrayList<Integer> docIds = new ArrayList<>();
+        int maxDocs = ga.indexSearcher.getIndexReader().maxDoc();
+        for (int i = 0; i < maxDocs; i++) {
+            docIds.add(i);
+            if (docIds.size() >= 1000 || i == maxDocs - 1) {
+                docIds.parallelStream()
+                        .forEach(paragraph -> {
+                                    try {
+                                        ga.recordParagraphs(paragraph);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                        );
+                docIds.clear();
+                System.out.println(i);
+            }
+        }
+
         ga.db.close();
     }
 
