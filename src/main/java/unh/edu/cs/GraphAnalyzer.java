@@ -312,10 +312,11 @@ public class GraphAnalyzer {
         int counter = 0;
         for (String entity : entities) {
             counter++;
-            TermQuery tq = new TermQuery(new Term("term", entity));
-            String[] distribution;
-            TopDocs td = entitySearcher.search(tq, 1);
-            distribution = entitySearcher.doc(td.scoreDocs[0].doc).getValues("distribution");
+//            TermQuery tq = new TermQuery(new Term("term", entity));
+//            String[] distribution;
+//            TopDocs td = entitySearcher.search(tq, 1);
+//            distribution = entitySearcher.doc(td.scoreDocs[0].doc).getValues("distribution");
+            String[] distribution = cmap.get(entity).split("$");
             Seq.of(distribution)
                     .map(m -> {
                         String[] elements = m.split(" ");
@@ -349,8 +350,7 @@ public class GraphAnalyzer {
         return pm;
     }
 
-
-    public static void main (String[] args) throws IOException {
+    public static void makeDB(String[] args) throws IOException {
 //        IndexSearcher is = createIndexSearcher("/home/hcgs/Desktop/myindex");
         IndexSearcher is = createIndexSearcher(args[0]);
         GraphAnalyzer ga = new GraphAnalyzer(is);
@@ -393,6 +393,11 @@ public class GraphAnalyzer {
                     }
                 });
         ga.db.close();
+    }
+
+
+    public static void main (String[] args) throws IOException {
+
 
 //        IndexSearcher is = createIndexSearcher(args[0]);
 

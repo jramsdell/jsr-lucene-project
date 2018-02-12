@@ -39,7 +39,6 @@ class LuceneQueryBuilder {
     private Analyzer analyzer;
     private QueryType queryType;
     private GraphAnalyzer graphAnalyzer;
-    private GloveReader gloveReader;
     private final String command;
 
     LuceneQueryBuilder(String com, QueryType qType, Analyzer ana,
@@ -56,7 +55,6 @@ class LuceneQueryBuilder {
 
     // Used by word vector variation: creates a reader from 50D GloVE word vector file.
     public void setVectorLocation(String vectorLocation) throws IOException {
-        gloveReader = new GloveReader(vectorLocation);
     }
 
     // Supplier that wraps around a tokenstream and provides its tokens when called.
@@ -166,9 +164,7 @@ class LuceneQueryBuilder {
             TopDocs tops = indexSearcher.search(createQuery(queryStr), 100);
 
             // if Word Vector variant, rerank according to cosine sim from query to document terms
-            if (command.equals("query_vector")) {
-                rerankByCosineSim(tops, queryStr);
-            } else if (command.equals("query_special")) {
+            if (command.equals("query_special")) {
                 rerankBySpecial(tops);
             }
             ScoreDoc[] scoreDoc = tops.scoreDocs;
@@ -190,9 +186,7 @@ class LuceneQueryBuilder {
                 TopDocs tops = indexSearcher.search(createQuery(queryStr), 100);
 
                 // if Word Vector variant, rerank according to cosine sim from query to document terms
-                if (command.equals("query_vector")) {
-                    rerankByCosineSim(tops, queryStr);
-                } else if (command.equals("query_special")) {
+                if (command.equals("query_special")) {
                     rerankBySpecial(tops);
                 }
                 ScoreDoc[] scoreDoc = tops.scoreDocs;
@@ -219,38 +213,11 @@ class LuceneQueryBuilder {
                 .toList();
     }
 
-    // Takes contents of a document, tokenizes it, searches for corresponding word vectors in GloVe,
-    // takes the average of these vectors, and runs cosine similarity against query word vector.
-    private Double getDocumentVectorScore(INDArray query,  ScoreDoc sd) {
-        try {
-            Document doc = indexSearcher.doc(sd.doc);
-            List<String> tokens = getVectorWordTokens(doc.getField("text").stringValue());
-            INDArray docArray = gloveReader.getWordVector(tokens);
-            Double score = gloveReader.getCosineSim(query, docArray);
-            sd.score = score.floatValue();
-            return score;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return 0.0;
-        }
-    }
 
     private void rerankBySpecial(TopDocs tops) throws IOException {
         GraphAnalyzer ga = new GraphAnalyzer(indexSearcher);
-//        ga.rerankTopDocs(tops);
-        ga.recordTerms(tops);
+        ga.rerankTopDocs(tops);
+//        ga.recordTerms(tops);
     }
 
-    // Reranks according to cosine similarity
-    private void rerankByCosineSim(TopDocs tops, String query) throws IOException {
-        List<String> queryTokens = getVectorWordTokens(query);
-        INDArray queryVector = gloveReader.getWordVector(queryTokens);
-        Seq.seq(Arrays.stream(tops.scoreDocs))
-                .map(sd -> new ImmutablePair<ScoreDoc, Double>(sd, getDocumentVectorScore(queryVector, sd)))
-                .sorted(ImmutablePair::getRight)
-                .reverse()
-                .map(ImmutablePair::getLeft)
-                .zip(Seq.range(0, tops.scoreDocs.length))
-                .forEach(it -> tops.scoreDocs[it.v2] = it.v1);
-    }
 }
