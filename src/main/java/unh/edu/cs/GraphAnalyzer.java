@@ -308,7 +308,7 @@ public class GraphAnalyzer {
                     value = Double.parseDouble(s.substring(space));
                 } else {
                     try {
-                        value = Double.parseDouble(s.substring(space, cur));
+                        value = Double.parseDouble(s.substring(space, s.indexOf("$", cur)));
                     } catch (StringIndexOutOfBoundsException e) {
                         System.out.println("Space: " + space + " cur: " + cur);
                         value = 0.0;
