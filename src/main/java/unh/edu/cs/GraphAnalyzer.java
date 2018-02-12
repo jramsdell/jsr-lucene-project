@@ -98,12 +98,15 @@ public class GraphAnalyzer {
     public void recordTerms(String entity) throws IOException {
         TermQuery tq = new TermQuery(new Term("spotlight", entity));
         TopDocs td = indexSearcher.search(tq, 10000);
+        StringBuilder pars = new StringBuilder();
         for (ScoreDoc sc : td.scoreDocs) {
             Document doc = indexSearcher.doc(sc.doc);
             String pid = doc.get("paragraphid");
-            entityMap.merge(entity, pid, (k,v) ->  k + " " + v);
-            parMap.merge(pid, entity, (k,v) ->  k + " " + v);
+            pars.append(pid);
+//            parMap.merge(pid, entity, (k,v) ->  k + " " + v);
         }
+//        entityMap.merge(entity, pid, (k,v) ->  k + " " + v);
+        entityMap.put(entity, pars.toString());
     }
 
     public HashMap<String, Double> getTermMap(String entity) throws IOException {
