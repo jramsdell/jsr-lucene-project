@@ -292,7 +292,7 @@ public class GraphAnalyzer {
 //        indexWriter.addDocument(doc);
     }
 
-    public ArrayList<ImmutablePair<String,Double>> myTokenizer(String s) {
+    public ArrayList<ImmutablePair<String,Double>> myTokenizer(String s, HashMap<String, Double> mixture) {
         ArrayList<ImmutablePair<String,Double>> pairs = new ArrayList<>();
         int last = 0;
         int counter = 0;
@@ -317,7 +317,8 @@ public class GraphAnalyzer {
             String entity = s.substring(cur + 1, space);
             String value = s.substring(space + 1, next);
 //            System.out.println(entity + " " + value);
-            pairs.add(new ImmutablePair<String,Double>(entity, Double.parseDouble(value)));
+//            pairs.add(new ImmutablePair<String,Double>(entity, Double.parseDouble(value)));
+            mixture.merge(entity, Double.parseDouble(value), Double::sum);
 
             cur = next;
 
@@ -358,10 +359,12 @@ public class GraphAnalyzer {
 //            distribution = entitySearcher.doc(td.scoreDocs[0].doc).getValues("distribution");
             String wee = cmap.get(entity);
             try {
-                myTokenizer(wee);
+                myTokenizer(wee, mixture);
             } catch (StringIndexOutOfBoundsException e) {
                 continue;
             }
+
+
 //            String[] distribution = cmap.get(entity).split("w");
 //
 //            Seq.of(distribution)
