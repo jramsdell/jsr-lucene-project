@@ -226,6 +226,7 @@ public class GraphAnalyzer {
                 ids.parallelStream()
                 .map(this::getParagraphMixture)
                 .collect(Collectors.toList());
+        mixtures.forEach(pm -> pm.score = (double)tops.scoreDocs[indexMappings.get(pm.docId)].score);
 
         mixtures.forEach(pm -> pm.entityMixture.forEach((k, v) -> sinks.merge(k, v * pm.score, Double::sum)));
         sinks.forEach((k,v) -> System.out.println(k + " " + v));
