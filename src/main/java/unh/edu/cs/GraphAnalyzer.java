@@ -46,10 +46,10 @@ public class GraphAnalyzer {
 //        db = DBMaker.fileDB("entity_db.db").fileLockDisable().fileMmapEnable().make();
 //        cmap = db.hashMap("map", Serializer.STRING, Serializer.STRING).createOrOpen();
 //        db.close();
-        db = DBMaker.fileDB("entity_db.db")
+        db = DBMaker.fileDB("entity_db_2.db")
                 .fileMmapEnable()
                 .closeOnJvmShutdown()
-                .concurrencyScale(600).make();
+                .make();
         cmap = db.hashMap("map", Serializer.STRING, Serializer.STRING).createOrOpen();
     }
 
@@ -106,7 +106,8 @@ public class GraphAnalyzer {
 //        }
 
         TermQuery tq = new TermQuery(new Term("spotlight", entity));
-        TopDocs td = indexSearcher.search(tq, 1000000);
+//        TopDocs td = indexSearcher.search(tq, 1000000);
+        TopDocs td = indexSearcher.search(tq, 100);
         HashMap<String, Double> termCounts = new HashMap<>();
         int counter = 0;
         for (ScoreDoc sc : td.scoreDocs) {
@@ -284,6 +285,7 @@ public class GraphAnalyzer {
 
     public void writeTermMap(HashMap<String, Double> termMap, String entity) throws IOException {
         String out = Seq.seq(termMap.entrySet())
+                .filter(entry -> entry.getValue() >= 0.01)
                 .map(entry -> entry.getKey() + " " + entry.getValue().toString())
                 .toString("$");
         cmap.putIfAbsent(entity, out);
@@ -445,6 +447,7 @@ public class GraphAnalyzer {
 
 
     public static void main (String[] args) throws IOException {
+        makeDB(args);
 
 
 //        IndexSearcher is = createIndexSearcher(args[0]);
