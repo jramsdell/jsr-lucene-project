@@ -28,7 +28,6 @@ import java.util.stream.StreamSupport;
 
 public class GraphAnalyzer {
     private IndexSearcher indexSearcher;
-    private IndexSearcher entitySearcher;
     private IndexWriter indexWriter;
     private DB db;
     private ConcurrentMap<String, String> cmap;
@@ -48,7 +47,6 @@ public class GraphAnalyzer {
 
     GraphAnalyzer(IndexSearcher id, IndexSearcher ed) throws IOException {
         indexSearcher = id;
-        entitySearcher = ed;
     }
 
     class Model {

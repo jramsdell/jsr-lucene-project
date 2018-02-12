@@ -18,7 +18,6 @@ import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.jooq.lambda.Seq;
-import org.nd4j.linalg.api.ndarray.INDArray;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -49,8 +48,7 @@ class LuceneQueryBuilder {
         indexSearcher = createIndexSearcher(indexPath);
         indexSearcher.setSimilarity(sim);
 
-        IndexSearcher entitySearcher = createIndexSearcher("distribution_index");
-        graphAnalyzer = new GraphAnalyzer(indexSearcher, entitySearcher);
+        graphAnalyzer = new GraphAnalyzer(indexSearcher);
     }
 
     // Used by word vector variation: creates a reader from 50D GloVE word vector file.
