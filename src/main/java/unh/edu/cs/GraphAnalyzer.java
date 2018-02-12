@@ -325,7 +325,7 @@ public class GraphAnalyzer {
 
     public static void makeDB(String[] args) throws IOException {
 //        IndexSearcher is = createIndexSearcher("/home/hcgs/Desktop/myindex");
-        IndexSearcher is = createIndexSearcher(args[0]);
+        IndexSearcher is = createIndexSearcher(args[1]);
         GraphAnalyzer ga = new GraphAnalyzer(is);
         ga.initializeWriter("entity_index");
         Fields fields = MultiFields.getFields(is.getIndexReader());
