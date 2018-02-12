@@ -304,6 +304,7 @@ public class GraphAnalyzer {
         int end = 0;
         int failures = 0;
         while (end == 0) {
+            counter++;
             int next = s.indexOf("$", cur + 1);
             if (next < 0 || cur < 0) {
                 end = 1;
@@ -326,7 +327,6 @@ public class GraphAnalyzer {
                 failures++;
                 if (failures > 1) {
                     System.out.println("Counter: " + counter);
-                    System.out.println(s);
                     break;
                 }
                 continue;
