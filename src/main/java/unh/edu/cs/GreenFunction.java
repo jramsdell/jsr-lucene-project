@@ -38,8 +38,8 @@ public class GreenFunction {
     }
 
     private void simulateStep() {
-//        HashMap<String, Double> nextDist = new HashMap<>(curDist);
-        HashMap<String, Double> nextDist = new HashMap<>();
+        HashMap<String, Double> nextDist = new HashMap<>(curDist);
+//        HashMap<String, Double> nextDist = new HashMap<>();
         List<String> observations = indices.parallelStream()
                 .map( it -> {
                     if (rand.nextDouble() <= transitionChance || entities[it].equals("")) {
