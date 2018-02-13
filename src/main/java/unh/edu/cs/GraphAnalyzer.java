@@ -226,19 +226,17 @@ public class GraphAnalyzer {
 //    }
 
 
-    public void doJumps(String pid) {
+    public HashMap<String, Double> doJumps(String pid) {
         HashMap<String, Double> counts = new HashMap<>();
         int nWalks = 2000;
         int nSteps = 5;
+        double total = 0;
         for (int walk = 0; walk < nWalks; walk++) {
             String curPar = pid;
             double volume = 1.0;
             int start = 0;
 
             for (int step = 0; step < nSteps; step++) {
-//                if (!storedEntities.contains(curEntity)) {
-//                    storedEntities.putIfAbsent(curEntity, getJumpPlaces(parString));
-//                }
                 ImmutablePair<String, ArrayList<ImmutablePair<Integer, Integer>>> entityData =
                         storedParagraphs.computeIfAbsent(curPar, (it -> {
                             String entityString = parMap.get(it);
@@ -246,8 +244,6 @@ public class GraphAnalyzer {
                             return ImmutablePair.of(entityString, places);
                         }));
 
-//                ArrayList<ImmutablePair<Integer, Integer>> parPlaces = storedEntities.get(curEntity);
-//                ArrayList<ImmutablePair<Integer, Integer>> parPlaces = getJumpPlaces(parString);
 
                 String nextEntity = useJumpPlaces(entityData.left, entityData.right);
 
@@ -259,24 +255,24 @@ public class GraphAnalyzer {
                         }));
 
                 curPar = useJumpPlaces(parData.left, parData.right);
-//                volume *= 0.8;
-//                volume *= 1 / (double)parData.right.size();
 
                 if (start == 1) {
                     volume *= 1 / (1 + Math.log((double)parData.right.size()) + Math.log((double)entityData.right.size()));
                     counts.merge(nextEntity, volume, Double::sum);
+                    total += volume;
                 } else {
                     start = 1;
                 }
-//                System.out.println("YAY");
             }
         }
 
+        final Double ftotal = total;
         Seq.seq(counts.entrySet())
                 .sorted(Map.Entry::getValue)
                 .reverse()
-                .take(15)
-                .forEach(entry -> System.out.println(entry.getKey() + " " + entry.getValue()));
+//                .forEach(entry -> System.out.println(entry.getKey() + " " + entry.getValue()));
+                .forEach(entry -> counts.merge(entry.getKey(), entry.getValue() / ftotal, Double::sum));
+        return counts;
     }
 
 
@@ -364,28 +360,30 @@ public class GraphAnalyzer {
 //                .forEach(entry -> System.out.println(entry.getKey() + " " + entry.getValue()));
 //    }
 
-    public void rerankTopDocs(TopDocs tops) {
-        if (true) {
-            try {
-                Document doc = indexSearcher.doc(tops.scoreDocs[0].doc);
-                String[] entities = doc.getValues("spotlight");
-                if (entities.length > 0) {
-                    System.out.println(doc.get("text"));
-                    System.out.println("---------");
-                    StringJoiner stringJoiner = new StringJoiner(" ");
-                    for (String entity : entities) { stringJoiner.add(entity); }
-                    System.out.println(stringJoiner.toString());
-                    System.out.println("---------");
+    public void reportTopDocJumps(TopDocs tops) {
+        try {
+            Document doc = indexSearcher.doc(tops.scoreDocs[0].doc);
+            String[] entities = doc.getValues("spotlight");
+            if (entities.length > 0) {
+                System.out.println(doc.get("text"));
+                System.out.println("---------");
+                StringJoiner stringJoiner = new StringJoiner(" ");
+                for (String entity : entities) { stringJoiner.add(entity); }
+                System.out.println(stringJoiner.toString());
+                System.out.println("---------");
 
-                    doJumps(doc.get("paragraphid"));
+//                doJumps(doc.get("paragraphid"));
 //                    System.out.println("Entity: " + entities[0]);
 //                    doJumps(entities[0]);
-                }
-            } catch (IOException e) {
-
             }
-            return;
+        } catch (IOException e) {
+
         }
+        return;
+
+    }
+
+    public void rerankTopDocs(TopDocs tops) {
         ArrayList<Integer> ids = new ArrayList<>();
         HashMap<Integer, Integer> indexMappings = new HashMap<>();
         HashMap<String, Double> sinks = new HashMap<>();
@@ -543,12 +541,9 @@ public class GraphAnalyzer {
             return pm;
         }
 
-        String[] entities = doc.getValues("spotlight");
-        try {
-            pm.entityMixture = getEntityMixture(entities);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        String[] entities = doc.getValues("spotlight");
+//            pm.entityMixture = getEntityMixture(entities);
+        pm.entityMixture = doJumps(doc.get("paragraphid"));
         return pm;
     }
 
