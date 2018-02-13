@@ -49,6 +49,7 @@ public class GreenFunction {
                 });
 
         for (String entity: entities) {
+            System.out.println(entity);
             nextDist.merge(entity, 1.0, Double::sum);
         }
 
