@@ -360,6 +360,12 @@ public class GraphAnalyzer {
                 if (entities.length > 0) {
                     System.out.println(doc.get("text"));
                     System.out.println("---------");
+                    StringJoiner stringJoiner = new StringJoiner(" ");
+                    for (String entity : entities) { stringJoiner.add(entity); }
+                    System.out.println(stringJoiner.toString());
+                    System.out.println("---------");
+
+
                     doJumps(doc.get("paragraphid"));
                 }
             } catch (IOException e) {
