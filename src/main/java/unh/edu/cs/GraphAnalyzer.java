@@ -228,8 +228,8 @@ public class GraphAnalyzer {
 
     public void doJumps(String pid) {
         HashMap<String, Double> counts = new HashMap<>();
-        int nWalks = 300;
-        int nSteps = 100;
+        int nWalks = 800;
+        int nSteps = 5;
         for (int walk = 0; walk < nWalks; walk++) {
             String curPar = pid;
             double volume = 1.0;
@@ -263,7 +263,7 @@ public class GraphAnalyzer {
 //                volume *= 1 / (double)parData.right.size();
 
                 if (start == 1) {
-//                    volume *= 1 / (1 + Math.log((double)parData.right.size()) + Math.log((double)entityData.right.size()));
+                    volume *= 1 / (1 + Math.log((double)parData.right.size()) + Math.log((double)entityData.right.size()));
                     counts.merge(nextEntity, volume, Double::sum);
                 } else {
                     start = 1;
