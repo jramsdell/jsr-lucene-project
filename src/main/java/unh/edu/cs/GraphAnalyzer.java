@@ -45,7 +45,7 @@ public class GraphAnalyzer {
 //        db = DBMaker.fileDB("entity_db.db").fileLockDisable().fileMmapEnable().make();
 //        cmap = db.hashMap("map", Serializer.STRING, Serializer.STRING).createOrOpen();
 //        db.close();
-        db = DBMaker.fileDB("entity_db_dedup.db")
+        db = DBMaker.fileDB("entity_db_3.db")
                 .fileMmapEnable()
                 .closeOnJvmShutdown()
                 .make();
@@ -228,8 +228,8 @@ public class GraphAnalyzer {
 
     public HashMap<String, Double> doJumps(String pid) {
         HashMap<String, Double> counts = new HashMap<>();
-        int nWalks = 300;
-        int nSteps = 4;
+        int nWalks = 500;
+        int nSteps = 2;
         for (int walk = 0; walk < nWalks; walk++) {
             String curPar = pid;
             double volume = 1.0;
