@@ -252,9 +252,9 @@ public class GraphAnalyzer {
                         }));
 
                 curEntity = useJumpPlaces(entityData.left, entityData.right);
-                volume *= 1 / (double)parData.right.size();
+                volume *= 1 / (double)entityData.right.size();
 
-                counts.merge(curEntity, 1/ (double)parData.right.size(), Double::sum);
+                counts.merge(curEntity, volume, Double::sum);
 //                System.out.println("YAY");
             }
         }
