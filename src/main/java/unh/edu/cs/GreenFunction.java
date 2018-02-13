@@ -5,6 +5,7 @@ import org.jooq.lambda.Seq;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 public class GreenFunction {
     private GraphAnalyzer graphAnalyzer;
@@ -39,18 +40,19 @@ public class GreenFunction {
     private void simulateStep() {
 //        HashMap<String, Double> nextDist = new HashMap<>(curDist);
         HashMap<String, Double> nextDist = new HashMap<>();
-        indices.parallelStream()
-                .forEach( it -> {
+        List<String> observations = indices.parallelStream()
+                .map( it -> {
                     if (rand.nextDouble() <= transitionChance || entities[it].equals("")) {
                         ImmutablePair<String, String> p = graphAnalyzer.transitionEntity(points[it]);
                         points[it] = p.left;
                         entities[it] = p.right;
-                    }
-                });
+                        return p.right;
+                    } else { return entities[it]; }
+                }).collect(Collectors.toList());
 
-        for (String entity: entities) {
-            System.out.println(entity);
-            nextDist.merge(entity, 1.0, Double::sum);
+
+        for (String observation: observations) {
+            nextDist.merge(observation, 1.0, Double::sum);
         }
 
         distributions.add(nextDist);
