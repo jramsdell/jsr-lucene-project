@@ -222,7 +222,7 @@ public class GraphAnalyzer {
     public void doJumps(String entity) {
         System.out.println("Original: " + entity);
         HashMap<String, Double> counts = new HashMap<>();
-        int nWalks = 2000;
+        int nWalks = 8000;
         int nSteps = 5;
         for (int walk = 0; walk < nWalks; walk++) {
             String curEntity = entity;
@@ -252,7 +252,7 @@ public class GraphAnalyzer {
                         }));
 
                 curEntity = useJumpPlaces(entityData.left, entityData.right);
-                volume *= 1 / (double)entityData.right.size();
+                volume *= 1 / (double)parData.right.size();
 
                 counts.merge(curEntity, volume, Double::sum);
 //                System.out.println("YAY");
