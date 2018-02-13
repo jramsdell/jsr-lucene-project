@@ -171,13 +171,14 @@ public class GraphAnalyzer {
         });
     }
 
-    public String transitionEntity(String entity) {
+    public ImmutablePair<String,String> transitionEntity(String par) {
+        String entityString = parMap.get(par);
+        ArrayList<ImmutablePair<Integer, Integer>> entityPlaces = getJumpPlaces(entityString);
+        String entity = useJumpPlaces(entityString, entityPlaces);
         String parString = entityMap.get(entity);
         ArrayList<ImmutablePair<Integer, Integer>> parPlaces = getJumpPlaces(parString);
         String curPar = useJumpPlaces(parString, parPlaces);
-        String entityString = parMap.get(curPar);
-        ArrayList<ImmutablePair<Integer, Integer>> entityPlaces = getJumpPlaces(entityString);
-        return useJumpPlaces(entityString, entityPlaces);
+        return ImmutablePair.of(curPar, entity);
     }
 
 

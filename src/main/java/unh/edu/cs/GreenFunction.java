@@ -1,5 +1,6 @@
 package unh.edu.cs;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.jooq.lambda.Seq;
 
 import java.util.*;
@@ -32,8 +33,9 @@ public class GreenFunction {
         HashMap<String, Double> nextDist = new HashMap<>(curDist);
         for (int i = 0; i < points.length; i++) {
             if (rand.nextDouble() <= transitionChance) {
-                points[i] = graphAnalyzer.transitionEntity(points[i]);
-                nextDist.merge(points[i], 1.0, Double::sum);
+                ImmutablePair<String, String> p = graphAnalyzer.transitionEntity(points[i]);
+                points[i] = p.left;
+                nextDist.merge(p.right, 1.0, Double::sum);
             }
         }
         distributions.add(nextDist);
