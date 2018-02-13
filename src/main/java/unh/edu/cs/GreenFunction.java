@@ -53,7 +53,8 @@ public class GreenFunction {
         HashSet<String> keys = new HashSet<>();
         keys.addAll(d1.keySet());
         keys.addAll(d2.keySet());
-        return 0.5 * Seq.seq(keys).sumDouble(it -> Math.abs(d1.get(it) - d2.get(it)));
+        return 0.5 * Seq.seq(keys).sumDouble(
+                it -> Math.abs(d1.getOrDefault(it, 0.0) - d2.getOrDefault(it, 0.0)));
     }
 
 
