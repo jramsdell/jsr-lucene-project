@@ -45,7 +45,7 @@ public class GraphAnalyzer {
 //        db = DBMaker.fileDB("entity_db.db").fileLockDisable().fileMmapEnable().make();
 //        cmap = db.hashMap("map", Serializer.STRING, Serializer.STRING).createOrOpen();
 //        db.close();
-        db = DBMaker.fileDB("entity_db_3.db")
+        db = DBMaker.fileDB("entity_db_dedup.db")
                 .fileMmapEnable()
                 .closeOnJvmShutdown()
                 .make();
@@ -96,12 +96,16 @@ public class GraphAnalyzer {
         TermQuery tq = new TermQuery(new Term("spotlight", entity));
         TopDocs td = indexSearcher.search(tq, 10000);
         StringJoiner stringJoiner = new StringJoiner(" ");
+        HashSet<String> termSet = new HashSet<>();
+
         for (ScoreDoc sc : td.scoreDocs) {
             Document doc = indexSearcher.doc(sc.doc);
             String pid = doc.get("paragraphid");
-            stringJoiner.add(pid);
+//            stringJoiner.add(pid);
+            termSet.add(pid);
 //            parMap.merge(pid, entity, (k,v) ->  k + " " + v);
         }
+        termSet.iterator().forEachRemaining(stringJoiner::add);
 //        entityMap.merge(entity, pid, (k,v) ->  k + " " + v);
         entityMap.put(entity, stringJoiner.toString());
     }
@@ -109,9 +113,11 @@ public class GraphAnalyzer {
     public void recordParagraphs(int docID) throws IOException {
         Document doc = indexSearcher.doc(docID);
         StringJoiner stringJoiner = new StringJoiner(" ");
+        HashSet<String> paragraphSet = new HashSet<>();
         for (String entity : doc.getValues("spotlight")) {
-            stringJoiner.add(entity);
+            paragraphSet.add(entity);
         }
+        paragraphSet.iterator().forEachRemaining(stringJoiner::add);
         parMap.put(doc.get("paragraphid"), stringJoiner.toString());
     }
 
