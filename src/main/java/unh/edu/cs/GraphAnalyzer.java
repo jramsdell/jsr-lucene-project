@@ -252,7 +252,7 @@ public class GraphAnalyzer {
                         }));
 
                 curEntity = useJumpPlaces(entityData.left, entityData.right);
-                volume *= (1 + step) / (1 + Math.log((double)parData.right.size()));
+                volume *= 1 / (1 + Math.log((double)parData.right.size()));
 //                volume *= 1 / (double)parData.right.size();
 
                 counts.merge(curEntity, volume, Double::sum);
@@ -263,7 +263,7 @@ public class GraphAnalyzer {
         Seq.seq(counts.entrySet())
                 .sorted(Map.Entry::getValue)
                 .reverse()
-                .take(10)
+                .take(15)
                 .forEach(entry -> System.out.println(entry.getKey() + " " + entry.getValue()));
     }
 
