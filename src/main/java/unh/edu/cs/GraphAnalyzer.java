@@ -369,6 +369,7 @@ public class GraphAnalyzer {
         System.out.println(doc2.get("text"));
         GreenFunction gf1 = new GreenFunction(this, par1, 0.25, 200, 8000);
         GreenFunction gf2 = new GreenFunction(this, par2, 0.25, 200, 8000);
+        gf1.distributions.get(0).forEach((k,v) -> System.out.println(k + ": " + v));
         gf1.simulate();
         gf2.simulate();
         Double curEpsilon = 0.1;
