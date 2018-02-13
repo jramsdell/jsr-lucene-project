@@ -223,10 +223,10 @@ public class GraphAnalyzer {
         System.out.println("Original: " + entity);
         HashMap<String, Double> counts = new HashMap<>();
         int nWalks = 2000;
-        int nSteps = 10;
-        double volume = 1.0;
+        int nSteps = 5;
         for (int walk = 0; walk < nWalks; walk++) {
             String curEntity = entity;
+            double volume = 1.0;
 
             for (int step = 0; step < nSteps; step++) {
 //                if (!storedEntities.contains(curEntity)) {
