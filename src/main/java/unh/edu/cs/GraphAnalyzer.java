@@ -45,7 +45,7 @@ public class GraphAnalyzer {
 //        db = DBMaker.fileDB("entity_db.db").fileLockDisable().fileMmapEnable().make();
 //        cmap = db.hashMap("map", Serializer.STRING, Serializer.STRING).createOrOpen();
 //        db.close();
-        db = DBMaker.fileDB("entity_db_3.db")
+        db = DBMaker.fileDB("entity_db_dedup.db")
                 .fileMmapEnable()
                 .closeOnJvmShutdown()
                 .make();
@@ -369,7 +369,6 @@ public class GraphAnalyzer {
             if (!pm.entityMixture.isEmpty()) {
                 pm.score = 0.0;
             }
-            pm.entityMixture.forEach((k,v) -> {if (v > 1) System.out.println("BAD");});
             pm.entityMixture.forEach((k, v) -> pm.score += sinks.get(k) * v);
 //            pm.score = Math.max(pm.score, pm.finalScore);
 //            System.out.println(pm.score);
