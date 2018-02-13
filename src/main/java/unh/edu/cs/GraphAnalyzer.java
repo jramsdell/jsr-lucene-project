@@ -242,7 +242,6 @@ public class GraphAnalyzer {
                 ImmutablePair<String, ArrayList<ImmutablePair<Integer, Integer>>> entityData =
                         storedParagraphs.computeIfAbsent(curPar, (it -> {
                             String entityString = parMap.get(it);
-                            System.out.println(entityString);
                             ArrayList<ImmutablePair<Integer, Integer>> places = getJumpPlaces(entityString);
                             return ImmutablePair.of(entityString, places);
                         }));
@@ -378,9 +377,9 @@ public class GraphAnalyzer {
                     System.out.println(stringJoiner.toString());
                     System.out.println("---------");
 
-//                    doJumps(doc.get("paragraphid"));
-                    System.out.println("Entity: " + entities[0]);
-                    doJumps(entities[0]);
+                    doJumps(doc.get("paragraphid"));
+//                    System.out.println("Entity: " + entities[0]);
+//                    doJumps(entities[0]);
                 }
             } catch (IOException e) {
 
