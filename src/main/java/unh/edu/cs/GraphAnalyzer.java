@@ -228,8 +228,8 @@ public class GraphAnalyzer {
 
     public void doJumps(String pid) {
         HashMap<String, Double> counts = new HashMap<>();
-        int nWalks = 8000;
-        int nSteps = 5;
+        int nWalks = 50;
+        int nSteps = 100;
         for (int walk = 0; walk < nWalks; walk++) {
             String curPar = pid;
             double volume = 1.0;
