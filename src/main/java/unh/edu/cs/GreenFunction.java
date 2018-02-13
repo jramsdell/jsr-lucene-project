@@ -63,7 +63,6 @@ public class GreenFunction {
         distributions.forEach( dist -> {
             Double total = Seq.seq(dist.values()).sumDouble(it -> it);
             dist.replaceAll((k,v) -> v / total);
-            Double total2 = Seq.seq(dist.values()).sumDouble(it -> it);
         });
     }
 
