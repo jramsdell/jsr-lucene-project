@@ -220,6 +220,7 @@ public class GraphAnalyzer {
 //    }
 
     public void doJumps(String entity) {
+        System.out.println("Original: " + entity);
         HashMap<String, Integer> counts = new HashMap<>();
         int nWalks = 2000;
         int nSteps = 10;
