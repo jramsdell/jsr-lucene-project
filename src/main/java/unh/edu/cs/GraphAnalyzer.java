@@ -367,8 +367,8 @@ public class GraphAnalyzer {
         System.out.println(doc1.get("text"));
         System.out.println("----------------------");
         System.out.println(doc2.get("text"));
-        GreenFunction gf1 = new GreenFunction(this, par1, 0.25, 500, 2000);
-        GreenFunction gf2 = new GreenFunction(this, par2, 0.25, 500, 2000);
+        GreenFunction gf1 = new GreenFunction(this, par1, 0.25, 200, 200);
+        GreenFunction gf2 = new GreenFunction(this, par2, 0.25, 200, 200);
         gf1.simulate();
         gf2.simulate();
         Double curEpsilon = 0.1;
