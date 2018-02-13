@@ -32,7 +32,7 @@ public class GreenFunction {
         Arrays.fill(points, root);
         Arrays.fill(entities, "");
         rand = new Random();
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < nPoints; i++) {
             indices.add(i);
         }
     }
