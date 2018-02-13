@@ -171,6 +171,16 @@ public class GraphAnalyzer {
         });
     }
 
+    public String transitionEntity(String entity) {
+        String parString = entityMap.get(entity);
+        ArrayList<ImmutablePair<Integer, Integer>> parPlaces = getJumpPlaces(parString);
+        String curPar = useJumpPlaces(parString, parPlaces);
+        String entityString = parMap.get(curPar);
+        ArrayList<ImmutablePair<Integer, Integer>> entityPlaces = getJumpPlaces(entityString);
+        return useJumpPlaces(entityString, entityPlaces);
+    }
+
+
     public ArrayList<ImmutablePair<Integer, Integer>> getJumpPlaces(String text) {
         ArrayList<ImmutablePair<Integer, Integer>> places = new ArrayList<>();
         int cur = -1;
@@ -229,7 +239,7 @@ public class GraphAnalyzer {
     public HashMap<String, Double> doJumps(String pid) {
         HashMap<String, Double> counts = new HashMap<>();
         int nWalks = 200;
-        int nSteps = 10;
+        int nSteps = 4;
         for (int walk = 0; walk < nWalks; walk++) {
             String curPar = pid;
             double volume = 1.0;
@@ -347,7 +357,28 @@ public class GraphAnalyzer {
 
     }
 
+    public void doExperiment(TopDocs tops) throws IOException {
+        String par1 = indexSearcher.doc(tops.scoreDocs[0].doc).get("paragraphid");
+        String par2 = indexSearcher.doc(tops.scoreDocs[1].doc).get("paragraphid");
+        GreenFunction gf1 = new GreenFunction(this, par1, 0.25, 10, 1000);
+        GreenFunction gf2 = new GreenFunction(this, par2, 0.25, 10, 1000);
+        gf1.simulate();
+        gf2.simulate();
+        System.out.println("Distance 0.15: " + gf1.getDistance(gf2, 0.15));
+        System.out.println("Distance 0.25: " + gf1.getDistance(gf2, 0.25));
+        System.out.println("Distance 0.40: " + gf1.getDistance(gf2, 0.40));
+        System.out.println("Distance 0.60: " + gf1.getDistance(gf2, 0.60));
+    }
+
     public void rerankTopDocs(TopDocs tops) {
+        if (true) {
+            try {
+                doExperiment(tops);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return;
+        }
         ArrayList<Integer> ids = new ArrayList<>();
         HashMap<Integer, Integer> indexMappings = new HashMap<>();
         HashMap<String, Double> sinks = new HashMap<>();
