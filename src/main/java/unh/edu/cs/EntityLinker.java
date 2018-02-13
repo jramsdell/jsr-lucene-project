@@ -27,7 +27,7 @@ public class EntityLinker {
             // Connect to database, retrieve entity-linked urls
             Document doc = Jsoup.connect(url)
                     .data("text", data)
-                    .data("confidence", "0.85")
+                    .data("confidence", "0.70")
                     .post();
             Elements links = doc.select("a[href]");
 

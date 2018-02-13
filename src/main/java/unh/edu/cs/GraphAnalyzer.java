@@ -263,7 +263,7 @@ public class GraphAnalyzer {
 //                volume *= 1 / (double)parData.right.size();
 
                 if (start == 1) {
-                    volume *= 1 / (1 + Math.log((double)parData.right.size()) + Math.log((double)entityData.right.size()));
+//                    volume *= 1 / (1 + Math.log((double)parData.right.size()) + Math.log((double)entityData.right.size()));
                     counts.merge(nextEntity, volume, Double::sum);
                 } else {
                     start = 1;
