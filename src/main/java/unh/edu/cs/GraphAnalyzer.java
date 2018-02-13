@@ -359,10 +359,15 @@ public class GraphAnalyzer {
     }
 
     public void doExperiment(TopDocs tops) throws IOException {
-        String par1 = indexSearcher.doc(tops.scoreDocs[0].doc).get("paragraphid");
-        String par2 = indexSearcher.doc(tops.scoreDocs[1].doc).get("paragraphid");
-        GreenFunction gf1 = new GreenFunction(this, par1, 0.25, 10, 1000);
-        GreenFunction gf2 = new GreenFunction(this, par2, 0.25, 10, 1000);
+        Document doc1 = indexSearcher.doc(tops.scoreDocs[0].doc);
+        Document doc2 = indexSearcher.doc(tops.scoreDocs[0].doc);
+        String par1 = doc1.get("paragraphid");
+        String par2 = doc2.get("paragraphid");
+        System.out.println(doc1.get("text"));
+        System.out.println("----------------------");
+        System.out.println(doc2.get("text"));
+        GreenFunction gf1 = new GreenFunction(this, par1, 0.25, 30, 1000);
+        GreenFunction gf2 = new GreenFunction(this, par2, 0.25, 30, 1000);
         gf1.simulate();
         gf2.simulate();
         Double curEpsilon = 0.4;
