@@ -264,16 +264,14 @@ public class GraphAnalyzer {
             }
         }
 
-        List<Map.Entry<String,Double>> entries = Seq.seq(counts.entrySet())
+        Map<String, Double> entries = Seq.seq(counts.entrySet())
                 .sorted(Map.Entry::getValue)
                 .reverse()
                 .take(20)
-                .toList();
-        Double total = Seq.seq(entries).sumDouble(Map.Entry::getValue);
-        entries.forEach(entry -> counts.merge(entry.getKey(), entry.getValue() / total, Double::sum));
-//                .forEach(entry -> System.out.println(entry.getKey() + " " + entry.getValue()));
-//                .forEach(entry -> counts.merge(entry.getKey(), entry.getValue() / ftotal, Double::sum));
-        return counts;
+                .toMap(Map.Entry::getKey, Map.Entry::getValue);
+        Double total = Seq.seq(entries.values()).sumDouble(it -> it);
+        entries.replaceAll((k,v) -> v / total);
+        return (HashMap<String, Double>) entries;
     }
 
 
