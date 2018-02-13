@@ -252,8 +252,7 @@ public class GraphAnalyzer {
                         }));
 
                 curEntity = useJumpPlaces(entityData.left, entityData.right);
-//                volume *= 1 / (double)parData.right.size();
-                volume *= 0.75;
+                volume *= 1 / (double)parData.right.size();
 
                 counts.merge(curEntity, volume, Double::sum);
 //                System.out.println("YAY");
