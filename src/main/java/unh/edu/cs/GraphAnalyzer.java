@@ -360,7 +360,7 @@ public class GraphAnalyzer {
 
     public void doExperiment(TopDocs tops) throws IOException {
         Document doc1 = indexSearcher.doc(tops.scoreDocs[0].doc);
-        Document doc2 = indexSearcher.doc(tops.scoreDocs[0].doc);
+        Document doc2 = indexSearcher.doc(tops.scoreDocs[1].doc);
         String par1 = doc1.get("paragraphid");
         String par2 = doc2.get("paragraphid");
         System.out.println(doc1.get("text"));
