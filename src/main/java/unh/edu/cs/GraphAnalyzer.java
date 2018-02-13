@@ -222,7 +222,7 @@ public class GraphAnalyzer {
     public void doJumps(String entity) {
         HashMap<String, Integer> counts = new HashMap<>();
         int nWalks = 2000;
-        int nSteps = 5;
+        int nSteps = 2;
         for (int walk = 0; walk < nWalks; walk++) {
             String curEntity = entity;
 
