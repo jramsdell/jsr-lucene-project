@@ -62,6 +62,7 @@ public class GreenFunction {
         Optional<Integer> modulus = Seq.range(0, distributions.size())
                 .findFirst(it -> {
                     Double dist = getTotalVariationDistance(distributions.get(it), gf.distributions.get(it));
+                    System.out.println(dist);
                     return dist < epsilon;
                 });
 
