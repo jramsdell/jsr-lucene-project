@@ -365,12 +365,15 @@ public class GraphAnalyzer {
         GreenFunction gf2 = new GreenFunction(this, par2, 0.25, 10, 1000);
         gf1.simulate();
         gf2.simulate();
-        System.out.println("Distance 0.55: " + gf1.getDistance(gf2, 0.55));
-        System.out.println("Distance 0.56: " + gf1.getDistance(gf2, 0.56));
-        System.out.println("Distance 0.57: " + gf1.getDistance(gf2, 0.57));
-        System.out.println("Distance 0.58: " + gf1.getDistance(gf2, 0.58));
-        System.out.println("Distance 0.59: " + gf1.getDistance(gf2, 0.59));
-        System.out.println("Distance 0.60: " + gf1.getDistance(gf2, 0.60));
+        Double curEpsilon = 0.4;
+        while (true) {
+            Double dist = gf1.getDistance(gf2, curEpsilon);
+            if (!dist.isNaN()) {
+                System.out.println("Distance " + curEpsilon + ": " + dist);
+                break;
+            }
+            curEpsilon += 0.01;
+        }
     }
 
     public void rerankTopDocs(TopDocs tops) {
