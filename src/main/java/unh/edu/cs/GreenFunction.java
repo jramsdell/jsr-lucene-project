@@ -13,7 +13,9 @@ public class GreenFunction {
     private final int maxSteps;
     private final int nPoints;
     private String[] points;
+    private String[] entities;
     private Random rand;
+    private final ArrayList<Integer> indices = new ArrayList<>();
     public final ArrayList<HashMap<String, Double>> distributions = new ArrayList<>();
     private HashMap<String, Double> curDist = new HashMap<>();
 
@@ -25,19 +27,31 @@ public class GreenFunction {
         this.maxSteps = maxSteps;
         this.nPoints = nPoints;
         points = new String[nPoints];
+        entities = new String[nPoints];
         Arrays.fill(points, root);
+        Arrays.fill(entities, "");
         rand = new Random();
+        for (int i = 0; i < 1; i++) {
+            indices.add(i);
+        }
     }
 
     private void simulateStep() {
-        HashMap<String, Double> nextDist = new HashMap<>(curDist);
-        for (int i = 0; i < points.length; i++) {
-            if (rand.nextDouble() <= transitionChance) {
-                ImmutablePair<String, String> p = graphAnalyzer.transitionEntity(points[i]);
-                points[i] = p.left;
-                nextDist.merge(p.right, 1.0, Double::sum);
-            }
+//        HashMap<String, Double> nextDist = new HashMap<>(curDist);
+        HashMap<String, Double> nextDist = new HashMap<>();
+        indices.parallelStream()
+                .forEach( it -> {
+                    if (rand.nextDouble() <= transitionChance || entities[it].equals("")) {
+                        ImmutablePair<String, String> p = graphAnalyzer.transitionEntity(points[it]);
+                        points[it] = p.left;
+                        entities[it] = p.right;
+                    }
+                });
+
+        for (String entity: entities) {
+            nextDist.merge(entity, 1.0, Double::sum);
         }
+
         distributions.add(nextDist);
         curDist = nextDist;
     }
@@ -47,7 +61,6 @@ public class GreenFunction {
             Double total = Seq.seq(dist.values()).sumDouble(it -> it);
             dist.replaceAll((k,v) -> v / total);
             Double total2 = Seq.seq(dist.values()).sumDouble(it -> it);
-            System.out.println(total2);
         });
     }
 

@@ -46,6 +46,7 @@ public class GraphAnalyzer {
 //        cmap = db.hashMap("map", Serializer.STRING, Serializer.STRING).createOrOpen();
 //        db.close();
         db = DBMaker.fileDB("entity_db_3.db")
+                .readOnly()
                 .fileMmapEnable()
                 .closeOnJvmShutdown()
                 .make();
@@ -366,8 +367,8 @@ public class GraphAnalyzer {
         System.out.println(doc1.get("text"));
         System.out.println("----------------------");
         System.out.println(doc2.get("text"));
-        GreenFunction gf1 = new GreenFunction(this, par1, 0.25, 60, 1000);
-        GreenFunction gf2 = new GreenFunction(this, par2, 0.25, 60, 1000);
+        GreenFunction gf1 = new GreenFunction(this, par1, 0.25, 60, 4000);
+        GreenFunction gf2 = new GreenFunction(this, par2, 0.25, 60, 4000);
         gf1.simulate();
         gf2.simulate();
         Double curEpsilon = 0.1;
