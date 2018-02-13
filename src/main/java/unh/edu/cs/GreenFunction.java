@@ -46,6 +46,8 @@ public class GreenFunction {
         distributions.forEach( dist -> {
             Double total = Seq.seq(dist.values()).sumDouble(it -> it);
             dist.replaceAll((k,v) -> v / total);
+            Double total2 = Seq.seq(dist.values()).sumDouble(it -> it);
+            System.out.println(total2);
         });
     }
 
@@ -62,7 +64,6 @@ public class GreenFunction {
         Optional<Integer> modulus = Seq.range(0, distributions.size())
                 .findFirst(it -> {
                     Double dist = getTotalVariationDistance(distributions.get(it), gf.distributions.get(it));
-                    System.out.println(dist);
                     return dist < epsilon;
                 });
 
