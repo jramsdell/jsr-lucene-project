@@ -230,7 +230,6 @@ public class GraphAnalyzer {
         HashMap<String, Double> counts = new HashMap<>();
         int nWalks = 300;
         int nSteps = 4;
-        double total = 0;
         for (int walk = 0; walk < nWalks; walk++) {
             String curPar = pid;
             double volume = 1.0;
@@ -259,19 +258,21 @@ public class GraphAnalyzer {
                 if (start == 1) {
                     volume *= 1 / (1 + Math.log((double)parData.right.size()) + Math.log((double)entityData.right.size()));
                     counts.merge(nextEntity, volume, Double::sum);
-                    total += volume;
                 } else {
                     start = 1;
                 }
             }
         }
 
-        final Double ftotal = total;
-        Seq.seq(counts.entrySet())
+        List<Map.Entry<String,Double>> entries = Seq.seq(counts.entrySet())
                 .sorted(Map.Entry::getValue)
                 .reverse()
+                .take(20)
+                .toList();
+        Double total = Seq.seq(entries).sumDouble(Map.Entry::getValue);
+        entries.forEach(entry -> counts.merge(entry.getKey(), entry.getValue() / total, Double::sum));
 //                .forEach(entry -> System.out.println(entry.getKey() + " " + entry.getValue()));
-                .forEach(entry -> counts.merge(entry.getKey(), entry.getValue() / ftotal, Double::sum));
+//                .forEach(entry -> counts.merge(entry.getKey(), entry.getValue() / ftotal, Double::sum));
         return counts;
     }
 
@@ -324,41 +325,6 @@ public class GraphAnalyzer {
 //                .forEach(entry -> System.out.println(entry.getKey() + " " + entry.getValue()));
 //    }
 
-//    public void doJumps(String entity) {
-//        HashMap<String, Integer> counts = new HashMap<>();
-//        int nWalks = 800;
-//        int nSteps = 5;
-//        for (int walk = 0; walk < nWalks; walk++) {
-//            String curEntity = entity;
-//
-//            for (int step = 0; step < nSteps; step++) {
-//                String[] pars;
-//                if (!storedEntities.contains(curEntity)) {
-//                    pars = entityMap.get(curEntity).split(" ");
-//                    storedEntities.put(curEntity, pars);
-//                } else {
-//                    pars = storedEntities.get(curEntity);
-//                }
-//
-//                String nextPar = pars[rand.nextInt(pars.length)];
-//                String[] entities;
-//                if (!storedParagraphs.contains(nextPar)) {
-//                    entities = parMap.get(nextPar).split(" ");
-//                    storedParagraphs.put(nextPar, entities);
-//                } else {
-//                    entities = storedParagraphs.get(nextPar);
-//                }
-//                curEntity = entities[rand.nextInt(entities.length)];
-//                counts.merge(curEntity, 1, Integer::sum);
-//            }
-//        }
-//
-//        Seq.seq(counts.entrySet())
-//                .sorted(Map.Entry::getValue)
-//                .reverse()
-//                .take(10)
-//                .forEach(entry -> System.out.println(entry.getKey() + " " + entry.getValue()));
-//    }
 
     public void reportTopDocJumps(TopDocs tops) {
         try {
@@ -402,11 +368,11 @@ public class GraphAnalyzer {
 
         mixtures.forEach(pm -> pm.entityMixture.forEach((k, v) -> sinks.merge(k, v * pm.score, Double::sum)));
         mixtures.forEach(pm -> {
-//            if (!pm.entityMixture.isEmpty()) {
-//                pm.score = 0.0;
-//            }
-            pm.entityMixture.forEach((k, v) -> pm.finalScore += sinks.get(k) * v);
-            pm.score = Math.max(pm.score, pm.finalScore);
+            if (!pm.entityMixture.isEmpty()) {
+                pm.score = 0.0;
+            }
+            pm.entityMixture.forEach((k, v) -> pm.score += sinks.get(k) * v);
+//            pm.score = Math.max(pm.score, pm.finalScore);
 //            System.out.println(pm.score);
 
         });
