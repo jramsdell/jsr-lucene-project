@@ -163,7 +163,7 @@ class LuceneQueryBuilder {
             TopDocs tops = indexSearcher.search(createQuery(queryStr), 100);
 
             // if Word Vector variant, rerank according to cosine sim from query to document terms
-            if (command.equals("query_special")) {
+            if (command.equals("query_special") || command.equals("query_kld")) {
                 rerankBySpecial(tops);
             } else if (command.equals("query_random")) {
                 rerankByRandom(tops);
@@ -187,7 +187,7 @@ class LuceneQueryBuilder {
                 TopDocs tops = indexSearcher.search(createQuery(queryStr), 100);
 
                 // if Word Vector variant, rerank according to cosine sim from query to document terms
-                if (command.equals("query_special")) {
+                if (command.equals("query_special") || command.equals("query_kld")) {
                     rerankBySpecial(tops);
                 } else if (command.equals("query_random")) {
                     rerankByRandom(tops);
@@ -218,7 +218,7 @@ class LuceneQueryBuilder {
 
 
     private void rerankBySpecial(TopDocs tops) throws IOException {
-        graphAnalyzer.rerankTopDocs(tops);
+        graphAnalyzer.rerankTopDocs(tops, command);
 //        ga.recordTerms(tops);
         System.out.println(counter++);
     }

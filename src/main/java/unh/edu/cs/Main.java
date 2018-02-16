@@ -133,6 +133,7 @@ public class Main {
             case "query_entity":
             case "query_bigram":
             case "query_special":
+            case "query_kld":
             case "query_random":
                 try {
                     String command = args[0];

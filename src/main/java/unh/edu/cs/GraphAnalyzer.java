@@ -29,6 +29,7 @@ public class GraphAnalyzer {
     private ConcurrentMap<String, String> cmap;
     private ConcurrentMap<String, String> entityMap;
     private ConcurrentMap<String, String> parMap;
+    private String command;
     Random rand = new Random();
 //    ConcurrentHashMap<String, TopDocs> storedQueries = new ConcurrentHashMap<>();
     ConcurrentHashMap<String, ImmutablePair<String, ArrayList<ImmutablePair<Integer, Integer>>>> storedEntities = new ConcurrentHashMap<>();
@@ -53,7 +54,9 @@ public class GraphAnalyzer {
         cmap = db.hashMap("dist_map", Serializer.STRING, Serializer.STRING).createOrOpen();
         parMap = db.hashMap("par_map", Serializer.STRING, Serializer.STRING).createOrOpen();
         entityMap = db.hashMap("entity_map", Serializer.STRING, Serializer.STRING).createOrOpen();
+        command = "";
     }
+
 
     class ParagraphMixture {
         int docId = 0;
@@ -382,7 +385,17 @@ public class GraphAnalyzer {
         }
     }
 
-    public void rerankTopDocs(TopDocs tops) {
+    public Double getDivergence(HashMap<String, Double> d1, HashMap<String, Double> d2) {
+        Double total = d1.entrySet().stream().map(entry -> entry.getValue() *
+                Math.log(entry.getValue() / d2.getOrDefault(entry.getKey(), 0.001)))
+                .reduce((v1,v2) -> v1 + v2).orElse(999999.0);
+//        Double total = 0.0;
+//        d1.forEach((k,v) -> {
+//                total += v * Math.log(v / d2.getOrDefault(k, 0.0001));});
+        return total;
+    }
+
+    public void rerankTopDocs(TopDocs tops, String command) {
 //        if (true) {
 //            try {
 //                doExperiment(tops);
@@ -408,15 +421,22 @@ public class GraphAnalyzer {
         mixtures.forEach(pm -> pm.score = (double)tops.scoreDocs[indexMappings.get(pm.docId)].score);
 
         mixtures.forEach(pm -> pm.entityMixture.forEach((k, v) -> sinks.merge(k, v * pm.score, Double::sum)));
-        mixtures.forEach(pm -> {
-            if (!pm.entityMixture.isEmpty()) {
-                pm.score = 0.0;
-            }
-            pm.entityMixture.forEach((k, v) -> pm.score += sinks.get(k) * v);
-//            pm.score = Math.max(pm.score, pm.finalScore);
-//            System.out.println(pm.score);
 
-        });
+        if (command.equals("query_special")) {
+            mixtures.forEach(pm -> {
+                if (!pm.entityMixture.isEmpty()) {
+                    pm.score = 0.0;
+                }
+                pm.entityMixture.forEach((k, v) -> pm.score += sinks.get(k) * v);
+            });
+        } else {
+            Double total = sinks.values().stream().reduce((v1, v2) -> v1 + 2).get();
+            sinks.replaceAll((k,v) -> v / total);
+
+            mixtures.forEach( pm -> {
+                pm.score = getDivergence(sinks, pm.entityMixture);
+            });
+        }
 
 
         Seq.seq(mixtures)
