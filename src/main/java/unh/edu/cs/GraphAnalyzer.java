@@ -434,29 +434,19 @@ public class GraphAnalyzer {
             sinks.replaceAll((k,v) -> v / total);
 
             mixtures.forEach( pm -> {
-                pm.score = getDivergence(sinks, pm.entityMixture);
+                pm.score = 1 / getDivergence(sinks, pm.entityMixture);
             });
         }
 
 
-        if (command.equals("query_special")) {
-            Seq.seq(mixtures)
-                    .sorted(m -> m.score)
-                    .reverse()
-                    .zip(Seq.range(0, tops.scoreDocs.length))
-                    .forEach(m -> {
-                        tops.scoreDocs[m.v2].score = m.v1.score.floatValue();
-                        tops.scoreDocs[m.v2].doc = m.v1.docId;
-                    });
-        } else {
         Seq.seq(mixtures)
                 .sorted(m -> m.score)
+                .reverse()
                 .zip(Seq.range(0, tops.scoreDocs.length))
                 .forEach(m -> {
                     tops.scoreDocs[m.v2].score = m.v1.score.floatValue();
                     tops.scoreDocs[m.v2].doc = m.v1.docId;
                 });
-    }
 
         }
 
