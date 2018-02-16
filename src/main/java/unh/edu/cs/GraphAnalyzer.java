@@ -383,14 +383,14 @@ public class GraphAnalyzer {
     }
 
     public void rerankTopDocs(TopDocs tops) {
-        if (true) {
-            try {
-                doExperiment(tops);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return;
-        }
+//        if (true) {
+//            try {
+//                doExperiment(tops);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//            return;
+//        }
         ArrayList<Integer> ids = new ArrayList<>();
         HashMap<Integer, Integer> indexMappings = new HashMap<>();
         HashMap<String, Double> sinks = new HashMap<>();

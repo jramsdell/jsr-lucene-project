@@ -165,6 +165,8 @@ class LuceneQueryBuilder {
             // if Word Vector variant, rerank according to cosine sim from query to document terms
             if (command.equals("query_special")) {
                 rerankBySpecial(tops);
+            } else if (command.equals("query_random")) {
+                rerankByRandom(tops);
             }
             ScoreDoc[] scoreDoc = tops.scoreDocs;
             writeRankingsToFile(scoreDoc, queryId, out, ids);
@@ -187,6 +189,8 @@ class LuceneQueryBuilder {
                 // if Word Vector variant, rerank according to cosine sim from query to document terms
                 if (command.equals("query_special")) {
                     rerankBySpecial(tops);
+                } else if (command.equals("query_random")) {
+                    rerankByRandom(tops);
                 }
                 ScoreDoc[] scoreDoc = tops.scoreDocs;
                 writeRankingsToFile(scoreDoc, queryId, out, ids);
@@ -217,6 +221,18 @@ class LuceneQueryBuilder {
         graphAnalyzer.rerankTopDocs(tops);
 //        ga.recordTerms(tops);
         System.out.println(counter++);
+    }
+
+    private void rerankByRandom(TopDocs tops) throws IOException {
+        ArrayList<Integer> ids = new ArrayList<>();
+        for (int i = 0; i < tops.scoreDocs.length; i++) {
+            ids.add(tops.scoreDocs[i].doc);
+        }
+        Collections.shuffle(ids);
+        for (int i = 0; i < ids.size(); i++) {
+            tops.scoreDocs[i].doc = ids.get(i);
+        }
+
     }
 
 }
