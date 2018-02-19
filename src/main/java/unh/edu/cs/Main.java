@@ -152,21 +152,6 @@ public class Main {
                     runQuery(command, queryType, indexLocation, queryLocation, rankingOutputLocation);
                 }
                 break;
-            // Runs query_vector command (sub-command of query, but also requires a vector file)
-            case "query_vector":
-                try {
-                    String command = args[0];
-                    String queryType = args[1].toUpperCase();
-                    String indexLocation = args[2];
-                    String vectorLocation = args[3];
-                    String queryLocation = args[4]; // Should be GloVe's 50D word vectors
-                    String rankingOutputLocation = args[5];
-                    runQuery(command, queryType, indexLocation, queryLocation, rankingOutputLocation,
-                            vectorLocation);
-                } catch (ArrayIndexOutOfBoundsException e) {
-                    printQueryVectorUsage();
-                }
-                break;
             case "make_db":
                 try {
                     GraphAnalyzer.makeDB(args);

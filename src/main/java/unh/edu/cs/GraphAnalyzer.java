@@ -46,7 +46,7 @@ public class GraphAnalyzer {
 //        db = DBMaker.fileDB("entity_db.db").fileLockDisable().fileMmapEnable().make();
 //        cmap = db.hashMap("map", Serializer.STRING, Serializer.STRING).createOrOpen();
 //        db.close();
-        db = DBMaker.fileDB("entity_db_dedup.db")
+        db = DBMaker.fileDB("entity_db_3.db")
                 .readOnly()
                 .fileMmapEnable()
                 .closeOnJvmShutdown()
