@@ -35,13 +35,10 @@ data class Topic(val name: String) {
         }
     }
 
-    fun getRelevancyRatio(entity: String, weight: Double): Double {
+    fun getRelevancyRatio(weights: HashMap<String, Double>): Double {
         val doSum = { docs: List<ParagraphMixture> ->
             docs.sumByDouble { pm ->
-                pm.mixture.entries.sumByDouble { (k, v) ->
-                    if (k == entity) v * pm.score * weight
-                    else v * pm.score
-                }
+                pm.mixture.entries.sumByDouble { (k, v) -> v * weights.getOrDefault(k, 1.0) }
             }
         }
 
@@ -148,10 +145,9 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
         trainWeights(entityWeights)
     }
 
-    fun calculateRelevancyGradient(entity: String, weight: Double): Double =
+    fun calculateRelevancyGradient(weights: HashMap<String, Double>): Double =
             topics.values
-            .map { topic -> topic.getRelevancyRatio(entity, weight) }
-            .onEach { if (it == Double.NaN) { println("bad total");} }
+            .map { topic -> topic.getRelevancyRatio(weights) }
             .average()
 
 //    fun softMax(hmap: HashMap<String, Double>, temperature: Double = 1.0) {
@@ -167,7 +163,7 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
 //        val keySet = entityWeights.keys.take(50).toHashSet()
 //        entityWeights.removeAll { key, value -> key !in keySet }
 
-        val baseline = calculateRelevancyGradient("", 1.0)
+        val baseline = calculateRelevancyGradient(HashMap())
         println("Baseline: $baseline")
 
         val magnitudes = HashMap<String, Double>()
@@ -176,8 +172,8 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
         // Todo: remove take 100
         val results = entityWeights.keys.take(100).pmap { entity->
             println(counter.incrementAndGet())
-            val lowRatio = calculateRelevancyGradient(entity, 0.005)
-            val highRatio = calculateRelevancyGradient(entity, 200.0)
+            val lowRatio = calculateRelevancyGradient(hashMapOf(entity to 0.005))
+            val highRatio = calculateRelevancyGradient(hashMapOf(entity to 200.0))
             listOf(baseline - lowRatio to 0.005, baseline - highRatio to 200.0)
                     .maxBy { it.first }!!
                     .run { Triple(entity, first, second) }
@@ -199,9 +195,11 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
             else v / (200 * magnitudes.getOrDefault(k, 1.0))
         }
 //
-        magnitudes.forEach { k, v ->
-            println("$k: $v, ${entityWeights.getOrDefault(k, 0.0)}")
-        }
+//        magnitudes.forEach { k, v ->
+//            println("$k: $v, ${entityWeights.getOrDefault(k, 0.0)}")
+//        }
+        val newBaseline = calculateRelevancyGradient(entityWeights)
+        println("Before: $baseline\nAfter: $newBaseline")
 
     }
 
