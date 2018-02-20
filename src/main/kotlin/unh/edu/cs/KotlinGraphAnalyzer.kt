@@ -19,10 +19,12 @@ fun <A, B>Iterable<A>.pmap(f: suspend (A) -> B): List<B> = runBlocking {
     map { async(CommonPool) { f(it) } }.map { it.await() }
 }
 
-fun <K,V>HashMap<K,V>.removeAll(f: (key:K,value:V) -> Boolean) = {
+fun <K,V>MutableMap<K,V>.removeAll(f: (key:K,value:V) -> Boolean) {
     this.entries
             .filter{(key,value) -> f(key,value)}
-            .forEach { (key,_) -> remove(key) }
+            .forEach { (key,_) ->
+                remove(key)
+            }
 }
 
 
