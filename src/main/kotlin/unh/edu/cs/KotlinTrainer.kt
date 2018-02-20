@@ -47,10 +47,10 @@ data class Topic(val name: String) {
         val relSum = doSum(relevantDocs)
         val irrelSum = doSum(irrelevantDocs)
 //        if (relSum == Double.NaN) {
-            println("Bad relSum: $entity")
+            println("Bad relSum: $entity, $relSum")
 //        }
 //        if (irrelSum == Double.NaN) {
-            println("Bad irrelSum: $entity")
+            println("Bad irrelSum: $entity, $irrelSum")
 //        }
         return ln(relSum / (relSum + irrelSum))
     }
