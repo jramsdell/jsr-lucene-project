@@ -180,7 +180,7 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
         }
 
         var lowest = 9999999999.0
-        results.forEach { (entity, mag, weight) ->
+        results.forEach { (_, mag, _) ->
             if (mag > 0.0 && mag < lowest) { lowest = mag }
         }
         results.forEach {(entity, mag, weight) ->
@@ -194,7 +194,7 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
         val total = magnitudes.values.sum()
         entityWeights.removeAll { key, value -> magnitudes.getOrDefault(key, 1.0) <= 0  }
         magnitudes.removeAll { key, value -> value <= 0.0  }
-        softMax(magnitudes)
+//        softMax(magnitudes)
 //        magnitudes.replaceAll { k,v -> v / total }
 
         val best = magnitudes.values.max()!!
