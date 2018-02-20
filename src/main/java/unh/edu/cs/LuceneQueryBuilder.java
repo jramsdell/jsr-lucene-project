@@ -38,6 +38,7 @@ class LuceneQueryBuilder {
     private Analyzer analyzer;
     private QueryType queryType;
     private GraphAnalyzer graphAnalyzer;
+    private KotlinGraphAnalyzer kotlinGraphAnalyzer;
     private final String command;
     private int counter = 0;
 
@@ -50,6 +51,7 @@ class LuceneQueryBuilder {
         indexSearcher.setSimilarity(sim);
 
         graphAnalyzer = new GraphAnalyzer(indexSearcher);
+        kotlinGraphAnalyzer = new KotlinGraphAnalyzer(indexSearcher);
     }
 
     // Used by word vector variation: creates a reader from 50D GloVE word vector file.
@@ -218,9 +220,8 @@ class LuceneQueryBuilder {
 
 
     private void rerankBySpecial(TopDocs tops) throws IOException {
-        Tester.wee();
-        graphAnalyzer.rerankTopDocs(tops, command);
-//        ga.recordTerms(tops);
+//        graphAnalyzer.rerankTopDocs(tops, command);
+        kotlinGraphAnalyzer.rerankTopDocs(tops, command);
         System.out.println(counter++);
     }
 
