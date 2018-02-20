@@ -188,11 +188,13 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
 //        softMax(magnitudes, 1.0)
 //        magnitudes.forEach(::println)
         val total = magnitudes.values.sum()
+        magnitudes.removeAll { key, value -> value <= 0.0  }
         magnitudes.replaceAll { k,v -> v / total }
-        magnitudes.removeAll { key, value -> value == 0.0  }
+
+        val best = magnitudes.values.max()!!
         entityWeights.replaceAll { k, v ->
-            if (v > 1.0) v * magnitudes.getOrDefault(k, 1.0)
-            else v / (200 * magnitudes.getOrDefault(k, 1.0))
+            if (v > 1.0) v * magnitudes.getOrDefault(k, 1.0) / best
+            else v / (200 * magnitudes.getOrDefault(k, 1.0) / best)
         }
 //
         magnitudes.forEach { k, v ->
