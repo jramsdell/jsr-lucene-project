@@ -157,6 +157,7 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
     fun softMax(hmap: HashMap<String, Double>, temperature: Double = 1.0) {
         val zExp = hmap.entries.map { it.key to exp(it.value)/temperature }.toMap() as HashMap
         val total = zExp.values.sum()
+        println("SUM!: $total")
         hmap.replaceAll {k,v -> zExp[k]!! / total}
     }
 
@@ -183,7 +184,7 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
         }
 
         results.forEach {(entity, mag, weight) ->
-            magnitudes[entity] = mag / 0.0001
+            magnitudes[entity] = mag / 0.00001
             entityWeights[entity] = weight
         }
 
