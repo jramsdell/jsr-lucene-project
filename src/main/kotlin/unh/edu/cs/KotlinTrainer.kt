@@ -150,12 +150,12 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
             .map { topic -> topic.getRelevancyRatio(weights) }
                 .average()
 
-//    fun softMax(hmap: HashMap<String, Double>, temperature: Double = 1.0) {
-//        val zExp = hmap.entries.map { it.key to exp(it.value)/temperature }.toMap() as HashMap
-//        val total = zExp.values.sum()
-//        println("SUM!: $total")
-//        hmap.replaceAll {k,v -> zExp[k]!! / total}
-//    }
+    fun softMax(hmap: HashMap<String, Double>, temperature: Double = 1.0) {
+        val zExp = hmap.entries.map { it.key to exp(it.value)/temperature }.toMap() as HashMap
+        val total = zExp.values.sum()
+        println("SUM!: $total")
+        hmap.replaceAll {k,v -> zExp[k]!! / total}
+    }
 
     fun trainWeights(entityWeights: HashMap<String, Double>) {
 
@@ -194,7 +194,8 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
         val total = magnitudes.values.sum()
         entityWeights.removeAll { key, value -> magnitudes.getOrDefault(key, 1.0) <= 0  }
         magnitudes.removeAll { key, value -> value <= 0.0  }
-        magnitudes.replaceAll { k,v -> v / total }
+        softMax(magnitudes)
+//        magnitudes.replaceAll { k,v -> v / total }
 
         val best = magnitudes.values.max()!!
         entityWeights.replaceAll { k, v ->
