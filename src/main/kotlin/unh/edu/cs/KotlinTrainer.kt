@@ -53,7 +53,8 @@ data class Topic(val name: String) {
 //        if (irrelSum == Double.NaN) {
 //            println("Bad irrelSum: $entity, $irrelSum")
 //        }
-        return if (relSum == 0.0) 0.0 else ln(relSum / (relSum + irrelSum))
+//        return if (relSum == 0.0) 0.0 else ln(relSum / (relSum + irrelSum))
+        return relSum / (relSum + irrelSum)
     }
 }
 
@@ -186,7 +187,7 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
             entityWeights[entity] = weight
         }
 
-        softMax(magnitudes, 0.000001)
+        softMax(magnitudes, 1.0)
         entityWeights.replaceAll { k, v ->
             if (v > 1.0) v * magnitudes.getOrDefault(k, 1.0)
             else v / magnitudes.getOrDefault(k, 1.0)
