@@ -187,15 +187,16 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
             entityWeights[entity] = weight
         }
 
-        softMax(magnitudes, 1.0)
-        entityWeights.replaceAll { k, v ->
-            if (v > 1.0) v * magnitudes.getOrDefault(k, 1.0)
-            else v / magnitudes.getOrDefault(k, 1.0)
-        }
-
-        magnitudes.forEach { k, v ->
-            println("$k: $v, ${entityWeights.getOrDefault(k, 0.0)}")
-        }
+        magnitudes.forEach(::println)
+//        softMax(magnitudes, 1.0)
+//        entityWeights.replaceAll { k, v ->
+//            if (v > 1.0) v * magnitudes.getOrDefault(k, 1.0)
+//            else v / magnitudes.getOrDefault(k, 1.0)
+//        }
+//
+//        magnitudes.forEach { k, v ->
+//            println("$k: $v, ${entityWeights.getOrDefault(k, 0.0)}")
+//        }
 
     }
 
