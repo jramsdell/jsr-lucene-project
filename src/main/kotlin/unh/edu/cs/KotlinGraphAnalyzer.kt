@@ -112,12 +112,13 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
         val mixtures =
                 (0 until tops.scoreDocs.size)
                         .pmap({ getParagraphMixture(it) })
+                        .onEach { it.score = tops.scoreDocs[it.docId]!!.score.toDouble() }
                         .toList()
         val sinks = HashMap<String, Double>()
 
         mixtures.forEach { pm ->
             pm.mixture.forEach { (k,v) ->
-                sinks.merge(k, v, ::sum)
+                sinks.merge(k, v * pm.score, ::sum)
             }
         }
 
