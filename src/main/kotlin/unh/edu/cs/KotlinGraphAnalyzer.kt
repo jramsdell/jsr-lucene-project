@@ -13,7 +13,7 @@ import kotlinx.coroutines.experimental.*
 import java.lang.Double.sum
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.ln
-import java.util.SplittableRandom
+import java.util.concurrent.ThreadLocalRandom
 
 fun <A, B>Iterable<A>.pmap(f: suspend (A) -> B): List<B> = runBlocking {
     map { async(CommonPool) { f(it) } }.map { it.await() }
@@ -38,7 +38,6 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
     private val parMap: ConcurrentMap<String, String>
     private val storedParagraphs = ConcurrentHashMap<String, List<String>>()
     private val storedEntities = ConcurrentHashMap<String, List<String>>()
-    val rand = SplittableRandom()
 
 
     init {
@@ -78,13 +77,13 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
 
                 val entities = storedEntities.computeIfAbsent(curPar,
                         { key -> parMap[key]!!.split(" ") })
-                val entity = entities[rand.nextInt(entities.size)]
+                val entity = entities[ThreadLocalRandom.current().nextInt(entities.size)]
 
 //                val paragraphs = entityMap[entity]!!
 //                curPar = paragraphs.split(" ").let { it[rand.nextInt(it.size)] }
                 val paragraphs = storedParagraphs.computeIfAbsent(entity,
                         { key -> entityMap[key]!!.split(" ") })
-                curPar = paragraphs[rand.nextInt(paragraphs.size)]
+                curPar = paragraphs[ThreadLocalRandom.current().nextInt(paragraphs.size)]
 
                 if (first != 0) {
                     first = 1
