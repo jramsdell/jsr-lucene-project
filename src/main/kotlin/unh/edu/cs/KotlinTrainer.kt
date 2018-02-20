@@ -47,10 +47,10 @@ data class Topic(val name: String) {
         val relSum = doSum(relevantDocs)
         val irrelSum = doSum(irrelevantDocs)
 //        if (relSum == Double.NaN) {
-//            println("Bad relSum: $entity")
+            println("Bad relSum: $entity")
 //        }
 //        if (irrelSum == Double.NaN) {
-//            println("Bad irrelSum: $entity")
+            println("Bad irrelSum: $entity")
 //        }
         return ln(relSum / (relSum + irrelSum))
     }
@@ -162,7 +162,9 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
 
         val magnitudes = HashMap<String, Double>()
         var counter = AtomicInteger(0)
-        val results = entityWeights.keys.pmap { entity->
+
+        // Todo: remove take 5
+        val results = entityWeights.keys.take(5).pmap { entity->
             println(counter.incrementAndGet())
             val lowRatio = calculateRelevancyGradient(entity, 0.5)
             val highRatio = calculateRelevancyGradient(entity, 2.0)
