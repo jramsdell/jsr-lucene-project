@@ -1,6 +1,7 @@
 @file:JvmName("KotGraph")
 package unh.edu.cs
 
+import jdk.nashorn.internal.ir.Splittable
 import org.apache.lucene.search.IndexSearcher
 import org.apache.lucene.search.TopDocs
 import org.mapdb.DB
@@ -12,6 +13,7 @@ import kotlinx.coroutines.experimental.*
 import java.lang.Double.sum
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.ln
+import java.util.SplittableRandom
 
 fun <A, B>Iterable<A>.pmap(f: suspend (A) -> B): List<B> = runBlocking {
     map { async(CommonPool) { f(it) } }.map { it.await() }
@@ -36,7 +38,7 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
     private val parMap: ConcurrentMap<String, String>
     private val storedParagraphs = ConcurrentHashMap<String, List<String>>()
     private val storedEntities = ConcurrentHashMap<String, List<String>>()
-    val rand = Random()
+    val rand = SplittableRandom()
 
 
     init {
