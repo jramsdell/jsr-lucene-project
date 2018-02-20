@@ -47,6 +47,10 @@ public class Main {
         System.out.println("Usage: train queryType indexLoc queryLoc qrelLoc\n");
     }
 
+    private static void printRegUsage() {
+        System.out.println("Usage: reg indexLoc queryLoc weightDB\n");
+    }
+
     private static void runIndexer(String sType, String corpusFile, String indexOutLocation) throws IOException {
         // Index Enum
         IndexType indexType = null;
@@ -174,6 +178,18 @@ public class Main {
                     trainer.writeWeights(weights);
                 } catch (ArrayIndexOutOfBoundsException e) {
                     printTrainUsage();
+                }
+                break;
+            case "reg":
+                try {
+                    String command = args[0];
+                    String indexLocation = args[1];
+                    String queryLocation = args[2];
+                    String weightLocation = args[3];
+                    KotlinRegularizer regularizer = new KotlinRegularizer(indexLocation, queryLocation, weightLocation);
+                    regularizer.rerankQueries();
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    printRegUsage();
                 }
                 break;
             default:

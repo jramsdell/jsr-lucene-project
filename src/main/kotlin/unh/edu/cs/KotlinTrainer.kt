@@ -11,6 +11,7 @@ import org.apache.lucene.search.*
 import org.apache.lucene.store.FSDirectory
 import org.mapdb.DBMaker
 import org.mapdb.Serializer
+import java.io.BufferedWriter
 import java.io.File
 import java.io.StringReader
 import java.nio.file.Paths
@@ -99,6 +100,64 @@ class QueryRetriever(val indexSearcher: IndexSearcher) {
                     val queryStr = createQueryString(page, emptyList())
                     queryId to indexSearcher.search(createQuery(queryStr), 100)
                 }.toList()
+}
+
+class KotlinRegularizer(indexPath: String, queryPath: String, weightLocation: String) {
+    val indexSearcher = kotlin.run {
+        val  indexPath = Paths.get (indexPath)
+        val indexDir = FSDirectory.open(indexPath)
+        val indexReader = DirectoryReader.open(indexDir)
+        IndexSearcher(indexReader)
+    }
+
+    val graphAnalyzer = KotlinGraphAnalyzer(indexSearcher)
+    val queryRetriever = QueryRetriever(indexSearcher)
+    val queries = queryRetriever.getQueries(queryPath)
+    val db = DBMaker.fileDB(weightLocation)
+            .readOnly()
+            .fileMmapEnable()
+            .closeOnJvmShutdown()
+            .make()
+
+    val weightMap = db.hashMap("weight_map", Serializer.STRING, Serializer.DOUBLE).createOrOpen()
+
+    fun rerankTops(tops: TopDocs) {
+        val mixtures = graphAnalyzer.getMixtures(tops)
+        mixtures.forEach { pm ->
+            pm.mixture
+                    .map { (k,v) -> k to v * pm.score * weightMap.getOrDefault(k, 1.0) }
+                    .sumByDouble { it.second }
+                    .let { pm.score = it }
+        }
+
+        mixtures.sortedByDescending { it.score }
+                .zip(0 until tops.scoreDocs.size)
+                .forEach { (pm, index) ->
+                    tops.scoreDocs[index].doc = pm.docId
+                    tops.scoreDocs[index].score = pm.score.toFloat()
+                }
+    }
+
+    fun writeRankingsToFile(tops: TopDocs, queryId: String, writer: BufferedWriter) {
+        (0 until tops.scoreDocs.size).forEach { index ->
+            val sd = tops.scoreDocs[index]
+            val doc = indexSearcher.doc(sd.doc)
+            val paragraphid = doc.get("paragraphid")
+            val score = sd.score
+            val searchRank = index + 1
+
+            writer.write("$queryId Q0 $paragraphid $searchRank $score Lucene-BM25\n")
+        }
+    }
+
+    fun rerankQueries() {
+        val writer = File("mytest.txt").bufferedWriter()
+        queries.forEach { (queryId, tops) ->
+            rerankTops(tops)
+            writeRankingsToFile(tops, queryId, writer)
+        }
+    }
+
 }
 
 class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
