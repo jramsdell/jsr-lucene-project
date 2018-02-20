@@ -19,9 +19,19 @@ import kotlin.coroutines.experimental.buildIterator
 import kotlin.coroutines.experimental.buildSequence
 
 data class Topic(val name: String) {
-    val relevantDocs = ArrayList<String>()
-    val irrelevantDocs = ArrayList<String>()
+    val relevantDocs = ArrayList<ParagraphMixture>()
+    val irrelevantDocs = ArrayList<ParagraphMixture>()
     val relevantParagraphIds = HashSet<String>()
+
+    fun addMixtures(mixtures: List<ParagraphMixture>) {
+        mixtures.forEach { pm ->
+            if (pm.paragraphId in relevantParagraphIds) {
+                relevantDocs += pm
+            } else {
+                irrelevantDocs += pm
+            }
+        }
+    }
 }
 
 class QueryRetriever(val indexSearcher: IndexSearcher) {
@@ -94,6 +104,15 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
                 .map { it.split(" ").let { it[0] to it[2] } }
                 .groupingBy { (name, _) -> name }
                 .aggregate(this::aggFun)
+    }
+
+    fun train() {
+        var counter = 0
+        queries.forEach { (queryId, tops) ->
+            val mixtures = graphAnalyzer.getMixtures(tops)
+            println(counter++)
+            topics[queryId]!!.addMixtures(mixtures)
+        }
     }
 
     fun test() {

@@ -28,6 +28,7 @@ fun <K,V>HashMap<K,V>.removeAll(f: (key:K,value:V) -> Boolean) = {
 
 data class ParagraphMixture(
         var docId: Int = 0,
+        var paragraphId: String = "",
         var score: Double = 0.0,
         var mixture: HashMap<String, Double> = HashMap())
 
@@ -52,12 +53,17 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
     }
 
     fun getParagraphMixture(docInfo: Pair<Int, Float>): ParagraphMixture {
-        val pm = ParagraphMixture()
-        pm.docId = docInfo.first
-        val doc = indexSearcher.doc(pm.docId)
+        val doc = indexSearcher.doc(docInfo.first)
         val paragraphId = doc.get("paragraphid")
-        pm.mixture = doWalkModel(paragraphId)
-        pm.score = docInfo.second.toDouble()
+        val pm = ParagraphMixture(
+                docId = docInfo.first,
+                paragraphId = paragraphId,
+                score = docInfo.second.toDouble(),
+                mixture = doWalkModel(paragraphId)
+                )
+//        pm.docId = docInfo.first
+//        pm.mixture = doWalkModel(paragraphId)
+//        pm.score = docInfo.second.toDouble()
         return pm
     }
 
