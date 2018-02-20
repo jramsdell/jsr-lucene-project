@@ -193,9 +193,10 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
 //        magnitudes.forEach(::println)
         val total = magnitudes.values.sum()
         magnitudes.replaceAll { k,v -> v / total }
+        magnitudes.removeAll { key, value -> value == 0.0  }
         entityWeights.replaceAll { k, v ->
             if (v > 1.0) v * magnitudes.getOrDefault(k, 1.0)
-            else v / magnitudes.getOrDefault(k, 1.0)
+            else v / (200 * magnitudes.getOrDefault(k, 1.0))
         }
 //
         magnitudes.forEach { k, v ->
