@@ -96,6 +96,10 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
                 .aggregate(this::aggFun)
     }
 
+    fun test() {
+        topics.forEach(::println)
+    }
+
 }
 
 fun main(args: Array<String>) {
