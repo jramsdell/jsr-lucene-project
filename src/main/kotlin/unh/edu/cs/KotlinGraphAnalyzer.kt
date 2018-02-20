@@ -13,6 +13,7 @@ import java.util.stream.StreamSupport
 import kotlinx.coroutines.experimental.*
 import org.apache.lucene.document.Document
 import java.lang.Double.sum
+import java.util.concurrent.ConcurrentHashMap
 
 fun <A, B>Iterable<A>.pmap(f: suspend (A) -> B): List<B> = runBlocking {
     map { async(CommonPool) { f(it) } }.map { it.await() }
@@ -28,6 +29,8 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
     private val cmap: ConcurrentMap<String, String>
     private val entityMap: ConcurrentMap<String, String>
     private val parMap: ConcurrentMap<String, String>
+    private val storedParagraphs = ConcurrentHashMap<String, List<String>>()
+    private val storedEntities = ConcurrentHashMap<String, List<String>>()
     val rand = Random()
 
 
@@ -62,11 +65,19 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
             var curPar = pid
 
             (0 until nSteps).forEach { _ ->
-                val entities = parMap[curPar]!!
-                val entity = entities.split(" ").let { it[rand.nextInt(it.size)] }
+//                val entities = parMap[curPar]!!
+//                val entity = entities.split(" ").let { it[rand.nextInt(it.size)] }
+
+                val entity = storedEntities.computeIfAbsent(curPar, { key ->
+                    parMap[key]!!.split(" ")
+                }).let { it[rand.nextInt(it.size)] }
+
                 counts.merge(entity, 1.0, ::sum)
-                val paragraphs = entityMap[entity]!!
-                curPar = paragraphs.split(" ").let { it[rand.nextInt(it.size)] }
+//                val paragraphs = entityMap[entity]!!
+//                curPar = paragraphs.split(" ").let { it[rand.nextInt(it.size)] }
+                curPar = storedParagraphs.computeIfAbsent(entity, { key ->
+                    entityMap[key]!!.split(" ")
+                }).let { it[rand.nextInt(it.size)] }
             }
         }
         return counts
