@@ -102,7 +102,8 @@ class QueryRetriever(val indexSearcher: IndexSearcher) {
                 }.toList()
 }
 
-class KotlinRegularizer(indexPath: String, queryPath: String, weightLocation: String) {
+class KotlinRegularizer(indexPath: String, queryPath: String, weightLocation: String,
+                        alpha: String) {
     val indexSearcher = kotlin.run {
         val  indexPath = Paths.get (indexPath)
         val indexDir = FSDirectory.open(indexPath)
@@ -110,6 +111,7 @@ class KotlinRegularizer(indexPath: String, queryPath: String, weightLocation: St
         IndexSearcher(indexReader)
     }
 
+    val alpha = alpha.toDouble()
     val graphAnalyzer = KotlinGraphAnalyzer(indexSearcher)
     val queryRetriever = QueryRetriever(indexSearcher)
     val queries = queryRetriever.getQueries(queryPath)
@@ -123,12 +125,12 @@ class KotlinRegularizer(indexPath: String, queryPath: String, weightLocation: St
 
     fun rerankTops(tops: TopDocs) {
         val mixtures = graphAnalyzer.getMixtures(tops)
-//        mixtures.forEach { pm ->
-//            pm.mixture
-//                    .map { (k,v) -> k to v * pm.score * weightMap.getOrDefault(k, 1.0) }
-//                    .sumByDouble { it.second }
-//                    .let { pm.score = it * 0.0 + 1.0 * pm.score }
-//        }
+        mixtures.forEach { pm ->
+            pm.mixture
+                    .map { (k,v) -> k to v * pm.score * weightMap.getOrDefault(k, 1.0) }
+                    .sumByDouble { it.second }
+                    .let { pm.score = it * alpha + (1.0 - alpha) * pm.score }
+        }
 
         mixtures.sortedByDescending { it.score }
                 .zip(0 until tops.scoreDocs.size)

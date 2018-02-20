@@ -48,7 +48,7 @@ public class Main {
     }
 
     private static void printRegUsage() {
-        System.out.println("Usage: reg indexLoc queryLoc weightDB\n");
+        System.out.println("Usage: reg indexLoc queryLoc weightDB alpha\n");
     }
 
     private static void runIndexer(String sType, String corpusFile, String indexOutLocation) throws IOException {
@@ -186,7 +186,9 @@ public class Main {
                     String indexLocation = args[1];
                     String queryLocation = args[2];
                     String weightLocation = args[3];
-                    KotlinRegularizer regularizer = new KotlinRegularizer(indexLocation, queryLocation, weightLocation);
+                    String alpha = args[4];
+                    KotlinRegularizer regularizer = new KotlinRegularizer(indexLocation, queryLocation, weightLocation,
+                            alpha);
                     regularizer.rerankQueries();
                 } catch (ArrayIndexOutOfBoundsException e) {
                     printRegUsage();
