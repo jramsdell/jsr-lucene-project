@@ -24,10 +24,12 @@ data class Topic(val name: String) {
 
     fun addMixtures(mixtures: List<ParagraphMixture>) {
         mixtures.forEach { pm ->
-            if (pm.paragraphId in relevantParagraphIds) {
-                relevantDocs += pm
-            } else {
-                irrelevantDocs += pm
+            if (pm.mixture.isNotEmpty()) {
+                if (pm.paragraphId in relevantParagraphIds) {
+                    relevantDocs += pm
+                } else {
+                    irrelevantDocs += pm
+                }
             }
         }
     }
