@@ -14,6 +14,7 @@ import java.io.StringReader
 import java.nio.file.Paths
 import java.util.*
 import kotlin.coroutines.experimental.buildSequence
+import kotlin.math.ln
 
 data class Topic(val name: String) {
     val relevantDocs = ArrayList<ParagraphMixture>()
@@ -28,6 +29,21 @@ data class Topic(val name: String) {
                 irrelevantDocs += pm
             }
         }
+    }
+
+    fun getRelevancyRatio(entity: String, weight: Double): Double {
+        val doSum = { docs: List<ParagraphMixture> ->
+            docs.sumByDouble { pm ->
+                pm.mixture.entries.sumByDouble { (k, v) ->
+                    if (k == entity) v * pm.score * weight
+                    else v * pm.score
+                }
+            }
+        }
+
+        val relSum = doSum(relevantDocs)
+        val irrelSum = doSum(irrelevantDocs)
+        return ln(relSum / (relSum + irrelSum))
     }
 }
 
@@ -121,8 +137,30 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
         trainWeights(entityWeights)
     }
 
+    fun calculateRelevancyGradient(entity: String, weight: Double): Double =
+            topics.values
+            .map { topic -> topic.getRelevancyRatio(entity, weight) }
+            .average()
+
     fun trainWeights(entityWeights: HashMap<String, Double>) {
-        entityWeights.forEach(::println)
+        val baseline = calculateRelevancyGradient("", 1.0)
+        val magnitudes = HashMap<String, Double>()
+        var counter = 0
+
+        entityWeights.keys.forEach { entity ->
+            println(counter++)
+            val lowRatio = calculateRelevancyGradient(entity, 0.5)
+            val highRatio = calculateRelevancyGradient(entity, 2.0)
+            listOf(lowRatio to 0.5, highRatio to 2.0)
+                    .maxBy { baseline - it.first }!!
+                    .let { (mag, weight) ->
+                        magnitudes[entity] = mag
+                        entityWeights[entity] = weight
+                    }
+        }
+
+        magnitudes.forEach(::println)
+
     }
 
     fun test() {
