@@ -129,8 +129,8 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
 //                    pm.score = 0.0
 //                }
                 var total = 0.0
-                pm.mixture.forEach { k, v -> total += sinks[k]!! * v  }
-                pm.score = max(total, pm.score)
+//                pm.mixture.forEach { k, v -> total += sinks[k]!! * v  }
+//                pm.score = max(total, pm.score)
             }
         }
 
