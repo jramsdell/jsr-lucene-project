@@ -78,9 +78,10 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
 //                val entities = parMap[curPar]!!
 //                val entity = entities.split(" ").let { it[rand.nextInt(it.size)] }
 
-                val entity = storedEntities.computeIfAbsent(curPar, { key ->
-                    parMap[key]!!.split(" ")
-                }).let { it[rand.nextInt(it.size)] }
+                val entities = storedEntities.computeIfAbsent(curPar,
+                        { key -> parMap[key]!!.split(" ") })
+                val entity = entities[rand.nextInt(entities.size)]
+
                 if (first != 0) {
                     first = 1
                 } else {
@@ -90,9 +91,9 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
                 counts.merge(entity, 1.0, ::sum)
 //                val paragraphs = entityMap[entity]!!
 //                curPar = paragraphs.split(" ").let { it[rand.nextInt(it.size)] }
-                curPar = storedParagraphs.computeIfAbsent(entity, { key ->
-                    entityMap[key]!!.split(" ")
-                }).let { it[rand.nextInt(it.size)] }
+                val paragraphs = storedParagraphs.computeIfAbsent(entity,
+                        { key -> entityMap[key]!!.split(" ") })
+                curPar = paragraphs[rand.nextInt(paragraphs.size)]
             }
         }
 
