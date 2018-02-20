@@ -181,7 +181,7 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
 
         var lowest = 9999999999.0
         results.forEach { (entity, mag, weight) ->
-            if (mag >= 0.0 && mag < lowest) { lowest = mag }
+            if (mag > 0.0 && mag < lowest) { lowest = mag }
         }
         results.forEach {(entity, mag, weight) ->
             magnitudes[entity] = mag / lowest
