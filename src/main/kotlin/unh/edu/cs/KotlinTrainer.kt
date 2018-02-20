@@ -6,16 +6,13 @@ import edu.unh.cs.treccar_v2.read_data.DeserializeData
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute
 import org.apache.lucene.index.DirectoryReader
-import org.apache.lucene.index.IndexReader
 import org.apache.lucene.index.Term
 import org.apache.lucene.search.*
 import org.apache.lucene.store.FSDirectory
-import org.apache.lucene.util.QueryBuilder
 import java.io.File
 import java.io.StringReader
 import java.nio.file.Paths
 import java.util.*
-import kotlin.coroutines.experimental.buildIterator
 import kotlin.coroutines.experimental.buildSequence
 
 data class Topic(val name: String) {
@@ -108,11 +105,24 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
 
     fun train() {
         var counter = 0
+        val entityWeights = HashMap<String, Double>()
+
+        // For each query, get paragraph mixtures and add them to topics model
         queries.forEach { (queryId, tops) ->
             val mixtures = graphAnalyzer.getMixtures(tops)
+            mixtures.forEach { pm ->
+                entityWeights += pm.mixture.keys.map { it to 1.0 }
+            }
             println(counter++)
             topics[queryId]!!.addMixtures(mixtures)
         }
+
+
+        trainWeights(entityWeights)
+    }
+
+    fun trainWeights(entityWeights: HashMap<String, Double>) {
+        entityWeights.forEach(::println)
     }
 
     fun test() {
