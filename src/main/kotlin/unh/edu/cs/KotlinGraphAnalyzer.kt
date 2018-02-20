@@ -62,17 +62,10 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
             var curPar = pid
 
             (0 until nSteps).forEach { _ ->
-                println(curPar)
-                try {
-                    var testy = entityMap[curPar]!!
-
-                } catch (e: NullPointerException) {
-                    println("Bad: \n\n$curPar")
-                }
-                val entities = entityMap[curPar]!!
+                val entities = parMap[curPar]!!
                 val entity = entities.split(" ").let { it[rand.nextInt(it.size)] }
                 counts.merge(entity, 1.0, ::sum)
-                val paragraphs = parMap[entity]!!
+                val paragraphs = entityMap[entity]!!
                 curPar = paragraphs.split(" ").let { it[rand.nextInt(it.size)] }
             }
         }
