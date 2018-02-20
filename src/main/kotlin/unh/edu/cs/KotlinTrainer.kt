@@ -174,9 +174,9 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
         // Todo: remove take 100
         val results = entityWeights.keys.take(100).pmap { entity->
             println(counter.incrementAndGet())
-            val lowRatio = calculateRelevancyGradient(entity, 0.5)
-            val highRatio = calculateRelevancyGradient(entity, 2.0)
-            listOf(baseline - lowRatio to 0.5, baseline - highRatio to 2.0)
+            val lowRatio = calculateRelevancyGradient(entity, 0.005)
+            val highRatio = calculateRelevancyGradient(entity, 200.0)
+            listOf(baseline - lowRatio to 0.005, baseline - highRatio to 200.0)
                     .maxBy { it.first }!!
                     .run { Triple(entity, first, second) }
         }
@@ -187,7 +187,7 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
         }
 
         softMax(magnitudes)
-        entityWeights.replaceAll {k,v -> v * magnitudes[k]!!}
+        entityWeights.replaceAll {k,v -> v * magnitudes.getOrDefault(k, 0.0)}
 
         magnitudes.forEach { k, v ->
             println("$k: $v, ${entityWeights.getOrDefault(k, 0.0)}")
