@@ -62,8 +62,8 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
 
     fun doWalkModel(pid: String): HashMap<String, Double> {
         val counts = HashMap<String, Double>()
-        val nWalks = 40
-        val nSteps = 2
+        val nWalks = 400
+        val nSteps = 4
 
         (0 until nWalks).forEach { _ ->
             var volume = 1.0
@@ -119,16 +119,14 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
 
         if (command.equals("query_special")) {
             mixtures.forEach { pm ->
-//                if (!pm.mixture.isEmpty()) {
-//                    pm.score = 0.0
-//                }
-                var total = 0.0
-//                pm.mixture.forEach { k, v -> total += sinks[k]!! * v  }
-//                pm.score = max(total, pm.score)
+                if (!pm.mixture.isEmpty()) {
+                    pm.score = 0.0
+                }
+                pm.mixture.forEach { k, v -> pm.score += sinks[k]!! * v  }
             }
         }
 
-        mixtures.sortedBy(ParagraphMixture::score)
+        mixtures.sortedByDescending(ParagraphMixture::score)
                 .zip(0 until tops.scoreDocs.size)
                 .forEach { (mixture,index) -> tops.scoreDocs[index].run {
                     score = mixture.score.toFloat()
