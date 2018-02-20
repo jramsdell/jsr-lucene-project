@@ -1,7 +1,6 @@
 @file:JvmName("KotGraph")
 package unh.edu.cs
 
-import edu.unh.cs.treccar_v2.Data
 import org.apache.lucene.search.IndexSearcher
 import org.apache.lucene.search.TopDocs
 import org.mapdb.DB
@@ -9,14 +8,10 @@ import org.mapdb.DBMaker
 import org.mapdb.Serializer
 import java.util.*
 import java.util.concurrent.ConcurrentMap
-import java.util.stream.StreamSupport
 import kotlinx.coroutines.experimental.*
-import org.apache.lucene.document.Document
 import java.lang.Double.sum
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.ln
-import kotlin.math.log
-import kotlin.math.max
 
 fun <A, B>Iterable<A>.pmap(f: suspend (A) -> B): List<B> = runBlocking {
     map { async(CommonPool) { f(it) } }.map { it.await() }
@@ -55,13 +50,13 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
         entityMap = db.hashMap("entity_map", Serializer.STRING, Serializer.STRING).createOrOpen();
     }
 
-    fun getParagraphMixture(docId: Int): ParagraphMixture {
+    fun getParagraphMixture(docInfo: Pair<Int, Float>): ParagraphMixture {
         val pm = ParagraphMixture()
-        pm.docId = docId
-        val doc = indexSearcher.doc(docId)
+        pm.docId = docInfo.first
+        val doc = indexSearcher.doc(pm.docId)
         val paragraphId = doc.get("paragraphid")
         pm.mixture = doWalkModel(paragraphId)
-        // Todo: Add doJumps
+        pm.score = docInfo.second.toDouble()
         return pm
     }
 
@@ -111,9 +106,8 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
 
     fun rerankTopDocs(tops: TopDocs, command: String) {
         val mixtures =
-                (0 until tops.scoreDocs.size)
+                tops.scoreDocs.map { it.doc to it.score }
                         .pmap({ getParagraphMixture(it) })
-                        .onEach { it.score = tops.scoreDocs[it.docId]!!.score.toDouble() }
                         .toList()
         val sinks = HashMap<String, Double>()
 
