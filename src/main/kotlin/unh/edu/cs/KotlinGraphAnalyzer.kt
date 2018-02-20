@@ -14,10 +14,19 @@ import kotlinx.coroutines.experimental.*
 import org.apache.lucene.document.Document
 import java.lang.Double.sum
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.ln
+import kotlin.math.log
 
 fun <A, B>Iterable<A>.pmap(f: suspend (A) -> B): List<B> = runBlocking {
     map { async(CommonPool) { f(it) } }.map { it.await() }
 }
+
+fun <K,V>HashMap<K,V>.removeAll(f: (key:K,value:V) -> Boolean) = {
+    this.entries
+            .filter{(key,value) -> f(key,value)}
+            .forEach { (key,_) -> remove(key) }
+}
+
 
 data class ParagraphMixture(
         var docId: Int = 0,
@@ -57,12 +66,13 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
 
     fun doWalkModel(pid: String): HashMap<String, Double> {
         val counts = HashMap<String, Double>()
-        val nWalks = 50
-        val nSteps = 3
+        val nWalks = 400
+        val nSteps = 4
 
         (0 until nWalks).forEach { _ ->
             var volume = 1.0
             var curPar = pid
+            var first = 0
 
             (0 until nSteps).forEach { _ ->
 //                val entities = parMap[curPar]!!
@@ -71,6 +81,11 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
                 val entity = storedEntities.computeIfAbsent(curPar, { key ->
                     parMap[key]!!.split(" ")
                 }).let { it[rand.nextInt(it.size)] }
+                if (first != 0) {
+                    first = 1
+                } else {
+                    volume *= 1/(ln(storedEntities[entity]!!.size.toDouble()) + ln(storedParagraphs[curPar]!!.size.toDouble()))
+                }
 
                 counts.merge(entity, 1.0, ::sum)
 //                val paragraphs = entityMap[entity]!!
@@ -80,6 +95,12 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
                 }).let { it[rand.nextInt(it.size)] }
             }
         }
+
+        counts.removeAll { key, value -> value < 0.01 }
+        counts.values.sum().let { total ->
+            counts.replaceAll({k,v -> v/total})
+        }
+
         return counts
     }
 
