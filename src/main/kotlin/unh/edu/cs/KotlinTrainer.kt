@@ -170,7 +170,7 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
         var counter = AtomicInteger(0)
 
         // Todo: remove take 100
-        val results = entityWeights.keys.take(100).pmap { entity->
+        val results = entityWeights.keys.take(500).pmap { entity->
             println(counter.incrementAndGet())
             val lowRatio = calculateRelevancyGradient(hashMapOf(entity to 0.005))
             val highRatio = calculateRelevancyGradient(hashMapOf(entity to 200.0))
@@ -184,8 +184,7 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
 //            if (mag > 0.0 && mag < lowest) { lowest = mag }
 //        }
         results.forEach {(entity, mag, weight) ->
-//            println(mag)
-            magnitudes[entity] = mag / 0.001
+            magnitudes[entity] = mag / 0.0001
             entityWeights[entity] = weight
         }
 
