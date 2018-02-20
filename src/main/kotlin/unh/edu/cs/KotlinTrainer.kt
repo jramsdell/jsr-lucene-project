@@ -241,7 +241,7 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
         var counter = AtomicInteger(0)
 
         // Todo: remove take 500
-        val results = entityWeights.keys.take(500).pmap { entity->
+        val results = entityWeights.keys.pmap { entity->
             println(counter.incrementAndGet())
             val lowRatio = calculateRelevancyGradient(hashMapOf(entity to 0.005))
             val highRatio = calculateRelevancyGradient(hashMapOf(entity to 200.0))
