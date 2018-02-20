@@ -62,6 +62,7 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
             var curPar = pid
 
             (0 until nSteps).forEach { _ ->
+                println(curPar)
                 val entities = entityMap[curPar]!!
                 val entity = entities.split(" ").let { it[rand.nextInt(it.size)] }
                 counts.merge(entity, 1.0, ::sum)
