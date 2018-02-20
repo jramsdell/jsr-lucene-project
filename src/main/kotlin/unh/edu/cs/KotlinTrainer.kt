@@ -13,6 +13,7 @@ import java.io.File
 import java.io.StringReader
 import java.nio.file.Paths
 import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.experimental.buildSequence
 import kotlin.math.ln
 
@@ -145,19 +146,32 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
     fun trainWeights(entityWeights: HashMap<String, Double>) {
         val baseline = calculateRelevancyGradient("", 1.0)
         val magnitudes = HashMap<String, Double>()
-        var counter = 0
-
-        entityWeights.keys.forEach { entity ->
-            println(counter++)
+        var counter = AtomicInteger(0)
+        val results = entityWeights.keys.pmap { entity->
+            println(counter.incrementAndGet())
             val lowRatio = calculateRelevancyGradient(entity, 0.5)
             val highRatio = calculateRelevancyGradient(entity, 2.0)
-            listOf(lowRatio to 0.5, highRatio to 2.0)
-                    .maxBy { baseline - it.first }!!
-                    .let { (mag, weight) ->
-                        magnitudes[entity] = mag
-                        entityWeights[entity] = weight
-                    }
+            listOf(baseline - lowRatio to 0.5, baseline - highRatio to 2.0)
+                    .maxBy { it.first }!!
+                    .run { Triple(entity, first, second) }
         }
+
+        results.forEach {(entity, mag, weight) ->
+            magnitudes[entity] = mag
+            entityWeights[entity] = weight
+        }
+
+//        entityWeights.keys.forEach { entity ->
+//            println(counter++)
+//            val lowRatio = calculateRelevancyGradient(entity, 0.5)
+//            val highRatio = calculateRelevancyGradient(entity, 2.0)
+//            listOf(lowRatio to 0.5, highRatio to 2.0)
+//                    .maxBy { baseline - it.first }!!
+//                    .let { (mag, weight) ->
+//                        magnitudes[entity] = mag
+//                        entityWeights[entity] = weight
+//                    }
+//        }
 
         magnitudes.forEach(::println)
 
