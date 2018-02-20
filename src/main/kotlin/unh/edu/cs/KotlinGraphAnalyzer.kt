@@ -134,7 +134,7 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
             }
         }
 
-        mixtures.sortedByDescending(ParagraphMixture::score)
+        mixtures.sortedBy(ParagraphMixture::score)
                 .zip(0 until tops.scoreDocs.size)
                 .forEach { (mixture,index) -> tops.scoreDocs[index].run {
                     score = mixture.score.toFloat()
