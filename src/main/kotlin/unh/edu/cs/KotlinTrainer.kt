@@ -154,12 +154,12 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
             .onEach { if (it == Double.NaN) { println("bad total");} }
             .average()
 
-    fun softMax(hmap: HashMap<String, Double>, temperature: Double = 1.0) {
-        val zExp = hmap.entries.map { it.key to exp(it.value)/temperature }.toMap() as HashMap
-        val total = zExp.values.sum()
-        println("SUM!: $total")
-        hmap.replaceAll {k,v -> zExp[k]!! / total}
-    }
+//    fun softMax(hmap: HashMap<String, Double>, temperature: Double = 1.0) {
+//        val zExp = hmap.entries.map { it.key to exp(it.value)/temperature }.toMap() as HashMap
+//        val total = zExp.values.sum()
+//        println("SUM!: $total")
+//        hmap.replaceAll {k,v -> zExp[k]!! / total}
+//    }
 
     fun trainWeights(entityWeights: HashMap<String, Double>) {
 
@@ -188,17 +188,19 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
             entityWeights[entity] = weight
         }
 
-        magnitudes.forEach(::println)
-        softMax(magnitudes, 1.0)
-        magnitudes.forEach(::println)
-//        entityWeights.replaceAll { k, v ->
-//            if (v > 1.0) v * magnitudes.getOrDefault(k, 1.0)
-//            else v / magnitudes.getOrDefault(k, 1.0)
-//        }
+//        magnitudes.forEach(::println)
+//        softMax(magnitudes, 1.0)
+//        magnitudes.forEach(::println)
+        val total = magnitudes.values.sum()
+        magnitudes.replaceAll { k,v -> v / total }
+        entityWeights.replaceAll { k, v ->
+            if (v > 1.0) v * magnitudes.getOrDefault(k, 1.0)
+            else v / magnitudes.getOrDefault(k, 1.0)
+        }
 //
-//        magnitudes.forEach { k, v ->
-//            println("$k: $v, ${entityWeights.getOrDefault(k, 0.0)}")
-//        }
+        magnitudes.forEach { k, v ->
+            println("$k: $v, ${entityWeights.getOrDefault(k, 0.0)}")
+        }
 
     }
 
