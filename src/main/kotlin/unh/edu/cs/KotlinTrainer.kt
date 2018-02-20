@@ -148,8 +148,7 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
     fun calculateRelevancyGradient(weights: HashMap<String, Double>): Double =
             topics.values
             .map { topic -> topic.getRelevancyRatio(weights) }
-                    .max()!!
-//            .average()
+                .average()
 
 //    fun softMax(hmap: HashMap<String, Double>, temperature: Double = 1.0) {
 //        val zExp = hmap.entries.map { it.key to exp(it.value)/temperature }.toMap() as HashMap
@@ -189,6 +188,7 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
 //        softMax(magnitudes, 1.0)
 //        magnitudes.forEach(::println)
         val total = magnitudes.values.sum()
+        entityWeights.removeAll { key, value -> magnitudes.getOrDefault(key, 1.0) <= 0  }
         magnitudes.removeAll { key, value -> value <= 0.0  }
         magnitudes.replaceAll { k,v -> v / total }
 
