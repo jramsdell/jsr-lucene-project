@@ -15,6 +15,7 @@ import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.experimental.buildSequence
+import kotlin.math.exp
 import kotlin.math.ln
 
 data class Topic(val name: String) {
@@ -152,6 +153,12 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
             .onEach { if (it == Double.NaN) { println("bad total");} }
             .average()
 
+    fun softMax(hmap: HashMap<String, Double>) {
+        val zExp = hmap.entries.map { it.key to exp(it.value) }.toMap() as HashMap
+        val total = zExp.values.sum()
+        hmap.replaceAll {k,v -> zExp[k]!! / total}
+    }
+
     fun trainWeights(entityWeights: HashMap<String, Double>) {
 
         println("Size: ${entityWeights.size}")
@@ -164,7 +171,8 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
         val magnitudes = HashMap<String, Double>()
         var counter = AtomicInteger(0)
 
-        val results = entityWeights.keys.pmap { entity->
+        // Todo: remove take 100
+        val results = entityWeights.keys.take(100).pmap { entity->
             println(counter.incrementAndGet())
             val lowRatio = calculateRelevancyGradient(entity, 0.5)
             val highRatio = calculateRelevancyGradient(entity, 2.0)
@@ -178,19 +186,12 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
             entityWeights[entity] = weight
         }
 
-//        entityWeights.keys.forEach { entity ->
-//            println(counter++)
-//            val lowRatio = calculateRelevancyGradient(entity, 0.5)
-//            val highRatio = calculateRelevancyGradient(entity, 2.0)
-//            listOf(lowRatio to 0.5, highRatio to 2.0)
-//                    .maxBy { baseline - it.first }!!
-//                    .let { (mag, weight) ->
-//                        magnitudes[entity] = mag
-//                        entityWeights[entity] = weight
-//                    }
-//        }
+        softMax(magnitudes)
+        entityWeights.replaceAll {k,v -> v * magnitudes[k]!!}
 
-        magnitudes.forEach(::println)
+        magnitudes.forEach { k, v ->
+            println("$k: $v, ${entityWeights.getOrDefault(k, 0.0)}")
+        }
 
     }
 
