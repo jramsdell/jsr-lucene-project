@@ -105,7 +105,7 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
             }
         }
 
-        counts.removeAll { key, value -> value < 0.01 }
+        counts.removeAll { key, value -> value < 0.05 }
         counts.values.sum().let { total ->
             counts.replaceAll({k,v -> v/total})
         }

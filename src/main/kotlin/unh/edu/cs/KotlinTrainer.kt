@@ -155,8 +155,8 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
     fun trainWeights(entityWeights: HashMap<String, Double>) {
 
         println("Size: ${entityWeights.size}")
-        val keySet = entityWeights.keys.take(50).toHashSet()
-        entityWeights.removeAll { key, value -> key !in keySet }
+//        val keySet = entityWeights.keys.take(50).toHashSet()
+//        entityWeights.removeAll { key, value -> key !in keySet }
 
         val baseline = calculateRelevancyGradient("", 1.0)
         println("Baseline: $baseline")
