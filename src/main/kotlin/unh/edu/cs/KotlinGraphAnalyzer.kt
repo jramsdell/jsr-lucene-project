@@ -28,6 +28,7 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
     private val cmap: ConcurrentMap<String, String>
     private val entityMap: ConcurrentMap<String, String>
     private val parMap: ConcurrentMap<String, String>
+    val rand = Random()
 
 
     init {
@@ -46,8 +47,29 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
         pm.docId = docId
         val doc = indexSearcher.doc(docId)
         val paragraphId = doc.get("paragraphid")
+        pm.mixture = doWalkModel(paragraphId)
         // Todo: Add doJumps
         return pm
+    }
+
+    fun doWalkModel(pid: String): HashMap<String, Double> {
+        val counts = HashMap<String, Double>()
+        val nWalks = 50
+        val nSteps = 3
+
+        (0 until nWalks).forEach { _ ->
+            var volume = 1.0
+            var curPar = pid
+
+            (0 until nSteps).forEach { _ ->
+                val entities = entityMap[curPar]!!
+                val entity = entities.split(" ").let { it[rand.nextInt(it.size)] }
+                counts.merge(entity, 1.0, ::sum)
+                val paragraphs = parMap[entity]!!
+                curPar = paragraphs.split(" ").let { it[rand.nextInt(it.size)] }
+            }
+        }
+        return counts
     }
 
     fun rerankTopDocs(tops: TopDocs, command: String) {
