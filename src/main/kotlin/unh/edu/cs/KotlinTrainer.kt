@@ -127,7 +127,7 @@ class KotlinRegularizer(indexPath: String, queryPath: String, weightLocation: St
             pm.mixture
                     .map { (k,v) -> k to v * pm.score * weightMap.getOrDefault(k, 1.0) }
                     .sumByDouble { it.second }
-                    .let { pm.score = it }
+                    .let { pm.score = it * 0.5 + pm.score }
         }
 
         mixtures.sortedByDescending { it.score }
