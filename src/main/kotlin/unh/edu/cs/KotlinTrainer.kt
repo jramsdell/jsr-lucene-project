@@ -9,6 +9,8 @@ import org.apache.lucene.index.DirectoryReader
 import org.apache.lucene.index.Term
 import org.apache.lucene.search.*
 import org.apache.lucene.store.FSDirectory
+import org.mapdb.DBMaker
+import org.mapdb.Serializer
 import java.io.File
 import java.io.StringReader
 import java.nio.file.Paths
@@ -127,7 +129,7 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
                 .aggregate(this::aggFun)
     }
 
-    fun train() {
+    fun train(): HashMap<String, Double> {
         var counter = 0
         val entityWeights = HashMap<String, Double>()
 
@@ -142,7 +144,7 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
         }
 
 
-        trainWeights(entityWeights)
+        return trainWeights(entityWeights)
     }
 
     fun calculateRelevancyGradient(weights: HashMap<String, Double>): Double =
@@ -157,19 +159,29 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
         hmap.replaceAll {k,v -> zExp[k]!! / total}
     }
 
-    fun trainWeights(entityWeights: HashMap<String, Double>) {
+    fun writeWeights(entityWeights: HashMap<String, Double>) {
+        val db = DBMaker.fileDB("weights.db")
+                .fileMmapEnable()
+                .closeOnJvmShutdown()
+                .make()
+
+        val weightMap = db.hashMap("weight_map", Serializer.STRING, Serializer.DOUBLE).createOrOpen()
+
+        entityWeights.forEach { k, v -> weightMap[k] = v }
+    }
+
+    fun trainWeights(entityWeights: HashMap<String, Double>): HashMap<String, Double> {
 
         println("Size: ${entityWeights.size}")
 //        val keySet = entityWeights.keys.take(50).toHashSet()
 //        entityWeights.removeAll { key, value -> key !in keySet }
 
         val baseline = calculateRelevancyGradient(HashMap())
-        println("Baseline: $baseline")
 
         val magnitudes = HashMap<String, Double>()
         var counter = AtomicInteger(0)
 
-        // Todo: remove take 100
+        // Todo: remove take 500
         val results = entityWeights.keys.take(500).pmap { entity->
             println(counter.incrementAndGet())
             val lowRatio = calculateRelevancyGradient(hashMapOf(entity to 0.005))
@@ -203,11 +215,12 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
             else v / (200 * magnitudes.getOrDefault(k, 1.0) / best)
         }
 //
-        magnitudes.forEach { k, v ->
-            println("$k: $v, ${entityWeights.getOrDefault(k, 0.0)}")
-        }
-        val newBaseline = calculateRelevancyGradient(entityWeights)
-        println("Before: $baseline\nAfter: $newBaseline")
+//        magnitudes.forEach { k, v ->
+//            println("$k: $v, ${entityWeights.getOrDefault(k, 0.0)}")
+//        }
+//        val newBaseline = calculateRelevancyGradient(entityWeights)
+//        println("Before: $baseline\nAfter: $newBaseline")
+        return entityWeights
 
     }
 

@@ -170,7 +170,8 @@ public class Main {
                     String queryLocation = args[2];
                     String qrelLocation = args[3];
                     KotlinTrainer trainer = new KotlinTrainer(indexLocation, queryLocation, qrelLocation);
-                    trainer.train();
+                    HashMap<String,Double> weights = trainer.train();
+                    trainer.writeWeights(weights);
                 } catch (ArrayIndexOutOfBoundsException e) {
                     printTrainUsage();
                 }
