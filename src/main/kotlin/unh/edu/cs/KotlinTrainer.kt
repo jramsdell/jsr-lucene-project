@@ -174,7 +174,7 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
             println(counter.incrementAndGet())
             val lowRatio = calculateRelevancyGradient(hashMapOf(entity to 0.005))
             val highRatio = calculateRelevancyGradient(hashMapOf(entity to 200.0))
-            listOf(baseline - lowRatio to 0.005, baseline - highRatio to 200.0)
+            listOf(lowRatio - baseline to 0.005, highRatio - baseline to 200.0)
                     .maxBy { it.first }!!
                     .run { Triple(entity, first, second) }
         }
