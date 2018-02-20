@@ -43,6 +43,10 @@ public class Main {
         );
     }
 
+    private static void printTrainUsage() {
+        System.out.println("Usage: train queryType indexLoc queryLoc qrelLoc\n");
+    }
+
     private static void runIndexer(String sType, String corpusFile, String indexOutLocation) throws IOException {
         // Index Enum
         IndexType indexType = null;
@@ -166,7 +170,7 @@ public class Main {
                     String queryLocation = args[2];
                     String qrelLocation = args[3];
                 } catch (ArrayIndexOutOfBoundsException e) {
-                    printQueryVectorUsage();
+                    printTrainUsage();
                 }
                 break;
             default:
