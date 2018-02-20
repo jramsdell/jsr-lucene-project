@@ -179,8 +179,12 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
                     .run { Triple(entity, first, second) }
         }
 
+        var lowest = 9999999999.0
+        results.forEach { (entity, mag, weight) ->
+            if (mag >= 0.0 && mag < lowest) { lowest = mag }
+        }
         results.forEach {(entity, mag, weight) ->
-            magnitudes[entity] = mag / 0.00001
+            magnitudes[entity] = mag / lowest
             entityWeights[entity] = weight
         }
 
