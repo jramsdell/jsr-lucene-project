@@ -195,9 +195,9 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
             else v / (200 * magnitudes.getOrDefault(k, 1.0))
         }
 //
-//        magnitudes.forEach { k, v ->
-//            println("$k: $v, ${entityWeights.getOrDefault(k, 0.0)}")
-//        }
+        magnitudes.forEach { k, v ->
+            println("$k: $v, ${entityWeights.getOrDefault(k, 0.0)}")
+        }
         val newBaseline = calculateRelevancyGradient(entityWeights)
         println("Before: $baseline\nAfter: $newBaseline")
 
