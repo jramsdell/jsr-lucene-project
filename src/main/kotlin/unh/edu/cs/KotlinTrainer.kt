@@ -156,6 +156,8 @@ class KotlinRegularizer(indexPath: String, queryPath: String, weightLocation: St
             rerankTops(tops)
             writeRankingsToFile(tops, queryId, writer)
         }
+        writer.flush()
+        writer.close()
     }
 
 }
