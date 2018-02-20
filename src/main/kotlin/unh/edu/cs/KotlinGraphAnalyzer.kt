@@ -75,7 +75,7 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
     fun rerankTopDocs(tops: TopDocs, command: String) {
         val mixtures =
                 (0 until tops.scoreDocs.size)
-                        .pmap({ getParagraphMixture(it) })
+                        .map({ getParagraphMixture(it) })
                         .toList()
         val sinks = HashMap<String, Double>()
 
