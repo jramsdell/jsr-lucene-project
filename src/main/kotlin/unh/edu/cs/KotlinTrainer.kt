@@ -17,7 +17,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.experimental.buildSequence
 import kotlin.math.exp
 import kotlin.math.ln
-import kotlin.math.log
 
 data class Topic(val name: String) {
     val relevantDocs = ArrayList<ParagraphMixture>()
@@ -185,7 +184,8 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
 //            if (mag > 0.0 && mag < lowest) { lowest = mag }
 //        }
         results.forEach {(entity, mag, weight) ->
-            magnitudes[entity] = if (mag <= 0.0) 0.0 else log(mag, 2.0)
+            println(mag)
+            magnitudes[entity] = mag / 0.0001
             entityWeights[entity] = weight
         }
 
