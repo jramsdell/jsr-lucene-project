@@ -154,6 +154,7 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
 
     fun trainWeights(entityWeights: HashMap<String, Double>) {
 
+        println("Size: ${entityWeights.size}")
         val keySet = entityWeights.keys.take(50).toHashSet()
         entityWeights.removeAll { key, value -> key !in keySet }
 
@@ -163,8 +164,7 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
         val magnitudes = HashMap<String, Double>()
         var counter = AtomicInteger(0)
 
-        // Todo: remove take 5
-        val results = entityWeights.keys.take(5).pmap { entity->
+        val results = entityWeights.keys.pmap { entity->
             println(counter.incrementAndGet())
             val lowRatio = calculateRelevancyGradient(entity, 0.5)
             val highRatio = calculateRelevancyGradient(entity, 2.0)
