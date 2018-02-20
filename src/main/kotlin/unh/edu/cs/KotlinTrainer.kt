@@ -123,12 +123,12 @@ class KotlinRegularizer(indexPath: String, queryPath: String, weightLocation: St
 
     fun rerankTops(tops: TopDocs) {
         val mixtures = graphAnalyzer.getMixtures(tops)
-        mixtures.forEach { pm ->
-            pm.mixture
-                    .map { (k,v) -> k to v * pm.score * weightMap.getOrDefault(k, 1.0) }
-                    .sumByDouble { it.second }
-                    .let { pm.score = it * 0.0 + 1.0 * pm.score }
-        }
+//        mixtures.forEach { pm ->
+//            pm.mixture
+//                    .map { (k,v) -> k to v * pm.score * weightMap.getOrDefault(k, 1.0) }
+//                    .sumByDouble { it.second }
+//                    .let { pm.score = it * 0.0 + 1.0 * pm.score }
+//        }
 
         mixtures.sortedByDescending { it.score }
                 .zip(0 until tops.scoreDocs.size)
