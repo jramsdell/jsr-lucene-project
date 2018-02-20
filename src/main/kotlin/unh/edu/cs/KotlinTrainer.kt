@@ -193,7 +193,7 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
 
         val best = magnitudes.values.max()!!
         entityWeights.replaceAll { k, v ->
-            if (v > 1.0) v * magnitudes.getOrDefault(k, 1.0) / best
+            if (v <= 1.0) v * magnitudes.getOrDefault(k, 1.0) / best
             else v / (200 * magnitudes.getOrDefault(k, 1.0) / best)
         }
 //
