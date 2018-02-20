@@ -82,17 +82,20 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
                         { key -> parMap[key]!!.split(" ") })
                 val entity = entities[rand.nextInt(entities.size)]
 
-                if (first != 0) {
-                    first = 1
-                } else {
-                    volume *= 1/(ln(storedEntities[entity]!!.size.toDouble()) + ln(storedParagraphs[curPar]!!.size.toDouble()))
-                }
-
-                counts.merge(entity, 1.0, ::sum)
 //                val paragraphs = entityMap[entity]!!
 //                curPar = paragraphs.split(" ").let { it[rand.nextInt(it.size)] }
                 val paragraphs = storedParagraphs.computeIfAbsent(entity,
                         { key -> entityMap[key]!!.split(" ") })
+
+                if (first != 0) {
+                    first = 1
+                } else {
+                    volume *= 1/(ln(entities.size.toDouble()) + ln(paragraphs.size.toDouble()))
+                }
+
+                counts.merge(entity, 1.0, ::sum)
+
+
                 curPar = paragraphs[rand.nextInt(paragraphs.size)]
             }
         }
