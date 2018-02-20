@@ -16,6 +16,7 @@ import java.lang.Double.sum
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.ln
 import kotlin.math.log
+import kotlin.math.max
 
 fun <A, B>Iterable<A>.pmap(f: suspend (A) -> B): List<B> = runBlocking {
     map { async(CommonPool) { f(it) } }.map { it.await() }
@@ -66,8 +67,8 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
 
     fun doWalkModel(pid: String): HashMap<String, Double> {
         val counts = HashMap<String, Double>()
-        val nWalks = 400
-        val nSteps = 4
+        val nWalks = 40
+        val nSteps = 2
 
         (0 until nWalks).forEach { _ ->
             var volume = 1.0
@@ -124,10 +125,12 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
 
         if (command.equals("query_special")) {
             mixtures.forEach { pm ->
-                if (!pm.mixture.isEmpty()) {
-                    pm.score = 0.0
-                }
-                pm.mixture.forEach { k, v -> pm.score += sinks[k]!! * v  }
+//                if (!pm.mixture.isEmpty()) {
+//                    pm.score = 0.0
+//                }
+                var total = 0.0
+                pm.mixture.forEach { k, v -> total += sinks[k]!! * v  }
+                pm.score = max(total, pm.score)
             }
         }
 
