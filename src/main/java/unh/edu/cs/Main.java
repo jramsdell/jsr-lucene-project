@@ -170,6 +170,7 @@ public class Main {
                     String queryLocation = args[2];
                     String qrelLocation = args[3];
                     KotlinTrainer trainer = new KotlinTrainer(indexLocation, queryLocation, qrelLocation);
+                    trainer.test();
                 } catch (ArrayIndexOutOfBoundsException e) {
                     printTrainUsage();
                 }
