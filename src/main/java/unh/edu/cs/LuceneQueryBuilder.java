@@ -173,7 +173,6 @@ class LuceneQueryBuilder {
             ScoreDoc[] scoreDoc = tops.scoreDocs;
             writeRankingsToFile(scoreDoc, queryId, out, ids);
         }
-        graphAnalyzer.writeTerms();
     }
 
     void writeSectionRankings(FileInputStream inputStream, BufferedWriter out) throws IOException {

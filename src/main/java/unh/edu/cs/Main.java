@@ -159,6 +159,16 @@ public class Main {
                     printQueryVectorUsage();
                 }
                 break;
+            case "train":
+                try {
+                    String command = args[0];
+                    String indexLocation = args[1];
+                    String queryLocation = args[2];
+                    String qrelLocation = args[3];
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    printQueryVectorUsage();
+                }
+                break;
             default:
                 printUsages();
                 break;

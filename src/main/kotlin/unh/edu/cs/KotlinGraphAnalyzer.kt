@@ -105,11 +105,14 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
         return counts
     }
 
+    fun getMixtures(tops: TopDocs): List<ParagraphMixture> =
+            tops.scoreDocs
+                    .map { it.doc to it.score }
+                    .pmap({ getParagraphMixture(it) })
+                    .toList()
+
     fun rerankTopDocs(tops: TopDocs, command: String) {
-        val mixtures =
-                tops.scoreDocs.map { it.doc to it.score }
-                        .pmap({ getParagraphMixture(it) })
-                        .toList()
+        val mixtures = getMixtures(tops)
         val sinks = HashMap<String, Double>()
 
         mixtures.forEach { pm ->
