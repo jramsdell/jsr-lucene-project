@@ -97,7 +97,7 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
     }
 
     fun test() {
-        topics.forEach(::println)
+        queries.forEach(::println)
     }
 
 }
