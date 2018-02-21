@@ -93,11 +93,11 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
                         { key -> entityMap[key]!!.split(" ") })
                 curPar = paragraphs[ThreadLocalRandom.current().nextInt(paragraphs.size)]
 
-                if (first != 0) {
-                    first = 1
-                } else {
-                    volume *= 1/(ln(entities.size.toDouble()) + ln(paragraphs.size.toDouble()))
-                }
+//                if (first != 0) {
+//                    first = 1
+//                } else {
+//                    volume *= 1/(ln(entities.size.toDouble()) + ln(paragraphs.size.toDouble()))
+//                }
 
                 counts.merge(entity, volume, ::sum)
 
