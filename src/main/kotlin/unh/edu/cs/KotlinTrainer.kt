@@ -197,14 +197,22 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
         val entityWeights = HashMap<String, Double>()
 
         // For each query, get paragraph mixtures and add them to topics model
-        queries.forEach { (queryId, tops) ->
-            val mixtures = graphAnalyzer.getMixtures(tops)
-            mixtures.forEach { pm ->
-                entityWeights += pm.mixture.keys.map { it to 1.0 }
-            }
-            println(counter++)
-            topics[queryId]!!.addMixtures(mixtures)
-        }
+        queries.pmap { (queryId, tops) -> queryId to graphAnalyzer.getMixtures(tops) }
+                .forEach { (queryId, mixtures) ->
+                    mixtures.forEach { pm ->
+                        entityWeights += pm.mixture.keys.map { it to 1.0 }
+                    }
+                    println(counter++)
+                    topics[queryId]!!.addMixtures(mixtures)
+                }
+//        queries.forEach { (queryId, tops) ->
+//            val mixtures = graphAnalyzer.getMixtures(tops)
+//            mixtures.forEach { pm ->
+//                entityWeights += pm.mixture.keys.map { it to 1.0 }
+//            }
+//            println(counter++)
+//            topics[queryId]!!.addMixtures(mixtures)
+//        }
 
 
         return trainWeights(entityWeights)
@@ -290,10 +298,6 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
 //        println("Before: $baseline\nAfter: $newBaseline")
         return entityWeights
 
-    }
-
-    fun test() {
-        queries.forEach(::println)
     }
 
 }
