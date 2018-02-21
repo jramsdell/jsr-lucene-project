@@ -105,7 +105,13 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
             }
         }
 
-        counts.removeAll { key, value -> value < 0.05 }
+        val topEntries = counts.entries.sortedByDescending{ it.value }
+                .take(20)
+                .map { it.key }
+                .toHashSet()
+
+//        counts.removeAll { key, value -> value < 0.05 }
+        counts.removeAll { key, value -> key !in topEntries }
         counts.values.sum().let { total ->
             counts.replaceAll({k,v -> v/total})
         }
