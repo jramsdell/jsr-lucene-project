@@ -189,6 +189,7 @@ public class Main {
                     KotlinTrainer trainer = new KotlinTrainer(indexLocation, queryLocation, qrelLocation);
                     trainer.writeEntityModels();
                 } catch (ArrayIndexOutOfBoundsException e) {
+                    e.printStackTrace();
                     printTrainUsage();
                 }
                 break;
