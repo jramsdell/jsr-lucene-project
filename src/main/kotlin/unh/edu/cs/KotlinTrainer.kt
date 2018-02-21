@@ -240,8 +240,14 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
 
         val entityDistMap = db.hashMap("entity_dist", Serializer.STRING, Serializer.STRING).createOrOpen()
 
+        val counter = AtomicInteger(0)
         graphAnalyzer.entityMap.keys.forEachParallel { entity ->
             val model = graphAnalyzer.doWalkModelEntity(entity)
+            counter.incrementAndGet().let {
+                if (it % 1000 == 0) {
+                    println(it)
+                }
+            }
 
             val dist = model.map { (k,v) -> "$k:$v" }.joinToString(" ")
             entityDistMap[entity] = dist
