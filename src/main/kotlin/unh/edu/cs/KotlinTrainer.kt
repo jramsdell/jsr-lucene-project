@@ -232,6 +232,22 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
         hmap.replaceAll {k,v -> zExp[k]!! / total}
     }
 
+    fun writeEntityModels() {
+        val db = DBMaker.fileDB("entity_dists.db")
+                .fileMmapEnable()
+                .closeOnJvmShutdown()
+                .make()
+
+        val entityDistMap = db.hashMap("entity_dist", Serializer.STRING, Serializer.STRING).createOrOpen()
+
+        graphAnalyzer.entityMap.keys.forEachParallel { entity ->
+            val model = graphAnalyzer.doWalkModelEntity(entity)
+
+            val dist = model.map { (k,v) -> "$k:$v" }.joinToString(" ")
+            entityDistMap[entity] = dist
+        }
+    }
+
     fun writeWeights(entityWeights: HashMap<String, Double>) {
         val db = DBMaker.fileDB("weights.db")
                 .fileMmapEnable()

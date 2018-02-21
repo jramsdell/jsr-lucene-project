@@ -41,8 +41,8 @@ data class ParagraphMixture(
 class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
     private val db: DB
     private val cmap: ConcurrentMap<String, String>
-    private val entityMap: ConcurrentMap<String, String>
-    private val parMap: ConcurrentMap<String, String>
+    public val entityMap: ConcurrentMap<String, String>
+    public val parMap: ConcurrentMap<String, String>
     private val storedParagraphs = ConcurrentHashMap<String, List<String>>()
     private val storedEntities = ConcurrentHashMap<String, List<String>>()
 
@@ -70,6 +70,50 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
         return pm
     }
 
+
+    fun doWalkModelEntity(entity: String): HashMap<String, Double> {
+        val counts = HashMap<String, Double>()
+        val nWalks = 400
+        val nSteps = 4
+
+        (0 until nWalks).forEach { _ ->
+            var volume = 1.0
+            var curEntity = entity
+            var first = 0
+
+            (0 until nSteps).forEach { _ ->
+                // Retrieve a random paragrath linked to entity (memoize result)
+                val paragraphs = entityMap[curEntity]!!.split(" ")
+                val paragraph = paragraphs[ThreadLocalRandom.current().nextInt(paragraphs.size)]
+
+                // Retrieve a random entity linked to paragraph (memoize result)
+                val entities = parMap[paragraph]!!.split(" ")
+
+                if (first != 0) {
+                    first = 1
+                } else {
+                    volume *= 1/(ln(entities.size.toDouble()) + ln(paragraphs.size.toDouble()))
+                }
+
+                counts.merge(curEntity, volume, ::sum)
+
+
+            }
+        }
+
+        val topEntries = counts.entries.sortedByDescending{ it.value }
+                .take(20)
+                .map { it.key }
+                .toHashSet()
+
+        counts.removeAll { key, value -> key !in topEntries }
+        counts.values.sum().let { total ->
+            counts.replaceAll({k,v -> v/total})
+        }
+
+        return counts
+    }
+
     fun doWalkModel(pid: String): HashMap<String, Double> {
         val counts = HashMap<String, Double>()
         val nWalks = 400
@@ -92,11 +136,11 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
                         { key -> entityMap[key]!!.split(" ") })
                 curPar = paragraphs[ThreadLocalRandom.current().nextInt(paragraphs.size)]
 
-//                if (first != 0) {
-//                    first = 1
-//                } else {
-//                    volume *= 1/(ln(entities.size.toDouble()) + ln(paragraphs.size.toDouble()))
-//                }
+                if (first != 0) {
+                    first = 1
+                } else {
+                    volume *= 1/(ln(entities.size.toDouble()) + ln(paragraphs.size.toDouble()))
+                }
 
                 counts.merge(entity, volume, ::sum)
 
