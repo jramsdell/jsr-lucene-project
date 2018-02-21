@@ -71,8 +71,8 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
 
     fun doWalkModel(pid: String): HashMap<String, Double> {
         val counts = HashMap<String, Double>()
-        val nWalks = 50
-        val nSteps = 3
+        val nWalks = 400
+        val nSteps = 4
 
         (0 until nWalks).forEach { _ ->
             var volume = 1.0
