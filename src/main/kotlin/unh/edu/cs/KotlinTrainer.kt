@@ -193,16 +193,18 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
     }
 
     fun train(): HashMap<String, Double> {
-        var counter = 0
+        var counter = AtomicInteger(0)
         val entityWeights = HashMap<String, Double>()
 
         // For each query, get paragraph mixtures and add them to topics model
-        queries.pmap { (queryId, tops) -> queryId to graphAnalyzer.getMixtures(tops) }
+        queries.pmap { (queryId, tops) ->
+            println(counter.incrementAndGet())
+            queryId to graphAnalyzer.getMixtures(tops)
+        }
                 .forEach { (queryId, mixtures) ->
                     mixtures.forEach { pm ->
                         entityWeights += pm.mixture.keys.map { it to 1.0 }
                     }
-                    println(counter++)
                     topics[queryId]!!.addMixtures(mixtures)
                 }
 //        queries.forEach { (queryId, tops) ->
