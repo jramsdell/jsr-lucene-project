@@ -193,28 +193,28 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
     }
 
     fun train(): HashMap<String, Double> {
-        var counter = AtomicInteger(0)
+        var counter = 0
         val entityWeights = HashMap<String, Double>()
 
         // For each query, get paragraph mixtures and add them to topics model
-        queries.pmap { (queryId, tops) ->
-            println(counter.incrementAndGet())
-            queryId to graphAnalyzer.getMixtures(tops)
-        }
-                .forEach { (queryId, mixtures) ->
-                    mixtures.forEach { pm ->
-                        entityWeights += pm.mixture.keys.map { it to 1.0 }
-                    }
-                    topics[queryId]!!.addMixtures(mixtures)
-                }
-//        queries.forEach { (queryId, tops) ->
-//            val mixtures = graphAnalyzer.getMixtures(tops)
-//            mixtures.forEach { pm ->
-//                entityWeights += pm.mixture.keys.map { it to 1.0 }
-//            }
-//            println(counter++)
-//            topics[queryId]!!.addMixtures(mixtures)
+//        queries.pmap { (queryId, tops) ->
+//            println(counter.incrementAndGet())
+//            queryId to graphAnalyzer.getMixtures(tops)
 //        }
+//                .forEach { (queryId, mixtures) ->
+//                    mixtures.forEach { pm ->
+//                        entityWeights += pm.mixture.keys.map { it to 1.0 }
+//                    }
+//                    topics[queryId]!!.addMixtures(mixtures)
+//                }
+        queries.forEach { (queryId, tops) ->
+            val mixtures = graphAnalyzer.getMixtures(tops)
+            mixtures.forEach { pm ->
+                entityWeights += pm.mixture.keys.map { it to 1.0 }
+            }
+            println(counter++)
+            topics[queryId]!!.addMixtures(mixtures)
+        }
 
 
         return trainWeights(entityWeights)
@@ -262,9 +262,9 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
                 }
             }
 
-            val lowRatio = calculateRelevancyGradient(hashMapOf(entity to 0.005))
-            val highRatio = calculateRelevancyGradient(hashMapOf(entity to 200.0))
-            listOf(lowRatio - baseline to 0.005, highRatio - baseline to 200.0)
+            val lowRatio = calculateRelevancyGradient(hashMapOf(entity to 0.05))
+            val highRatio = calculateRelevancyGradient(hashMapOf(entity to 20.0))
+            listOf(lowRatio - baseline to 0.05, highRatio - baseline to 20.0)
                     .maxBy { it.first }!!
                     .run { Triple(entity, first, second) }
         }
@@ -274,7 +274,7 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
 //            if (mag > 0.0 && mag < lowest) { lowest = mag }
 //        }
         results.forEach {(entity, mag, weight) ->
-            magnitudes[entity] = mag / 0.0001
+            magnitudes[entity] = mag / 0.00001
             entityWeights[entity] = weight
         }
 
@@ -290,7 +290,7 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
         val best = magnitudes.values.max()!!
         entityWeights.replaceAll { k, v ->
             if (v >= 1.0) v * magnitudes.getOrDefault(k, 1.0) / best
-            else v / (200 * magnitudes.getOrDefault(k, 1.0) / best)
+            else v / (20 * magnitudes.getOrDefault(k, 1.0) / best)
         }
 //
 //        magnitudes.forEach { k, v ->

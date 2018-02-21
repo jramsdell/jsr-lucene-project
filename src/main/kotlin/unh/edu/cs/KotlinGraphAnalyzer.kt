@@ -67,9 +67,6 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
                 score = docInfo.second.toDouble(),
                 mixture = doWalkModel(paragraphId)
                 )
-//        pm.docId = docInfo.first
-//        pm.mixture = doWalkModel(paragraphId)
-//        pm.score = docInfo.second.toDouble()
         return pm
     }
 
@@ -84,15 +81,13 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
             var first = 0
 
             (0 until nSteps).forEach { _ ->
-//                val entities = parMap[curPar]!!
-//                val entity = entities.split(" ").let { it[rand.nextInt(it.size)] }
 
+                // Retrieve a random entity linked to paragraph (memoize result)
                 val entities = storedEntities.computeIfAbsent(curPar,
                         { key -> parMap[key]!!.split(" ") })
                 val entity = entities[ThreadLocalRandom.current().nextInt(entities.size)]
 
-//                val paragraphs = entityMap[entity]!!
-//                curPar = paragraphs.split(" ").let { it[rand.nextInt(it.size)] }
+                // Retrieve a random paragrath linked to entity (memoize result)
                 val paragraphs = storedParagraphs.computeIfAbsent(entity,
                         { key -> entityMap[key]!!.split(" ") })
                 curPar = paragraphs[ThreadLocalRandom.current().nextInt(paragraphs.size)]
@@ -114,7 +109,6 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
                 .map { it.key }
                 .toHashSet()
 
-//        counts.removeAll { key, value -> value < 0.05 }
         counts.removeAll { key, value -> key !in topEntries }
         counts.values.sum().let { total ->
             counts.replaceAll({k,v -> v/total})
