@@ -45,8 +45,10 @@ data class Topic(val name: String) {
             }
         }
 
-        val relSum = doSum(relevantDocs)
-        val irrelSum = doSum(irrelevantDocs)
+//        val relSum = doSum(relevantDocs)
+//        val irrelSum = doSum(irrelevantDocs)
+        val relSum = relevantDocs.minBy { it.score }!!.score
+        val irrelSum = relevantDocs.maxBy { it.score }!!.score
 //        if (relSum == Double.NaN) {
 //            println("Bad relSum: $entity, $relSum")
 //        }
@@ -54,7 +56,8 @@ data class Topic(val name: String) {
 //            println("Bad irrelSum: $entity, $irrelSum")
 //        }
 //        return if (relSum == 0.0) 0.0 else ln(relSum / (relSum + irrelSum))
-        return relSum / (relSum + irrelSum)
+        return relSum - irrelSum
+//        return relSum / (relSum + irrelSum)
     }
 }
 
