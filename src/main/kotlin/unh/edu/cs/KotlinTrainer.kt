@@ -45,10 +45,16 @@ data class Topic(val name: String) {
             }
         }
 
+        val getValues = { docs: List<ParagraphMixture> ->
+            docs.map { pm ->
+                pm.mixture.entries.sumByDouble { (k, v) -> v * weights.getOrDefault(k, 1.0) }
+            }
+        }
+
 //        val relSum = doSum(relevantDocs)
 //        val irrelSum = doSum(irrelevantDocs)
-        val relSum = relevantDocs.minBy { it.score }!!.score
-        val irrelSum = relevantDocs.maxBy { it.score }!!.score
+        val relSum = getValues(relevantDocs).min() ?: 0.0
+        val irrelSum = getValues(irrelevantDocs).min() ?: 0.0
 //        if (relSum == Double.NaN) {
 //            println("Bad relSum: $entity, $relSum")
 //        }
