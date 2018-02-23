@@ -53,13 +53,15 @@ class KotlinEntityLinker(indexLoc: String) {
 //        server.process.waitFor(30, TimeUnit.SECONDS)
 
         println("Testing connection")
-        try {
-            retrieveEntities("This is a test")
-        } catch (e: ConnectException) {
-//            server.process.waitFor(5, TimeUnit.SECONDS)
-            retrieveEntities("This is a test")
-
+        var failures = 0
+        (0..100).forEach {
+            try {
+                retrieveEntities("This is a test")
+            } catch (e: ConnectException) {
+                failures++
+            }
         }
+        println("Total failures: $failures")
 
         val totalDocs = indexSearcher.indexReader.maxDoc()
         println(totalDocs)
