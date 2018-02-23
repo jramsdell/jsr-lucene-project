@@ -45,8 +45,7 @@ class KotlinEntityLinker(indexLoc: String) {
 
     // Iterates over each paragraph in the corpus and annotates with linked entities
     fun run() {
-        val totalDocs = indexSearcher.indexReader.maxDoc()
-        println(totalDocs)
+        val totalDocs = indexSearcher.indexReader.numDocs()
         val bar = ProgressBar("Documents Linked", totalDocs.toLong())
         bar.start()
         val lock = ReentrantLock()
