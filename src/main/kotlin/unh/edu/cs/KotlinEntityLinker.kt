@@ -50,6 +50,10 @@ class KotlinEntityLinker(indexLoc: String) {
         println("Waiting for server to get ready")
         server.process.isAlive
         server.process.waitFor(30, TimeUnit.SECONDS)
+
+        println("Testing connection")
+        retrieveEntities("This is a test")
+
         val totalDocs = indexSearcher.indexReader.maxDoc()
         println(totalDocs)
         val bar = ProgressBar("Documents Linked", totalDocs.toLong(),
