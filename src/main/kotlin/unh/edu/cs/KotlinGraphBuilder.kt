@@ -18,6 +18,11 @@ import kotlin.coroutines.experimental.buildIterator
 import kotlin.coroutines.experimental.buildSequence
 
 
+/**
+ * Class: KotlinGraphBuilder
+ * Description: Uses supplied Lucene index to generate a bipartite graph with edges between entities and paragraphs.
+ *              The results are stored in a hashmap file (graph_database.db) for later use.
+ */
 class KotlinGraphBuilder(indexLocation: String) {
 
     // Start up an index searcher using supplied path to Lucene index directory
@@ -38,6 +43,12 @@ class KotlinGraphBuilder(indexLocation: String) {
     val entityMap = db.hashMap("entity_map", Serializer.STRING, Serializer.STRING).createOrOpen()
     val parMap = db.hashMap("par_map", Serializer.STRING, Serializer.STRING).createOrOpen()
 
+
+    /**
+     * Function: buildParagraphGraph
+     * Description: Iterates over paragraphs in index and adds entities as edges to paragraph.
+     *              The results are stored in parMap ("par_map" in the database)
+     */
     fun buildParagraphGraph() {
         println("Adding edges from paragraphs to entities")
         val maxDoc = indexSearcher.indexReader.maxDoc()
@@ -58,8 +69,15 @@ class KotlinGraphBuilder(indexLocation: String) {
         bar.stop()
     }
 
+
+    /**
+     * Function: addEntitiesToGraph
+     * Description: Iterates over list of entities in index and queries Lucene for paragraphs that contain this entity.
+     *              Edges are then added from this entity to the paragraphs that contain it.
+     *              The results are stored in entityMap ("entity_map" in the database)
+     */
     fun addEntitiesToGraph(entities: List<String>) {
-        entities.forEach { entity ->
+        entities.forEachParallel { entity ->
             val termQuery = TermQuery(Term("spotlight", entity))
             val topDocs = indexSearcher.search(termQuery, 10000)
 
@@ -69,6 +87,12 @@ class KotlinGraphBuilder(indexLocation: String) {
         }
     }
 
+    /**
+     * Function: buildEntityGraph
+     * Description: Builds edges from entities to paragraphs. Uses Lucene index to iterate over spotlight terms and then
+     *              processes them in chunks of 1000.
+     * @see addEntitiesToGraph
+     */
     fun buildEntityGraph() {
         println("Adding edges from entities to paragraphs")
         val fields = MultiFields.getFields(indexSearcher.indexReader)
@@ -76,32 +100,38 @@ class KotlinGraphBuilder(indexLocation: String) {
         val numTerms = spotLightTerms.docCount
         val termIterator = spotLightTerms.iterator()
 
+        // Build a sequence that lets us iterate over terms in chunks and run them in parallel
         val termSeq = buildSequence<String> {
             while (true) {
-                val bytesRef = termIterator.next()
-                if (bytesRef == null) {
-                    break
-                }
+                val bytesRef = termIterator.next() ?: break
                 yield(bytesRef.utf8ToString())
             }
         }
 
+        // Create a progress bar that keeps track of entities that are added
         val bar = ProgressBar("Entities Added", numTerms.toLong(), ProgressBarStyle.ASCII)
         bar.start()
         val lock = ReentrantLock()
 
+        // Chunks entities in groups of 1000 and adds them to graph
         termSeq.chunked(1000)
-                .forEachParallel { chunk ->
+                .forEach { chunk ->
                     addEntitiesToGraph(chunk)
-                    lock.withLock { bar.stepBy(1000) }
+                    lock.withLock { bar.stepBy(1000) }  // Have to make sure update is thread-safe
                 }
 
         bar.stop()
     }
 
 
+    /**
+     * Function: run
+     * Description: Builds edges from paragraphs to entities and then from entities to paragraphs.
+     * @see buildEntityGraph
+     * @see buildParagraphGraph
+     */
     fun run() {
-        buildParagraphGraph()
+//        buildParagraphGraph()
         buildEntityGraph()
         println("Graphs complete!")
     }
