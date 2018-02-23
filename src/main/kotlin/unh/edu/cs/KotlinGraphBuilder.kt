@@ -139,7 +139,11 @@ class KotlinGraphBuilder(indexLocation: String) {
         val bar = ProgressBar("Entity Distributions", db.entityMap.sizeLong(), ProgressBarStyle.ASCII)
         bar.start()
         val lock = ReentrantLock()
-        println(db.entityMap.keys.count())
+        db.entityMap.keys.forEachParallel { entity ->
+            val dist = graphAnalyzer.doWalkModelEntity(entity)
+            db.e2eDistMap[entity] = dist.entries.joinToString(separator = " ") { (k,v) -> "$k:$v" }
+            lock.withLock { bar.step() }
+        }
 //        db.entityMap.keys.chunked(10000)
 //                .forEachParallel { chunk ->
 //                    addEntity2EntityDistributions(chunk)
@@ -158,9 +162,9 @@ class KotlinGraphBuilder(indexLocation: String) {
      * @see buildParagraphGraph
      */
     fun run() {
-        buildParagraphGraph()
-        buildEntityGraph()
-//        buildEntity2EntityDist()
+//        buildParagraphGraph()
+//        buildEntityGraph()
+        buildEntity2EntityDist()
         println("Graphs complete!")
     }
 }
