@@ -135,6 +135,7 @@ class KotlinGraphBuilder(indexLocation: String) {
     }
 
     fun buildEntity2EntityDist() {
+        println("Starting!")
         val bar = ProgressBar("Entity Distributions", db.entityMap.sizeLong(), ProgressBarStyle.ASCII)
         bar.start()
         val lock = ReentrantLock()
