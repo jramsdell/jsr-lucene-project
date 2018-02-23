@@ -90,7 +90,7 @@ class KotlinGraphBuilder(indexLocation: String) {
     /**
      * Function: buildEntityGraph
      * Description: Builds edges from entities to paragraphs. Uses Lucene index to iterate over spotlight terms and then
-     *              processes them in chunks of 4000.
+     *              processes them in chunks of 10000.
      * @see addEntitiesToGraph
      */
     fun buildEntityGraph() {
@@ -113,11 +113,11 @@ class KotlinGraphBuilder(indexLocation: String) {
         bar.start()
         val lock = ReentrantLock()
 
-        // Chunks entities in groups of 1000 and adds them to graph
-        termSeq.chunked(4000)
+        // Chunks entities in groups of 10000 and adds them to graph
+        termSeq.chunked(10000)
                 .forEach { chunk ->
                     addEntitiesToGraph(chunk)
-                    lock.withLock { bar.stepBy(4000) }  // Have to make sure update is thread-safe
+                    lock.withLock { bar.stepBy(10000) }  // Have to make sure update is thread-safe
                 }
 
         bar.stop()
