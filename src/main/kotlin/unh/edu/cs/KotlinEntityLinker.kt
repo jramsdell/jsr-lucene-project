@@ -27,7 +27,7 @@ class KotlinEntityLinker(indexLoc: String) {
         IndexSearcher(indexReader)
     }
 
-    val server = KotlinSpotlightRunner()
+//    val server = KotlinSpotlightRunner()
 
     // Retrieves list of entities linked using Spotlight
     fun retrieveEntities(content: String): List<String> {
@@ -49,14 +49,14 @@ class KotlinEntityLinker(indexLoc: String) {
     // Iterates over each paragraph in the corpus and annotates with linked entities
     fun run() {
         println("Waiting for server to get ready")
-        server.process.isAlive
-        server.process.waitFor(30, TimeUnit.SECONDS)
+//        server.process.isAlive
+//        server.process.waitFor(30, TimeUnit.SECONDS)
 
         println("Testing connection")
         try {
             retrieveEntities("This is a test")
         } catch (e: ConnectException) {
-            server.process.waitFor(5, TimeUnit.SECONDS)
+//            server.process.waitFor(5, TimeUnit.SECONDS)
             retrieveEntities("This is a test")
 
         }
