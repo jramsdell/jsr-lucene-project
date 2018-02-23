@@ -114,7 +114,7 @@ class KotlinGraphBuilder(indexLocation: String) {
         val lock = ReentrantLock()
 
         // Chunks entities in groups of 1000 and adds them to graph
-        termSeq.chunked(1000)
+        termSeq.chunked(4000)
                 .forEach { chunk ->
                     addEntitiesToGraph(chunk)
                     lock.withLock { bar.stepBy(1000) }  // Have to make sure update is thread-safe
