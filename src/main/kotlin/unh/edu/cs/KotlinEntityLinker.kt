@@ -13,6 +13,7 @@ import org.jsoup.select.Elements
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.nio.file.Paths
+import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -28,7 +29,7 @@ class KotlinEntityLinker(indexLoc: String) {
         IndexSearcher(indexReader)
     }
 
-//    val server = KotlinSpotlightRunner()
+    val server = KotlinSpotlightRunner()
 
     // Retrieves list of entities linked using Spotlight
     fun retrieveEntities(content: String): List<String> {
@@ -46,27 +47,44 @@ class KotlinEntityLinker(indexLoc: String) {
         }.toList()
     }
 
+    fun queryServer(content: String): List<String> {
+        var entities = ArrayList<String>() as List<String>
+
+        // Try three times to query server before giving up
+        for (i in (0..3)) {
+            try {
+                entities = retrieveEntities(content)
+                break
+            } catch (e: SocketTimeoutException) { }
+        }
+        return entities
+    }
+
+    /* For some reason, the Spotlight errors-out for the first few queries
+     * I can see no way to fix this, so the only work around is to query the sever multiple times until it
+     * finally decides to start working again.
+     */
+    fun keepPokingServer() {
+        for (it in 0..100) {
+            Thread.sleep(250)
+            try {
+                retrieveEntities("Wake the hell up, server!")
+                break
+            }
+            catch (e: ConnectException) { }
+            catch (e: SocketTimeoutException) {}
+        }
+    }
+
 
     // Iterates over each paragraph in the corpus and annotates with linked entities
     fun run() {
+        // Give a moment for server to warm up and keep poking it until it's ready to accept connections
         println("Waiting for server to get ready")
-//        server.process.isAlive
-//        server.process.waitFor(30, TimeUnit.SECONDS)
+        server.process.waitFor(5, TimeUnit.SECONDS)
+        keepPokingServer()
 
-        println("Testing connection")
-        var failures = 0
-        (0..100).forEach {
-            Thread.sleep(250)
-            try {
-                retrieveEntities("This is a test")
-            } catch (e: ConnectException) {
-                failures++
-            } catch (e: SocketTimeoutException) {
-                failures++
-            }
-        }
-        println("Total failures: $failures")
-
+        // Set up progress bar and begin iterating over Lucene index documents
         val totalDocs = indexSearcher.indexReader.maxDoc()
         println(totalDocs)
         val bar = ProgressBar("Documents Linked", totalDocs.toLong(),
@@ -76,12 +94,16 @@ class KotlinEntityLinker(indexLoc: String) {
 
         (0 until totalDocs).forEachParallel { docId ->
             val doc = indexSearcher.doc(docId)
-//            if (doc.getValues("spotlight").isEmpty()) {
-//                val entities = retrieveEntities(doc.get("text"))
+            if (doc.getValues("spotlight").isEmpty()) {
+                try {
+                    val entities = retrieveEntities(doc.get("text"))
+                } catch (e: SocketTimeoutException) {
+
+                }
 //                entities.forEach { entity ->
 //                    doc.add(StringField("spotlight", entity, Field.Store.YES))
 //                }
-//            }
+            }
 
             // Update progress bar (have to make sure it's thread-safe)
             lock.withLock { bar.step() }
