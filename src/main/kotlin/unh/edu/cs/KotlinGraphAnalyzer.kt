@@ -15,13 +15,6 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.ln
 import java.util.concurrent.ThreadLocalRandom
 
-fun <A, B>Iterable<A>.pmap(f: suspend (A) -> B): List<B> = runBlocking {
-    map { async(CommonPool) { f(it) } }.map { it.await() }
-}
-
-fun <A>Collection<A>.forEachParallel(f: suspend (A) -> Unit): Unit = runBlocking {
-    map { async(CommonPool) { f(it) } }.forEach { it.await() }
-}
 
 fun <K,V>MutableMap<K,V>.removeAll(f: (key:K,value:V) -> Boolean) {
     this.entries
