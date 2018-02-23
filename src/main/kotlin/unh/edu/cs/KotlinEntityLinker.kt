@@ -11,6 +11,7 @@ import org.apache.lucene.store.FSDirectory
 import org.jsoup.Jsoup
 import org.jsoup.select.Elements
 import java.net.ConnectException
+import java.net.SocketTimeoutException
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
@@ -55,9 +56,12 @@ class KotlinEntityLinker(indexLoc: String) {
         println("Testing connection")
         var failures = 0
         (0..100).forEach {
+            Thread.sleep(250)
             try {
                 retrieveEntities("This is a test")
             } catch (e: ConnectException) {
+                failures++
+            } catch (e: SocketTimeoutException) {
                 failures++
             }
         }
