@@ -95,6 +95,7 @@ class KotlinEntityLinker(indexLoc: String) {
         (0 until totalDocs).forEachParallel { docId ->
             val doc = indexSearcher.doc(docId)
             if (doc.getValues("spotlight").isEmpty()) {
+                print("Got here")
                 try {
                     val entities = retrieveEntities(doc.get("text"))
                 } catch (e: SocketTimeoutException) {
