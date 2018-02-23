@@ -10,6 +10,7 @@ import org.apache.lucene.search.IndexSearcher
 import org.apache.lucene.store.FSDirectory
 import org.jsoup.Jsoup
 import org.jsoup.select.Elements
+import java.net.ConnectException
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
@@ -52,7 +53,13 @@ class KotlinEntityLinker(indexLoc: String) {
         server.process.waitFor(30, TimeUnit.SECONDS)
 
         println("Testing connection")
-        retrieveEntities("This is a test")
+        try {
+            retrieveEntities("This is a test")
+        } catch (e: ConnectException) {
+            server.process.waitFor(5, TimeUnit.SECONDS)
+            retrieveEntities("This is a test")
+
+        }
 
         val totalDocs = indexSearcher.indexReader.maxDoc()
         println(totalDocs)
