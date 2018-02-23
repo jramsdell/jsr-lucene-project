@@ -126,9 +126,6 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         ArgumentParser parser = createArgParser();
-        args = new String[2];
-        args[0] = "index";
-        args[1] = "weee";
         try {
             Namespace params = parser.parseArgs(args);
             ((Exec)params.get("func")).run(params);
