@@ -104,6 +104,8 @@ class KotlinEntityLinker(indexLoc: String) {
 //                entities.forEach { entity ->
 //                    doc.add(StringField("spotlight", entity, Field.Store.YES))
 //                }
+            } else {
+                println("Something here")
             }
 
             // Update progress bar (have to make sure it's thread-safe)
