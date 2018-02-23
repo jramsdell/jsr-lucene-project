@@ -68,8 +68,6 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
         val counts = HashMap<String, Double>()
         val nWalks = 400
         val nSteps = 4
-        val memEntities = HashMap<String, List<String>>()
-        val memParagraphs = HashMap<String, List<String>>()
 
         (0 until nWalks).forEach { _ ->
             var volume = 1.0
@@ -78,18 +76,12 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
 
             (0 until nSteps).forEach { _ ->
                 // Retrieve a random paragrath linked to entity (memoize result)
-                val paragraphs = memEntities.computeIfAbsent(curEntity, { key ->
-                    db.entityMap[curEntity]!!.split(" ")
-                })
-//                val paragraphs = db.entityMap[curEntity]!!.split(" ")
+                val paragraphs = db.entityMap[curEntity]!!.split(" ")
                 val paragraph = paragraphs[ThreadLocalRandom.current().nextInt(paragraphs.size)]
 
                 // Retrieve a random entity linked to paragraph (memoize result)
-                val entities = memParagraphs.computeIfAbsent(paragraph, { key ->
-                    db.parMap[paragraph]!!.split(" ")
-                })
+                val entities = db.parMap[paragraph]!!.split(" ")
                 curEntity = entities[ThreadLocalRandom.current().nextInt(entities.size)]
-//                val entities = db.parMap[paragraph]!!.split(" ")
 
                 if (first != 0) {
                     first = 1
