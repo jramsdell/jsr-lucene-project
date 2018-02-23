@@ -2,6 +2,7 @@
 package unh.edu.cs
 
 import me.tongfei.progressbar.ProgressBar
+import me.tongfei.progressbar.ProgressBarStyle
 import org.apache.lucene.document.Field
 import org.apache.lucene.document.StringField
 import org.apache.lucene.index.DirectoryReader
@@ -47,18 +48,19 @@ class KotlinEntityLinker(indexLoc: String) {
     fun run() {
         val totalDocs = indexSearcher.indexReader.numDocs()
         println(totalDocs)
-        val bar = ProgressBar("Documents Linked", totalDocs.toLong())
+        val bar = ProgressBar("Documents Linked", totalDocs.toLong(),
+                ProgressBarStyle.ASCII)
         bar.start()
         val lock = ReentrantLock()
 
         (0 until totalDocs).forEachParallel { docId ->
             val doc = indexSearcher.doc(docId)
-            if (doc.getValues("spotlight").isEmpty()) {
+//            if (doc.getValues("spotlight").isEmpty()) {
 //                val entities = retrieveEntities(doc.get("text"))
 //                entities.forEach { entity ->
 //                    doc.add(StringField("spotlight", entity, Field.Store.YES))
 //                }
-            }
+//            }
 
             // Update progress bar (have to make sure it's thread-safe)
             lock.withLock { bar.step() }
