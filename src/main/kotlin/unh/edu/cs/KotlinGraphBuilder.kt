@@ -139,11 +139,12 @@ class KotlinGraphBuilder(indexLocation: String) {
         val bar = ProgressBar("Entity Distributions", db.entityMap.sizeLong(), ProgressBarStyle.ASCII)
         bar.start()
         val lock = ReentrantLock()
-        db.entityMap.keys.chunked(10000)
-                .forEachParallel { chunk ->
-                    addEntity2EntityDistributions(chunk)
-                    lock.withLock { bar.stepBy(10000) }
-                }
+        println(db.entityMap.keys.count())
+//        db.entityMap.keys.chunked(10000)
+//                .forEachParallel { chunk ->
+//                    addEntity2EntityDistributions(chunk)
+//                    lock.withLock { bar.stepBy(10000) }
+//                }
         bar.stop()
 
         println("Entities distributions finished!")
