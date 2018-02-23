@@ -31,25 +31,25 @@ data class ParagraphMixture(
         var score: Double = 0.0,
         var mixture: HashMap<String, Double> = HashMap())
 
-class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
-    private val db: DB
-    private val cmap: ConcurrentMap<String, String>
-    public val entityMap: ConcurrentMap<String, String>
-    public val parMap: ConcurrentMap<String, String>
+class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDatabase) {
+//    private val db: DB
+//    private val cmap: ConcurrentMap<String, String>
+//    public val entityMap: ConcurrentMap<String, String>
+//    public val parMap: ConcurrentMap<String, String>
     private val storedParagraphs = ConcurrentHashMap<String, List<String>>()
     private val storedEntities = ConcurrentHashMap<String, List<String>>()
 
 
-    init {
-        db = DBMaker.fileDB("entity_db_3.db")
-                .readOnly()
-                .fileMmapEnable()
-                .closeOnJvmShutdown()
-                .make()
-        cmap = db.hashMap("dist_map", Serializer.STRING, Serializer.STRING).createOrOpen();
-        parMap = db.hashMap("par_map", Serializer.STRING, Serializer.STRING).createOrOpen();
-        entityMap = db.hashMap("entity_map", Serializer.STRING, Serializer.STRING).createOrOpen();
-    }
+//    init {
+//        db = DBMaker.fileDB("entity_db_3.db")
+//                .readOnly()
+//                .fileMmapEnable()
+//                .closeOnJvmShutdown()
+//                .make()
+//        cmap = db.hashMap("dist_map", Serializer.STRING, Serializer.STRING).createOrOpen();
+//        parMap = db.hashMap("par_map", Serializer.STRING, Serializer.STRING).createOrOpen();
+//        entityMap = db.hashMap("entity_map", Serializer.STRING, Serializer.STRING).createOrOpen();
+//    }
 
     fun getParagraphMixture(docInfo: Pair<Int, Float>): ParagraphMixture {
         val doc = indexSearcher.doc(docInfo.first)
@@ -76,11 +76,11 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
 
             (0 until nSteps).forEach { _ ->
                 // Retrieve a random paragrath linked to entity (memoize result)
-                val paragraphs = entityMap[curEntity]!!.split(" ")
+                val paragraphs = db.entityMap[curEntity]!!.split(" ")
                 val paragraph = paragraphs[ThreadLocalRandom.current().nextInt(paragraphs.size)]
 
                 // Retrieve a random entity linked to paragraph (memoize result)
-                val entities = parMap[paragraph]!!.split(" ")
+                val entities = db.parMap[paragraph]!!.split(" ")
 
                 if (first != 0) {
                     first = 1
@@ -121,12 +121,12 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher) {
 
                 // Retrieve a random entity linked to paragraph (memoize result)
                 val entities = storedEntities.computeIfAbsent(curPar,
-                        { key -> parMap[key]!!.split(" ") })
+                        { key -> db.parMap[key]!!.split(" ") })
                 val entity = entities[ThreadLocalRandom.current().nextInt(entities.size)]
 
                 // Retrieve a random paragrath linked to entity (memoize result)
                 val paragraphs = storedParagraphs.computeIfAbsent(entity,
-                        { key -> entityMap[key]!!.split(" ") })
+                        { key -> db.entityMap[key]!!.split(" ") })
                 curPar = paragraphs[ThreadLocalRandom.current().nextInt(paragraphs.size)]
 
                 if (first != 0) {

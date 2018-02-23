@@ -34,14 +34,18 @@ class KotlinGraphBuilder(indexLocation: String) {
     }
 
     // Open up database where we will be storing graphs
-    val db = DBMaker.fileDB("graph_database.db")
-            .fileMmapEnable()
-            .closeOnJvmShutdown()
-            .make()
-
-    // Initialize the graph maps
-    val entityMap = db.hashMap("entity_map", Serializer.STRING, Serializer.STRING).createOrOpen()
-    val parMap = db.hashMap("par_map", Serializer.STRING, Serializer.STRING).createOrOpen()
+    val db = KotlinDatabase("graph_database.db")
+    val graphAnalyzer = KotlinGraphAnalyzer(indexSearcher, db)
+//    val db = DBMaker.fileDB("graph_database.db")
+//            .fileMmapEnable()
+//            .closeOnJvmShutdown()
+//            .make()
+//
+//    // Initialize the graph maps
+//    val entityMap = db.hashMap("entity_map", Serializer.STRING, Serializer.STRING).createOrOpen()
+//    val parMap = db.hashMap("par_map", Serializer.STRING, Serializer.STRING).createOrOpen()
+//    val e2eDistMap = db.hashMap("e2e_dist", Serializer.STRING, Serializer.STRING).createOrOpen()
+//    val p2eDistMap = db.hashMap("p2e_dist", Serializer.STRING, Serializer.STRING).createOrOpen()
 
 
     /**
@@ -63,7 +67,7 @@ class KotlinGraphBuilder(indexLocation: String) {
             val doc = indexSearcher.doc(docId)
             val paragraphid = doc.get(PID)
             val entities = doc.getValues("spotlight")
-            entityMap[paragraphid] = entities.joinToString()
+            db.entityMap[paragraphid] = entities.joinToString(separator = " ")
             lock.withLock { bar.step() }
         }
         bar.stop()
@@ -81,9 +85,9 @@ class KotlinGraphBuilder(indexLocation: String) {
             val termQuery = TermQuery(Term("spotlight", entity))
             val topDocs = indexSearcher.search(termQuery, 10000)
 
-            val parEdges = topDocs.scoreDocs.joinToString { scoreDoc ->
+            val parEdges = topDocs.scoreDocs.joinToString(separator = " ") { scoreDoc ->
                 indexSearcher.doc(scoreDoc.doc).get(PID) }
-            parMap[entity] = parEdges
+            db.parMap[entity] = parEdges
         }
     }
 
@@ -123,6 +127,27 @@ class KotlinGraphBuilder(indexLocation: String) {
         bar.stop()
     }
 
+    fun addEntity2EntityDistributions(entities: List<String>) {
+        entities.forEach { entity ->
+            val dist = graphAnalyzer.doWalkModelEntity(entity)
+            db.e2eDistMap[entity] = dist.entries.joinToString(separator = " ") { (k,v) -> "$k:$v" }
+        }
+    }
+
+    fun buildEntity2EntityDist() {
+        val bar = ProgressBar("Entity Distributions", db.entityMap.sizeLong(), ProgressBarStyle.ASCII)
+        bar.start()
+        val lock = ReentrantLock()
+        db.entityMap.keys.chunked(10000)
+                .forEachParallel { chunk ->
+                    addEntity2EntityDistributions(chunk)
+                    lock.withLock { bar.stepBy(10000) }
+                }
+        bar.stop()
+
+        println("Entities distributions finished!")
+    }
+
 
     /**
      * Function: run
@@ -131,8 +156,9 @@ class KotlinGraphBuilder(indexLocation: String) {
      * @see buildParagraphGraph
      */
     fun run() {
-        buildParagraphGraph()
-        buildEntityGraph()
+//        buildParagraphGraph()
+//        buildEntityGraph()
+        buildEntity2EntityDist()
         println("Graphs complete!")
     }
 }

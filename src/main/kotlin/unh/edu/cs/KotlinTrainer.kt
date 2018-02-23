@@ -121,22 +121,17 @@ class KotlinRegularizer(indexPath: String, queryPath: String, weightLocation: St
     }
 
     val alpha = alpha.toDouble()
-    val graphAnalyzer = KotlinGraphAnalyzer(indexSearcher)
+    val db = KotlinDatabase("graph_database.db")
+    val graphAnalyzer = KotlinGraphAnalyzer(indexSearcher, db)
     val queryRetriever = QueryRetriever(indexSearcher)
     val queries = queryRetriever.getQueries(queryPath)
-    val db = DBMaker.fileDB(weightLocation)
-            .readOnly()
-            .fileMmapEnable()
-            .closeOnJvmShutdown()
-            .make()
 
-    val weightMap = db.hashMap("weight_map", Serializer.STRING, Serializer.DOUBLE).createOrOpen()
 
     fun rerankTops(tops: TopDocs) {
         val mixtures = graphAnalyzer.getMixtures(tops)
         mixtures.forEach { pm ->
             pm.mixture
-                    .map { (k,v) -> k to v * pm.score * weightMap.getOrDefault(k, 1.0) }
+                    .map { (k,v) -> k to v * pm.score * db.weightMap.getOrDefault(k, 1.0) }
                     .sumByDouble { it.second }
                     .let { pm.score = it * (1 - alpha) + alpha * pm.score }
         }
@@ -181,7 +176,8 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
         IndexSearcher(indexReader)
     }
 
-    val graphAnalyzer = KotlinGraphAnalyzer(indexSearcher)
+    val db = KotlinDatabase("graph_database.db")
+    val graphAnalyzer = KotlinGraphAnalyzer(indexSearcher, db)
     val queryRetriever = QueryRetriever(indexSearcher)
     val topics = readRelevancy(qrelPath)
     val queries = queryRetriever.getQueries(queryPath)
@@ -242,36 +238,32 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
     }
 
     fun writeEntityModels() {
-        val db = DBMaker.fileDB("entity_dists.db")
-                .fileMmapEnable()
-                .closeOnJvmShutdown()
-                .make()
+//        val db = DBMaker.fileDB("entity_dists.db")
+//                .fileMmapEnable()
+//                .closeOnJvmShutdown()
+//                .make()
 
-        val entityDistMap = db.hashMap("entity_dist", Serializer.STRING, Serializer.STRING).createOrOpen()
+//        val entityDistMap = db.hashMap("entity_dist", Serializer.STRING, Serializer.STRING).createOrOpen()
 
-        val counter = AtomicInteger(0)
-        graphAnalyzer.entityMap.keys.forEachParallel { entity ->
-            val model = graphAnalyzer.doWalkModelEntity(entity)
-            counter.incrementAndGet().let {
-                if (it % 1000 == 0) {
-                    println(it)
-                }
-            }
-
-            val dist = model.map { (k,v) -> "$k:$v" }.joinToString(" ")
-            entityDistMap[entity] = dist
-        }
+//        val counter = AtomicInteger(0)
+//        graphAnalyzer.entityMap.keys.forEachParallel { entity ->
+//            val model = graphAnalyzer.doWalkModelEntity(entity)
+//            counter.incrementAndGet().let {
+//                if (it % 1000 == 0) {
+//                    println(it)
+//                }
+//            }
+//
+//            val dist = model.map { (k,v) -> "$k:$v" }.joinToString(" ")
+//            entityDistMap[entity] = dist
+//        }
     }
 
     fun writeWeights(entityWeights: HashMap<String, Double>) {
-        val db = DBMaker.fileDB("weights.db")
-                .fileMmapEnable()
-                .closeOnJvmShutdown()
-                .make()
 
-        val weightMap = db.hashMap("weight_map", Serializer.STRING, Serializer.DOUBLE).createOrOpen()
+//        val weightMap = db.hashMap("weight_map", Serializer.STRING, Serializer.DOUBLE).createOrOpen()
 
-        entityWeights.forEach { k, v -> weightMap[k] = v }
+        entityWeights.forEach { k, v -> db.weightMap[k] = v }
     }
 
     fun trainWeights(entityWeights: HashMap<String, Double>): HashMap<String, Double> {
