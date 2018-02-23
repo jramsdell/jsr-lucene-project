@@ -49,7 +49,7 @@ class LuceneQueryBuilder {
         indexSearcher.setSimilarity(new BM25Similarity());
 
         graphAnalyzer = new GraphAnalyzer(indexSearcher);
-        kotlinGraphAnalyzer = new KotlinGraphAnalyzer(indexSearcher);
+//        kotlinGraphAnalyzer = new KotlinGraphAnalyzer(indexSearcher);
     }
 
     // Used by word vector variation: creates a reader from 50D GloVE word vector file.
