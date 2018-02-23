@@ -11,6 +11,7 @@ import org.apache.lucene.store.FSDirectory
 import org.jsoup.Jsoup
 import org.jsoup.select.Elements
 import java.nio.file.Paths
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -47,7 +48,8 @@ class KotlinEntityLinker(indexLoc: String) {
     // Iterates over each paragraph in the corpus and annotates with linked entities
     fun run() {
         println("Waiting for server to get ready")
-        Thread.sleep(30000)
+        server.process.isAlive
+        server.process.waitFor(30, TimeUnit.SECONDS)
         val totalDocs = indexSearcher.indexReader.maxDoc()
         println(totalDocs)
         val bar = ProgressBar("Documents Linked", totalDocs.toLong(),
@@ -58,7 +60,7 @@ class KotlinEntityLinker(indexLoc: String) {
         (0 until totalDocs).forEachParallel { docId ->
             val doc = indexSearcher.doc(docId)
 //            if (doc.getValues("spotlight").isEmpty()) {
-                val entities = retrieveEntities(doc.get("text"))
+//                val entities = retrieveEntities(doc.get("text"))
 //                entities.forEach { entity ->
 //                    doc.add(StringField("spotlight", entity, Field.Store.YES))
 //                }
