@@ -71,6 +71,14 @@ public class Main {
         linkerParser.addArgument("index")
                 .help("Location of the Lucene index directory");
 
+        // Graph Builder
+        Subparser graphBuilderParser = subparsers.addParser("graph_builder")
+                .setDefault("func", new Exec(Main::runGraphBuilder))
+                .help("(linker command must be run first) Creates bipartite graph between entities and paragraphs");
+
+        graphBuilderParser.addArgument("index")
+                .help("Location of the Lucene index directory");
+
         return parser;
     }
 
@@ -114,14 +122,13 @@ public class Main {
         String indexLocation = namespace.getString("index");
         KotlinEntityLinker linker =
                 new KotlinEntityLinker(indexLocation);
-
-//        try {
-//            Thread.sleep(8000);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//        linker.retrieveEntities("this is a test");
         linker.run();
+    }
+
+    private static void runGraphBuilder(Namespace namespace) {
+        String indexLocation = namespace.getString("index");
+        KotlinGraphBuilder graphBuilder = new KotlinGraphBuilder(indexLocation);
+        graphBuilder.run();
     }
 
 

@@ -19,9 +19,15 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 
+/**
+ * Class: retrieveEntities
+ * Description: Queries spotlight server with string and retrieve list of linked entities.
+ * @return List of linked entities (strings). Empty if no entities were linked or if errors were encountered.
+ */
 class KotlinEntityLinker(indexLoc: String) {
-    val url = "http://localhost:9310/jsr-spotlight/annotate"
+    val url = "http://localhost:9310/jsr-spotlight/annotate"        // Hardcoded url to local server
 
+    // Opens up a new index searcher using the directory given to us as an argument
     val indexSearcher = kotlin.run {
         val  indexPath = Paths.get (indexLoc)
         val indexDir = FSDirectory.open(indexPath)
@@ -29,9 +35,15 @@ class KotlinEntityLinker(indexLoc: String) {
         IndexSearcher(indexReader)
     }
 
+    // Start up server (can take a while if we need to download files
     val server = KotlinSpotlightRunner()
 
-    // Retrieves list of entities linked using Spotlight
+
+    /**
+     * Function: retrieveEntities
+     * Description: Queries spotlight server with string and retrieve list of linked entities.
+     * @return List of linked entities (strings). Empty if no entities were linked or if errors were encountered.
+     */
     fun retrieveEntities(content: String): List<String> {
 
         // Retrieve html file from the Spotlight server
@@ -47,6 +59,13 @@ class KotlinEntityLinker(indexLoc: String) {
         }.toList()
     }
 
+
+    /**
+     * Function: queryServer
+     * Description: Wrapper around retrieveEntities to handle timeouts (which seem to be possible for this server).
+     *              Because of Socket Timeout Exceptions, will try three times before giving up.
+     * @return List of entities (if any) linked by retrieveEntities function.
+     */
     fun queryServer(content: String): List<String> {
         var entities = ArrayList<String>() as List<String>
 
@@ -55,14 +74,19 @@ class KotlinEntityLinker(indexLoc: String) {
             try {
                 entities = retrieveEntities(content)
                 break
-            } catch (e: SocketTimeoutException) { }
+            } catch (e: SocketTimeoutException) {
+                Thread.sleep(2000)
+            }
         }
         return entities
     }
 
-    /* For some reason, the Spotlight errors-out for the first few queries
-     * I can see no way to fix this, so the only work around is to query the sever multiple times until it
-     * finally decides to start working again.
+
+    /**
+     * Function: keepPokingServer
+     * Description: For some reason, the Spotlight errors-out for the first few queries
+     *              I can see no way to fix this, so the only work around is to query the sever multiple times until it
+     *              finally decides to start working again.
      */
     fun keepPokingServer() {
         for (it in 0..100) {
@@ -77,7 +101,10 @@ class KotlinEntityLinker(indexLoc: String) {
     }
 
 
-    // Iterates over each paragraph in the corpus and annotates with linked entities
+    /**
+     * Function: run
+     * Description: Iterates over documents in Lucene index and links contents of each document using Spotlight server.
+     */
     fun run() {
         // Give a moment for server to warm up and keep poking it until it's ready to accept connections
         println("Waiting for server to get ready")
@@ -94,31 +121,20 @@ class KotlinEntityLinker(indexLoc: String) {
 
         (0 until totalDocs).forEachParallel { docId ->
             val doc = indexSearcher.doc(docId)
-            if (doc.getValues("spotlight").isEmpty()) {
-                print("Got here")
-                try {
-                    val entities = retrieveEntities(doc.get("text"))
-                } catch (e: SocketTimeoutException) {
 
+            // Only attempt to annotate paragraph if there are no entities already
+            if (doc.getValues("spotlight").isEmpty()) {
+                val entities = queryServer(doc.get("text"))
+                entities.forEach { entity ->
+                    doc.add(StringField("spotlight", entity, Field.Store.YES))
                 }
-//                entities.forEach { entity ->
-//                    doc.add(StringField("spotlight", entity, Field.Store.YES))
-//                }
-            } else {
-                println("Something here")
             }
 
             // Update progress bar (have to make sure it's thread-safe)
             lock.withLock { bar.step() }
         }
+
+        bar.stop()
+        println("Finished annotating index!")
     }
-
 }
-
-fun main(args: Array<String>) {
-    val entityLinker = KotlinEntityLinker("wee")
-    Thread.sleep(10000)
-    entityLinker.retrieveEntities(("this is a test to see if it's working"))
-
-}
-

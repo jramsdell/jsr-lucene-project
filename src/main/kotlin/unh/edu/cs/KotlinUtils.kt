@@ -17,6 +17,15 @@ fun <A, B>Iterable<A>.pmap(f: suspend (A) -> B): List<B> = runBlocking {
     map { async(CommonPool) { f(it) } }.map { it.await() }
 }
 
+
 fun <A>Iterable<A>.forEachParallel(f: suspend (A) -> Unit): Unit = runBlocking {
     map { async(CommonPool) { f(it) } }.forEach { it.await() }
 }
+
+fun <A>Sequence<A>.forEachParallel(f: suspend (A) -> Unit): Unit = runBlocking {
+    map { async(CommonPool) { f(it) } }.forEach { it.await() }
+}
+
+// Constants referring to Lucene fields
+const val PID: String = "paragraphid"
+const val CONTENT = "text"
