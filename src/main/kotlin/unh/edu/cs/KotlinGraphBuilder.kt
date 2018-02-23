@@ -67,7 +67,7 @@ class KotlinGraphBuilder(indexLocation: String) {
             val doc = indexSearcher.doc(docId)
             val paragraphid = doc.get(PID)
             val entities = doc.getValues("spotlight")
-            db.entityMap[paragraphid] = entities.joinToString(separator = " ")
+            db.parMap[paragraphid] = entities.joinToString(separator = " ")
             lock.withLock { bar.step() }
         }
         bar.stop()
@@ -87,7 +87,7 @@ class KotlinGraphBuilder(indexLocation: String) {
 
             val parEdges = topDocs.scoreDocs.joinToString(separator = " ") { scoreDoc ->
                 indexSearcher.doc(scoreDoc.doc).get(PID) }
-            db.parMap[entity] = parEdges
+            db.entityMap[entity] = parEdges
         }
     }
 
@@ -158,9 +158,9 @@ class KotlinGraphBuilder(indexLocation: String) {
      * @see buildParagraphGraph
      */
     fun run() {
-//        buildParagraphGraph()
-//        buildEntityGraph()
-        buildEntity2EntityDist()
+        buildParagraphGraph()
+        buildEntityGraph()
+//        buildEntity2EntityDist()
         println("Graphs complete!")
     }
 }
