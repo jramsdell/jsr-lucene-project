@@ -64,9 +64,9 @@ public class Main {
 
         // Entity Linker
         Subparser linkerParser = subparsers.addParser("linker")
-                .setDefault("func", new Exec(Main::runQuery))
+                .setDefault("func", new Exec(Main::runLinker))
                 .help("Annotates existing Lucene index directory with" +
-                        "entities linked using Spotlight.");
+                        " entities linked using Spotlight.");
 
         linkerParser.addArgument("index")
                 .help("Location of the Lucene index directory");
