@@ -1,7 +1,10 @@
 @file:JvmName("KotSpotlightRunner")
 package unh.edu.cs
 
+import me.tongfei.progressbar.ProgressBar
+import me.tongfei.progressbar.ProgressBarStyle
 import org.apache.commons.io.FileUtils
+import org.apache.commons.io.IOUtils
 import org.codehaus.plexus.archiver.tar.TarGZipUnArchiver
 import org.codehaus.plexus.logging.console.ConsoleLoggerManager
 import java.io.BufferedInputStream
@@ -58,8 +61,6 @@ class KotlinSpotlightRunner() {
                 downloadFromUrl("http://downloads.dbpedia-spotlight.org/2016-04/en/model/en.tar.gz", compressed_loc)
             }
 
-//            downloadFromUrl("http://downloads.dbpedia-spotlight.org/2016-04/en/model/en.tar.gz", compressed_loc)
-//            val unarchiver = TarGZipUnArchiver(archive).apply { destDirectory = modelFile }
             val manager = ConsoleLoggerManager()
             manager.initialize()
             val unarchiver = TarGZipUnArchiver().apply {
@@ -76,9 +77,17 @@ class KotlinSpotlightRunner() {
 }
 
 fun main(args: Array<String>) {
-    val runner = KotlinSpotlightRunner()
+//    val runner = KotlinSpotlightRunner()
 //    runner.beginDownloads()
 //    runner.downloadFromUrl("http://downloads.dbpedia-spotlight.org/spotlight/dbpedia-spotlight-0.7.1.jar", "spotlight.jar")
+
+    val bar = ProgressBar("Documents Linked", 100, ProgressBarStyle.ASCII)
+    bar.start()
+    (0..100).forEach {
+        bar.step()
+        Thread.sleep(100)
+    }
+    bar.stop()
 }
 
 // 24642

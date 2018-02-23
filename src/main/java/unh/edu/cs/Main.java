@@ -115,12 +115,13 @@ public class Main {
         KotlinEntityLinker linker =
                 new KotlinEntityLinker(indexLocation);
 
-        try {
-            Thread.sleep(8000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        linker.retrieveEntities("this is a test");
+//        try {
+//            Thread.sleep(8000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//        linker.retrieveEntities("this is a test");
+        linker.run();
     }
 
 
