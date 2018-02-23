@@ -51,7 +51,7 @@ class KotlinGraphBuilder(indexLocation: String) {
      */
     fun buildParagraphGraph() {
         println("Adding edges from paragraphs to entities")
-        val maxDoc = indexSearcher.indexReader.maxDoc()
+        val maxDoc = indexSearcher.indexReader.numDocs()
 
         val bar = ProgressBar("Paragraphs Added", maxDoc.toLong(),
                 ProgressBarStyle.ASCII)
@@ -97,7 +97,7 @@ class KotlinGraphBuilder(indexLocation: String) {
         println("Adding edges from entities to paragraphs")
         val fields = MultiFields.getFields(indexSearcher.indexReader)
         val spotLightTerms = fields.terms("spotlight")
-        val numTerms = spotLightTerms.docCount
+        val numTerms = 2100000 // Hard coding number of entities for progress bar (no easy way to count this)
         val termIterator = spotLightTerms.iterator()
 
         // Build a sequence that lets us iterate over terms in chunks and run them in parallel
@@ -131,7 +131,7 @@ class KotlinGraphBuilder(indexLocation: String) {
      * @see buildParagraphGraph
      */
     fun run() {
-//        buildParagraphGraph()
+        buildParagraphGraph()
         buildEntityGraph()
         println("Graphs complete!")
     }
