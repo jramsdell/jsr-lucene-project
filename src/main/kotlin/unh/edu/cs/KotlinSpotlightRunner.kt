@@ -68,6 +68,9 @@ class KotlinSpotlightRunner() {
                 enableLogging(manager.getLoggerForComponent("compress"))
             }
             unarchiver.extract()
+
+            // Clean up compressed archive
+            archive.delete()
         }
     }
 }
