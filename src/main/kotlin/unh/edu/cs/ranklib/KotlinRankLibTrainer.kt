@@ -111,11 +111,11 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
     }
 
     fun train() {
-        ranklibFormatter.addFeature({query, tops ->
-            addStringDistanceFunction(query, tops, NormalizedLevenshtein() )})
-
-        ranklibFormatter.addFeature({query, tops ->
-            addStringDistanceFunction(query, tops, SorensenDice() )})
+//        ranklibFormatter.addFeature({query, tops ->
+//            addStringDistanceFunction(query, tops, NormalizedLevenshtein() )})
+//
+//        ranklibFormatter.addFeature({query, tops ->
+//            addStringDistanceFunction(query, tops, SorensenDice() )})
 
         ranklibFormatter.addFeature({query, tops ->
             addStringDistanceFunction(query, tops, JaroWinkler() )})
