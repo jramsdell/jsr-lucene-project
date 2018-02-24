@@ -50,19 +50,24 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 
     fun addSpotlightSims(query: String, tops: TopDocs): List<Double> {
         val replaceNumbers = """(%\d+|[_-])""".toRegex()
-        val termQuery = query
+        val termQueries = query
 //            .replace("_", " ")
 //            .replace("-", " ")
             .replace(replaceNumbers, " ")
             .split(" ")
-            .map { PhraseQuery("spotlight", it)}
-            .fold(BooleanQuery.Builder(), { acc, termQuery ->
-                                            acc.add(termQuery, BooleanClause.Occur.SHOULD) })
-            .build()
+            .map { TermQuery(Term("spotlight", it))}
+            .map { BooleanQuery.Builder().add(it, BooleanClause.Occur.SHOULD).build()}
+//            .fold(BooleanQuery.Builder(), { acc, termQuery ->
+//                                            acc.add(termQuery, BooleanClause.Occur.SHOULD) })
+//            .build()
 
 
         return tops.scoreDocs
-            .map { scoreDoc -> indexSearcher.explain(termQuery, scoreDoc.doc).value.toDouble() }
+//            .map { scoreDoc -> indexSearcher.explain(termQuery, scoreDoc.doc).value.toDouble() }
+            .map { scoreDoc ->
+                termQueries.map { indexSearcher.explain(it, scoreDoc.doc).value.toDouble() }
+                    .average()
+            }
             .onEach(::println)
             .toList()
     }
