@@ -142,14 +142,16 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
             means[k] = average
             deviations[k] = sqrt(v.sumByDouble { pow(it - average, 2.0) })
         }
+        means.forEach(::println)
+        deviations.forEach(::println)
 
-        ranklibFormatter.queryContainers.forEach { queryContainer ->
-            queryContainer.paragraphs.forEach { it.features.forEachIndexed { index, d ->
-                val newDouble = (d - means[index]!!)/deviations[index]!!
-                println("Was: $d Now: $newDouble")
-                it.features[index] = (d - means[index]!!)/deviations[index]!!
-            } }
-        }
+//        ranklibFormatter.queryContainers.forEach { queryContainer ->
+//            queryContainer.paragraphs.forEach { it.features.forEachIndexed { index, d ->
+//                val newDouble = (d - means[index]!!)/deviations[index]!!
+//                println("Was: $d Now: $newDouble")
+//                it.features[index] = (d - means[index]!!)/deviations[index]!!
+//            } }
+//        }
 
 
     }
