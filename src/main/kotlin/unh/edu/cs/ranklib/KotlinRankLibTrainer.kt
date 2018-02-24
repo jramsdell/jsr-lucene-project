@@ -13,6 +13,7 @@ import java.lang.Double.sum
 import java.nio.file.Paths
 import java.util.*
 import kotlin.coroutines.experimental.buildSequence
+import info.debatty.java.stringsimilarity.*
 
 class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: String) {
     val indexSearcher = kotlin.run {
@@ -55,22 +56,21 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 //            .replace("-", " ")
             .replace(replaceNumbers, " ")
             .split(" ")
-            .map { TermQuery(Term("text", it))}
-            .map { BooleanQuery.Builder().add(it, BooleanClause.Occur.SHOULD).build()}
+//            .map { TermQuery(Term("text", it))}
+//            .map { BooleanQuery.Builder().add(it, BooleanClause.Occur.SHOULD).build()}
 //            .fold(BooleanQuery.Builder(), { acc, termQuery ->
 //                                            acc.add(termQuery, BooleanClause.Occur.SHOULD) })
 //            .build()
 
+        val lev = Levenshtein()
 
         return tops.scoreDocs
 //            .map { scoreDoc -> indexSearcher.explain(termQuery, scoreDoc.doc).value.toDouble() }
             .map { scoreDoc ->
                 val doc = indexSearcher.doc(scoreDoc.doc)
-                val entities = doc.getValues("spotlight")
-                entities.map { FuzzyQuery(Term("text", it.replace("_"," "))) }
-                    .map { BooleanQuery.Builder().add(it, BooleanClause.Occur.SHOULD).build() }
-                    .map { clause -> indexSearcher.explain(clause, scoreDoc.doc).value.toDouble() }
-                    .average()
+                val entities = doc.getValues("spotlight").map { it.replace("_", " ") }
+                termQueries.flatMap { q -> entities.map { e -> lev.distance(q, e)  } }.average()
+
             }
             .toList()
     }
