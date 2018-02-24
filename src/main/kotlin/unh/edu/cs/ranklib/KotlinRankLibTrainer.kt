@@ -127,7 +127,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
         ranklibFormatter.addFeature({query, tops ->
             addStringDistanceFunction(query, tops, Jaccard() )})
 //        ranklibFormatter.addFeature(this::addSpotlightSims)
-//        ranklibFormatter.addFeature(this::addScoreMixtureSims)
+        ranklibFormatter.addFeature(this::addScoreMixtureSims)
         ranklibFormatter.writeToRankLibFile("mytestlib.txt")
     }
 }
