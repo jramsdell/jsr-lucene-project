@@ -170,7 +170,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 //        ranklibFormatter.addFeature({query, tops ->
 //            addStringDistanceFunction(query, tops, Jaccard() )})
 
-        ranklibFormatter.addFeature(this::addAverageQueryScore)
+//        ranklibFormatter.addFeature(this::addAverageQueryScore)
         ranklibFormatter.queryContainers.forEach { queryContainer ->
             queryContainer.paragraphs.map { it.features.sum() }
                 .zip(queryContainer.tops.scoreDocs)
