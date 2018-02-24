@@ -11,6 +11,7 @@ import java.io.BufferedWriter
 import java.io.File
 import java.io.StringReader
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.experimental.buildSequence
 
 class QueryRetriever(val indexSearcher: IndexSearcher) {
@@ -48,7 +49,7 @@ class QueryRetriever(val indexSearcher: IndexSearcher) {
                 }.toList()
 
     fun getSectionQueries(queryLocation: String): List<Pair<String, TopDocs>> {
-        val seen = HashSet<String>()
+        val seen = ConcurrentHashMap<String, String>()
 
         return DeserializeData.iterableAnnotations(File(queryLocation).inputStream())
             .flatMap { page ->
@@ -56,7 +57,7 @@ class QueryRetriever(val indexSearcher: IndexSearcher) {
                     val queryId = Data.sectionPathId(page.pageId, sectionPath)
                     val queryStr = createQueryString(page, sectionPath)
                     val result = queryId to indexSearcher.search(createQuery(queryStr), 100)
-                    result.takeUnless { !seen.add(queryId) }
+                    result.takeUnless { seen.put(queryId, "") == null }
                 }
             }.filterNotNull()
     }
