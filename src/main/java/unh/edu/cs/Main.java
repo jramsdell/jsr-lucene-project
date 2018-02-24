@@ -6,6 +6,7 @@ import net.sourceforge.argparse4j.inf.*;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.search.similarities.BM25Similarity;
+import unh.edu.cs.ranklib.KotlinRankLibTrainer;
 
 import javax.naming.Name;
 import java.io.IOException;
@@ -79,6 +80,22 @@ public class Main {
         graphBuilderParser.addArgument("index")
                 .help("Location of the Lucene index directory");
 
+        // Ranklib Trainer
+        Subparser ranklibTrainerParser = subparsers.addParser("ranklib_trainer")
+                .setDefault("func", new Exec(Main::runRanklibTrainer))
+                .help("(linker and graph_builder must be run first) " +
+                        "Trains according to ranklib");
+
+        ranklibTrainerParser.addArgument("index")
+                .help("Location of the Lucene index directory");
+
+        ranklibTrainerParser.addArgument("query")
+                .help("Location of query file (.cbor)");
+
+        ranklibTrainerParser.addArgument("qrel")
+                .help("Locations of matching qrel file.");
+
+
         return parser;
     }
 
@@ -129,6 +146,15 @@ public class Main {
         String indexLocation = namespace.getString("index");
         KotlinGraphBuilder graphBuilder = new KotlinGraphBuilder(indexLocation);
         graphBuilder.run();
+    }
+
+    private static void runRanklibTrainer(Namespace namespace) {
+        String indexLocation = namespace.getString("index");
+        String qrelLocation = namespace.getString("qrel");
+        String queryLocation = namespace.getString("query");
+        KotlinRankLibTrainer kotTrainer =
+                new KotlinRankLibTrainer(indexLocation, queryLocation, qrelLocation);
+        kotTrainer.train();
     }
 
 
