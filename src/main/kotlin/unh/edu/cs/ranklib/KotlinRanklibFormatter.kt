@@ -50,8 +50,10 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
                 f(query, tops)          // Apply the scoring function given to us
                     .zip(paragraphs)    // Annotate paragraph containers with this score
 //                    .forEach { (score, paragraph) -> paragraph.features += score }
-            }.toList().forEach { results -> results
-                                .forEach { (score, paragraph) -> paragraph.features += score }
+            }.toList().forEach { results ->
+                results
+                    .forEach { (score, paragraph) -> paragraph.features += score }
+            }
 
 
 //    fun addFeature(f: (String, TopDocs) -> List<Double>) =
