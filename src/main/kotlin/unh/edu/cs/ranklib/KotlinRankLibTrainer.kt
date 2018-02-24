@@ -82,7 +82,6 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
                 termQueries.map { indexSearcher.explain(it, scoreDoc.doc).value.toDouble() }
                     .average()
             }
-            .onEach { println(it) }
             .toList()
     }
 
@@ -132,11 +131,11 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 //        ranklibFormatter.addFeature({query, tops ->
 //            addStringDistanceFunction(query, tops, SorensenDice() )})
 
-//        ranklibFormatter.addFeature({query, tops ->
-//            addStringDistanceFunction(query, tops, JaroWinkler() )})
-//
-//        ranklibFormatter.addFeature({query, tops ->
-//            addStringDistanceFunction(query, tops, Jaccard() )})
+        ranklibFormatter.addFeature({query, tops ->
+            addStringDistanceFunction(query, tops, JaroWinkler() )})
+
+        ranklibFormatter.addFeature({query, tops ->
+            addStringDistanceFunction(query, tops, Jaccard() )})
 
 //        ranklibFormatter.addFeature({query, tops ->
 //            sectionSplit(query, tops, 0 )})
@@ -146,7 +145,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 //            sectionSplit(query, tops, 2 )})
 //        ranklibFormatter.addFeature({query, tops ->
 //            sectionSplit(query, tops, 3 )})
-        ranklibFormatter.addFeature(this::addAverageQueryScore)
+//        ranklibFormatter.addFeature(this::addAverageQueryScore)
 //        ranklibFormatter.addFeature(this::addScoreMixtureSims)
         ranklibFormatter.writeToRankLibFile("mytestlib.txt")
         queryRetriever.writeQueriesToFile(queries)
