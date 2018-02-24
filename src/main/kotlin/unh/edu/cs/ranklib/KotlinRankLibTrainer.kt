@@ -29,7 +29,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
         val termQuery = query
 //            .replace("_", " ")
 //            .replace("-", " ")
-            .replace(replaceNumbers, "")
+            .replace(replaceNumbers, " ")
             .split(" ")
             .map { TermQuery(Term("spotlight", it)) }
             .fold(BooleanQuery.Builder(), { acc, termQuery ->
@@ -39,6 +39,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 
         return tops.scoreDocs
             .map { scoreDoc -> indexSearcher.explain(termQuery, scoreDoc.doc).value.toDouble() }
+            .onEach (::println)
             .toList()
     }
 
