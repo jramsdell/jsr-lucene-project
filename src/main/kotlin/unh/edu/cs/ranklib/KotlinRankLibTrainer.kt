@@ -31,7 +31,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 //            .replace("-", " ")
             .replace(replaceNumbers, " ")
             .split(" ")
-            .map { TermQuery(Term("spotlight", it)) }
+            .map { TermQuery(Term("text", it)) }
             .fold(BooleanQuery.Builder(), { acc, termQuery ->
                                             acc.add(termQuery, BooleanClause.Occur.SHOULD) })
             .build()
