@@ -125,5 +125,6 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 //        ranklibFormatter.addFeature(this::addSpotlightSims)
 //        ranklibFormatter.addFeature(this::addScoreMixtureSims)
         ranklibFormatter.writeToRankLibFile("mytestlib.txt")
+        queryRetriever.writeQueriesToFile(queries)
     }
 }

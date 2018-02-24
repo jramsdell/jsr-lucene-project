@@ -7,6 +7,7 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute
 import org.apache.lucene.index.Term
 import org.apache.lucene.search.*
+import java.io.BufferedWriter
 import java.io.File
 import java.io.StringReader
 import java.util.*
@@ -58,6 +59,23 @@ class QueryRetriever(val indexSearcher: IndexSearcher) {
                     result.takeUnless { !seen.add(queryId) }
                 }
             }
+    }
+
+    fun writeRankingsToFile(tops: TopDocs, queryId: String, writer: BufferedWriter) {
+        (0 until tops.scoreDocs.size).forEach { index ->
+            val sd = tops.scoreDocs[index]
+            val doc = indexSearcher.doc(sd.doc)
+            val paragraphid = doc.get(PID)
+            val score = sd.score
+            val searchRank = index + 1
+
+            writer.write("$queryId Q0 $paragraphid $searchRank $score Lucene-BM25\n")
+        }
+    }
+
+    fun writeQueriesToFile(queries: List<Pair<String, TopDocs>>, out: String = "results.txt") {
+        val writer = File(out).bufferedWriter()
+        queries.forEach { (query, tops) -> writeRankingsToFile(tops, query, writer)}
     }
 }
 
