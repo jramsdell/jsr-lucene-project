@@ -25,10 +25,11 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
     val ranklibFormatter = KotlinRanklibFormatter(queries, qrelPath, indexSearcher)
 
     fun addSpotlightSims(query: String, tops: TopDocs): List<Double> {
+        val replaceNumbers = """(%\d+|[_-])""".toRegex()
         val termQuery = query
-            .replace("_", " ")
-            .replace("-", " ")
-            .replace("%20", "")
+//            .replace("_", " ")
+//            .replace("-", " ")
+            .replace(replaceNumbers, "")
             .split(" ")
             .map { TermQuery(Term("spotlight", it)) }
             .fold(BooleanQuery.Builder(), { acc, termQuery ->
