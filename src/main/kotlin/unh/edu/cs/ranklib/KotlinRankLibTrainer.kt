@@ -67,7 +67,6 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
             .map { scoreDoc ->
                 val doc = indexSearcher.doc(scoreDoc.doc)
                 val entities = doc.getValues("spotlight")
-                println(entities.joinToString())
                 entities.map { TermQuery(Term("text", it)) }
                     .map { BooleanQuery.Builder().add(it, BooleanClause.Occur.SHOULD).build() }
                     .map { clause -> indexSearcher.explain(clause, scoreDoc.doc).value.toDouble() }
