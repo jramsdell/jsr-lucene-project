@@ -25,7 +25,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
         IndexSearcher(indexReader)
     }
 
-    val db = KotlinDatabase("entity_db_3.db")
+    val db = KotlinDatabase("graph_database.db")
     val graphAnalyzer = KotlinGraphAnalyzer(indexSearcher, db)
     val queryRetriever = QueryRetriever(indexSearcher)
     val queries = queryRetriever.getQueries(queryPath)
