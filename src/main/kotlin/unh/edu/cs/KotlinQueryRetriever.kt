@@ -52,13 +52,13 @@ class QueryRetriever(val indexSearcher: IndexSearcher) {
 
         return DeserializeData.iterableAnnotations(File(queryLocation).inputStream())
             .flatMap { page ->
-                page.flatSectionPaths().mapNotNull { sectionPath ->
+                page.flatSectionPaths().pmap { sectionPath ->
                     val queryId = Data.sectionPathId(page.pageId, sectionPath)
                     val queryStr = createQueryString(page, sectionPath)
                     val result = queryId to indexSearcher.search(createQuery(queryStr), 100)
                     result.takeUnless { !seen.add(queryId) }
                 }
-            }
+            }.filterNotNull()
     }
 
     fun writeRankingsToFile(tops: TopDocs, queryId: String, writer: BufferedWriter) {
