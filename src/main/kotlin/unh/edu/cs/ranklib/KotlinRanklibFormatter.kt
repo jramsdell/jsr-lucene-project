@@ -40,8 +40,8 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
                         pid = pid,
                         qid = index + 1,
                         isRelevant = Pair(query, pid) in relevancies,
-                        features = arrayListOf(sc.score.toDouble()))
-//                        features = arrayListOf())
+//                        features = arrayListOf(sc.score.toDouble()))
+                        features = arrayListOf())
             }
             QueryContainer(query = query, tops = tops, paragraphs = containers)
         }.toList()
@@ -56,7 +56,7 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
         val counter = AtomicInteger(0)
         queryContainers.pmap { (query, tops, paragraphs) ->
             println(counter.incrementAndGet())
-            f(query, tops)
+            f(query, tops).run(this::normalizeResults)
                 .zip(paragraphs)    // Annotate paragraph containers with this score
 //                    .forEach { (score, paragraph) -> paragraph.features += score }
         }.forEach { results ->
