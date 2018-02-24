@@ -54,7 +54,7 @@ class QueryRetriever(val indexSearcher: IndexSearcher) {
             .flatMap { page ->
                 page.flatSectionPaths().mapNotNull { sectionPath ->
                     val queryId = Data.sectionPathId(page.pageId, sectionPath)
-                    val queryStr = createQueryString(page, emptyList())
+                    val queryStr = createQueryString(page, sectionPath)
                     val result = queryId to indexSearcher.search(createQuery(queryStr), 100)
                     result.takeUnless { !seen.add(queryId) }
                 }
