@@ -162,9 +162,9 @@ class KotlinGraphBuilder(indexLocation: String) {
      * @see buildParagraphGraph
      */
     fun run() {
-        buildParagraphGraph()
-        buildEntityGraph()
-//        buildEntity2EntityDist()
+//        buildParagraphGraph()
+//        buildEntityGraph()
+        buildEntity2EntityDist()
         println("Graphs complete!")
     }
 }
