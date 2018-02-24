@@ -145,8 +145,8 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 //            sectionSplit(query, tops, 2 )})
 //        ranklibFormatter.addFeature({query, tops ->
 //            sectionSplit(query, tops, 3 )})
-//        ranklibFormatter.addFeature(this::addAverageQueryScore)
-        ranklibFormatter.addFeature(this::addScoreMixtureSims)
+        ranklibFormatter.addFeature(this::addAverageQueryScore)
+//        ranklibFormatter.addFeature(this::addScoreMixtureSims)
         ranklibFormatter.writeToRankLibFile("mytestlib.txt")
         queryRetriever.writeQueriesToFile(queries)
     }
