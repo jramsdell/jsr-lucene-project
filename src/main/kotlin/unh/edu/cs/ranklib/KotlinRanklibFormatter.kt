@@ -46,15 +46,20 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
             QueryContainer(query = query, tops = tops, paragraphs = containers)
         }.toList()
 
+    fun normalizeResults(values: List<Double>): List<Double> {
+        val mean = values.average()
+        val std = Math.sqrt(values.sumByDouble { Math.pow(it - mean, 2.0) })
+        return values.map { (it - mean)/std }
+    }
 
-    fun addFeature(f: (String, TopDocs) -> List<Double>, weight:Double = 1.0) {
+    fun addFeature(f: (String, TopDocs) -> List<Double>, weight:Double = 1.0, normalize: Boolean = true) {
         val counter = AtomicInteger(0)
         queryContainers.pmap { (query, tops, paragraphs) ->
             println(counter.incrementAndGet())
-            f(query, tops)          // Apply the scoring function given to us
+            f(query, tops).run(::normalizeResults)
                 .zip(paragraphs)    // Annotate paragraph containers with this score
 //                    .forEach { (score, paragraph) -> paragraph.features += score }
-        }.toList().forEach { results ->
+        }.forEach { results ->
             results
                 .forEach { (score, paragraph) -> paragraph.features += score * weight }
         }
