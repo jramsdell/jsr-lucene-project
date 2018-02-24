@@ -10,7 +10,7 @@ data class ParagraphContainer(val pid: String, val qid: Int,
                      val isRelevant: Boolean, val features: ArrayList<Double>) {
 
     override fun toString(): String =
-            "$isRelevant qid:$qid " +
+            "${if (isRelevant) 1 else 0} qid:$qid " +
                     (1..features.size).zip(features)
                     .joinToString(separator = " ") { (id,feat) -> "$id:$feat" }
 
@@ -40,11 +40,12 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
             QueryContainer(query = query, tops = tops, paragraphs = containers)
         }.toList()
 
-    fun addFeature(f: (String, TopDocs) -> List<Double>) {
-        queryContainers.forEach { (query, tops, paragraphs) ->
-            f(query, tops).zip(paragraphs).forEach { (score, paragraph) -> paragraph.features += score }
-        }
-    }
+    fun addFeature(f: (String, TopDocs) -> List<Double>) =
+            queryContainers.forEach { (query, tops, paragraphs) ->
+                                        f(query, tops)          // Apply the scoring function given to us
+                                            .zip(paragraphs)    // Annotate paragraph containers with this score
+                                            .forEach { (score, paragraph) -> paragraph.features += score }
+                                    }
 
     fun writeToRankLibFile(outName: String) {
         queryContainers
@@ -52,4 +53,18 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
                 .joinToString(separator = "\n", transform = ParagraphContainer::toString)
                 .let { File(outName).writeText(it) }
     }
+}
+
+
+//fun <A, B, C>Iterable<Pair<A,B>>.map2(f: (A,B) -> C): List<C> {
+//    return map({f(it.first, it.second)})
+//}
+//
+//fun <A:Triple<B,C,D>, B, C, D, E>Iterable<A>.map3(f: (B,C,D) -> E): List<E> {
+//    return map({f(it.first, it.second, it.third)})
+//}
+
+
+fun main(args: Array<String>) {
+
 }

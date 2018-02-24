@@ -33,6 +33,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
             .fold(BooleanQuery.Builder(), { acc, termQuery ->
                                             acc.add(termQuery, BooleanClause.Occur.SHOULD) })
             .build()
+        println(termQuery)
 
         return tops.scoreDocs
             .map { scoreDoc -> indexSearcher.explain(termQuery, scoreDoc.doc).value.toDouble() }
@@ -59,7 +60,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 
     fun train() {
         ranklibFormatter.addFeature(this::addSpotlightSims)
-        ranklibFormatter.addFeature(this::addScoreMixtureSims)
+//        ranklibFormatter.addFeature(this::addScoreMixtureSims)
         ranklibFormatter.writeToRankLibFile("mytestlib.txt")
     }
 }
