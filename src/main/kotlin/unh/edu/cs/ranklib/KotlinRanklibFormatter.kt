@@ -47,7 +47,7 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
         }.toList()
 
 
-    fun addFeature(f: (String, TopDocs) -> List<Double>) {
+    fun addFeature(f: (String, TopDocs) -> List<Double>, weight:Double = 1.0) {
         val counter = AtomicInteger(0)
         queryContainers.pmap { (query, tops, paragraphs) ->
             println(counter.incrementAndGet())
@@ -56,7 +56,7 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
 //                    .forEach { (score, paragraph) -> paragraph.features += score }
         }.toList().forEach { results ->
             results
-                .forEach { (score, paragraph) -> paragraph.features += score }
+                .forEach { (score, paragraph) -> paragraph.features += score * weight }
         }
     }
 

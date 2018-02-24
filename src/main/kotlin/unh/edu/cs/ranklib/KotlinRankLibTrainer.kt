@@ -123,6 +123,13 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
             .map { pm -> pm.mixture.entries.sumByDouble { (k, v) -> sinks[k]!! * v * pm.score } }
             .toList()
     }
+    fun rescore() {
+        ranklibFormatter.addFeature({query, tops ->
+            addStringDistanceFunction(query, tops, JaroWinkler() )})
+
+        ranklibFormatter.addFeature({query, tops ->
+            addStringDistanceFunction(query, tops, Jaccard() )})
+    }
 
     fun train() {
 //        ranklibFormatter.addFeature({query, tops ->
@@ -145,7 +152,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 //            sectionSplit(query, tops, 2 )})
 //        ranklibFormatter.addFeature({query, tops ->
 //            sectionSplit(query, tops, 3 )})
-//        ranklibFormatter.addFeature(this::addAverageQueryScore)
+        ranklibFormatter.addFeature(this::addAverageQueryScore)
 //        ranklibFormatter.addFeature(this::addScoreMixtureSims)
         ranklibFormatter.writeToRankLibFile("mytestlib.txt")
         queryRetriever.writeQueriesToFile(queries)
