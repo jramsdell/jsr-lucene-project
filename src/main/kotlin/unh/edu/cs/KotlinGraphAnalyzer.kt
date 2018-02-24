@@ -142,7 +142,7 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
     fun getMixtures(tops: TopDocs): List<ParagraphMixture> =
             tops.scoreDocs
                     .map { it.doc to it.score }
-                    .pmap({ getParagraphMixture(it) })
+                    .map({ getParagraphMixture(it) })
                     .toList()
 
     fun rerankTopDocs(tops: TopDocs, command: String) {
