@@ -137,11 +137,12 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
             } }
         }
 
-        featureVectors.forEach { k, v ->
-            val average = v.average()
-            means[k] = average
-            deviations[k] = sqrt(v.sumByDouble { pow(it - average, 2.0) })
-        }
+        featureVectors.forEach(::println)
+//        featureVectors.forEach { k, v ->
+//            val average = v.average()
+//            means[k] = average
+//            deviations[k] = sqrt(v.sumByDouble { pow(it - average, 2.0) })
+//        }
         means.forEach(::println)
         deviations.forEach(::println)
 
