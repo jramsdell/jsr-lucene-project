@@ -131,11 +131,11 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 //        ranklibFormatter.addFeature({query, tops ->
 //            addStringDistanceFunction(query, tops, SorensenDice() )})
 
-//        ranklibFormatter.addFeature({query, tops ->
-//            addStringDistanceFunction(query, tops, JaroWinkler() )})
-//
-//        ranklibFormatter.addFeature({query, tops ->
-//            addStringDistanceFunction(query, tops, Jaccard() )})
+        ranklibFormatter.addFeature({query, tops ->
+            addStringDistanceFunction(query, tops, JaroWinkler() )})
+
+        ranklibFormatter.addFeature({query, tops ->
+            addStringDistanceFunction(query, tops, Jaccard() )})
 
 //        ranklibFormatter.addFeature({query, tops ->
 //            sectionSplit(query, tops, 0 )})

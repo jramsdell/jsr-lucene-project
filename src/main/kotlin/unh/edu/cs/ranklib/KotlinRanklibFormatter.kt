@@ -40,7 +40,8 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
                         pid = pid,
                         qid = index + 1,
                         isRelevant = Pair(query, pid) in relevancies,
-                        features = arrayListOf(sc.score.toDouble()))
+//                        features = arrayListOf(sc.score.toDouble()))
+                        features = arrayListOf())
             }
             QueryContainer(query = query, tops = tops, paragraphs = containers)
         }.toList()
