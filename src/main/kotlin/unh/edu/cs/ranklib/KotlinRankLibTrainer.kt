@@ -31,7 +31,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 //            .replace("-", " ")
             .replace(replaceNumbers, " ")
             .split(" ")
-            .map { FuzzyQuery(Term("spotlight", it)) }
+            .map { FuzzyQuery(Term("spotlight", it), 10) }
             .fold(BooleanQuery.Builder(), { acc, termQuery ->
                                             acc.add(termQuery, BooleanClause.Occur.SHOULD) })
             .build()
