@@ -3,8 +3,10 @@ package unh.edu.cs.ranklib
 import org.apache.lucene.search.IndexSearcher
 import org.apache.lucene.search.TopDocs
 import unh.edu.cs.PID
+import unh.edu.cs.pmap
 import java.io.File
 import java.util.*
+import java.util.concurrent.locks.ReentrantLock
 
 data class ParagraphContainer(val pid: String, val qid: Int,
                      val isRelevant: Boolean, val features: ArrayList<Double>) {
@@ -20,6 +22,8 @@ data class QueryContainer(val query: String, val tops: TopDocs, val paragraphs: 
 
 class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
                              qrelFileLocation: String, val indexSearcher: IndexSearcher) {
+
+    val lock = ReentrantLock()
 
     val relevancies = File(qrelFileLocation)
             .bufferedReader()
@@ -40,12 +44,22 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
             QueryContainer(query = query, tops = tops, paragraphs = containers)
         }.toList()
 
+
     fun addFeature(f: (String, TopDocs) -> List<Double>) =
-            queryContainers.forEach { (query, tops, paragraphs) ->
-                                        f(query, tops)          // Apply the scoring function given to us
-                                            .zip(paragraphs)    // Annotate paragraph containers with this score
-                                            .forEach { (score, paragraph) -> paragraph.features += score }
-                                    }
+            queryContainers.pmap { (query, tops, paragraphs) ->
+                f(query, tops)          // Apply the scoring function given to us
+                    .zip(paragraphs)    // Annotate paragraph containers with this score
+//                    .forEach { (score, paragraph) -> paragraph.features += score }
+            }.toList().forEach { results -> results
+                                .forEach { (score, paragraph) -> paragraph.features += score }
+
+
+//    fun addFeature(f: (String, TopDocs) -> List<Double>) =
+//            queryContainers.forEach { (query, tops, paragraphs) ->
+//                f(query, tops)          // Apply the scoring function given to us
+//                    .zip(paragraphs)    // Annotate paragraph containers with this score
+//                    .forEach { (score, paragraph) -> paragraph.features += score }
+//            }
 
     fun writeToRankLibFile(outName: String) {
         queryContainers
