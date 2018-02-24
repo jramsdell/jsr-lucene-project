@@ -16,6 +16,8 @@ import kotlin.coroutines.experimental.buildSequence
 import info.debatty.java.stringsimilarity.*
 import info.debatty.java.stringsimilarity.interfaces.MetricStringDistance
 import info.debatty.java.stringsimilarity.interfaces.StringDistance
+import java.lang.Math.pow
+import java.lang.Math.sqrt
 
 class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: String) {
     val indexSearcher = kotlin.run {
@@ -123,12 +125,43 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
             .map { pm -> pm.mixture.entries.sumByDouble { (k, v) -> sinks[k]!! * v * pm.score } }
             .toList()
     }
+
+    fun normalizeFeatures() {
+        val featureVectors = HashMap<Int, ArrayList<Double>>()
+        val means = HashMap<Int, Double>()
+        val deviations = HashMap<Int, Double>()
+
+        ranklibFormatter.queryContainers.forEach { queryContainer ->
+            queryContainer.paragraphs.forEach { it.features.forEachIndexed { index, d ->
+                featureVectors.getOrDefault(index, ArrayList()) += d
+            } }
+        }
+
+        featureVectors.forEach { k, v ->
+            val average = v.average()
+            means[k] = average
+            deviations[k] = sqrt(v.sumByDouble { pow(it - average, 2.0) })
+        }
+
+        ranklibFormatter.queryContainers.forEach { queryContainer ->
+            queryContainer.paragraphs.forEach { it.features.forEachIndexed { index, d ->
+                val newDouble = (d - means[index]!!)/deviations[index]!!
+                println("Was: $d Now: $newDouble")
+                it.features[index] = (d - means[index]!!)/deviations[index]!!
+            } }
+        }
+
+
+    }
+
     fun rescore() {
         ranklibFormatter.addFeature({query, tops ->
             addStringDistanceFunction(query, tops, JaroWinkler() )})
 
         ranklibFormatter.addFeature({query, tops ->
             addStringDistanceFunction(query, tops, Jaccard() )})
+
+        ranklibFormatter.addFeature(this::addAverageQueryScore)
     }
 
     fun train() {
@@ -153,6 +186,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 //        ranklibFormatter.addFeature({query, tops ->
 //            sectionSplit(query, tops, 3 )})
         ranklibFormatter.addFeature(this::addAverageQueryScore)
+        normalizeFeatures()
 //        ranklibFormatter.addFeature(this::addScoreMixtureSims)
         ranklibFormatter.writeToRankLibFile("mytestlib.txt")
         queryRetriever.writeQueriesToFile(queries)
