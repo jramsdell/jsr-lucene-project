@@ -76,13 +76,13 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
             .split(" ")
             .map { TermQuery(Term("text", it))}
             .map { BooleanQuery.Builder().add(it, BooleanClause.Occur.SHOULD).build()}
-            .onEach { println(it) }
 
         return tops.scoreDocs
             .map { scoreDoc ->
                 termQueries.map { indexSearcher.explain(it, scoreDoc.doc).value.toDouble() }
                     .average()
             }
+            .onEach { println(it) }
             .toList()
     }
 
