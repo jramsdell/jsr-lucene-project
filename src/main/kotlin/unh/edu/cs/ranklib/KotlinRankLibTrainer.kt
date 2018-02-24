@@ -31,14 +31,16 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 //            .replace("-", " ")
             .replace(replaceNumbers, " ")
             .split(" ")
-            .map { TermQuery(Term("spotlight", it)) }
+            .map { FuzzyQuery(Term("spotlight", it)) }
             .fold(BooleanQuery.Builder(), { acc, termQuery ->
                                             acc.add(termQuery, BooleanClause.Occur.SHOULD) })
             .build()
 
+
         indexSearcher.doc(tops.scoreDocs[0].doc).getValues("spotlight").forEach(::println)
         return tops.scoreDocs
             .map { scoreDoc -> indexSearcher.explain(termQuery, scoreDoc.doc).value.toDouble() }
+            .onEach(::println)
             .toList()
     }
 
