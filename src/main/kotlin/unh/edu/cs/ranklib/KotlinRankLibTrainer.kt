@@ -29,37 +29,36 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
     val ranklibFormatter = KotlinRanklibFormatter(queries, qrelPath, indexSearcher)
     val analyzer = StandardAnalyzer()
 
-    fun createQuery(query: String): BooleanQuery {
-        val tokenStream = analyzer.tokenStream("text", StringReader(query)).apply { reset() }
-
-        val streamSeq = buildSequence<String> {
-            while (tokenStream.incrementToken()) {
-                yield(tokenStream.getAttribute(CharTermAttribute::class.java).toString())
-            }
-            tokenStream.end()
-            tokenStream.close()
-        }
-
-        return streamSeq
-            .map { token -> TermQuery(Term("spotlight", token))}
-            .fold(BooleanQuery.Builder(), { acc, termQuery ->
-                acc.add(termQuery, BooleanClause.Occur.SHOULD)
-            })
-            .build()
-    }
+//    fun createQuery(query: String): BooleanQuery {
+//        val tokenStream = analyzer.tokenStream("text", StringReader(query)).apply { reset() }
+//
+//        val streamSeq = buildSequence<String> {
+//            while (tokenStream.incrementToken()) {
+//                yield(tokenStream.getAttribute(CharTermAttribute::class.java).toString())
+//            }
+//            tokenStream.end()
+//            tokenStream.close()
+//        }
+//
+//        return streamSeq
+//            .map { token -> TermQuery(Term("spotlight", token))}
+//            .fold(BooleanQuery.Builder(), { acc, termQuery ->
+//                acc.add(termQuery, BooleanClause.Occur.SHOULD)
+//            })
+//            .build()
+//    }
 
     fun addSpotlightSims(query: String, tops: TopDocs): List<Double> {
         val replaceNumbers = """(%\d+|[_-])""".toRegex()
-//        val termQuery = query
-////            .replace("_", " ")
-////            .replace("-", " ")
-//            .replace(replaceNumbers, " ")
-//            .split(" ")
-//            .map { TermQuery(Term("spotlight", it))}
-//            .fold(BooleanQuery.Builder(), { acc, termQuery ->
-//                                            acc.add(termQuery, BooleanClause.Occur.SHOULD) })
-//            .build()
-        val termQuery = createQuery(query)
+        val termQuery = query
+//            .replace("_", " ")
+//            .replace("-", " ")
+            .replace(replaceNumbers, " ")
+            .split(" ")
+            .map { PhraseQuery("spotlight", it)}
+            .fold(BooleanQuery.Builder(), { acc, termQuery ->
+                                            acc.add(termQuery, BooleanClause.Occur.SHOULD) })
+            .build()
 
 
         return tops.scoreDocs
