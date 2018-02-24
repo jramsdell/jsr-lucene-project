@@ -27,7 +27,8 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
     fun addSpotlightSims(query: String, tops: TopDocs): List<Double> {
         val termQuery = query
             .replace("_", " ")
-            .replace("%", "")
+            .replace("-", " ")
+            .replace("%20", "")
             .split(" ")
             .map { TermQuery(Term("spotlight", it)) }
             .fold(BooleanQuery.Builder(), { acc, termQuery ->
