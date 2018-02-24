@@ -49,15 +49,16 @@ class QueryRetriever(val indexSearcher: IndexSearcher) {
                 }.toList()
 
     fun getSectionQueries(queryLocation: String): List<Pair<String, TopDocs>> {
-        val seen = ConcurrentHashMap<String, String>()
+//        val seen = ConcurrentHashMap<String, String>()
+        val seen = HashSet<String>()
 
         return DeserializeData.iterableAnnotations(File(queryLocation).inputStream())
             .flatMap { page ->
-                page.flatSectionPaths().pmap { sectionPath ->
+                page.flatSectionPaths().map { sectionPath ->
                     val queryId = Data.sectionPathId(page.pageId, sectionPath)
                     val queryStr = createQueryString(page, sectionPath)
                     val result = queryId to indexSearcher.search(createQuery(queryStr), 100)
-                    result.takeUnless { seen.put(queryId, "") == null }
+                    result.takeUnless {!seen.add(queryId)}
                 }
             }.filterNotNull()
     }
