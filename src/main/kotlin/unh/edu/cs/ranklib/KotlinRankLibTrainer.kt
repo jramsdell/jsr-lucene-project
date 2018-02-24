@@ -76,6 +76,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
             .split(" ")
             .map { TermQuery(Term("text", it))}
             .map { BooleanQuery.Builder().add(it, BooleanClause.Occur.SHOULD).build()}
+            .onEach { println(it) }
 
         return tops.scoreDocs
             .map { scoreDoc ->
@@ -131,11 +132,11 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 //        ranklibFormatter.addFeature({query, tops ->
 //            addStringDistanceFunction(query, tops, SorensenDice() )})
 
-        ranklibFormatter.addFeature({query, tops ->
-            addStringDistanceFunction(query, tops, JaroWinkler() )})
-
-        ranklibFormatter.addFeature({query, tops ->
-            addStringDistanceFunction(query, tops, Jaccard() )})
+//        ranklibFormatter.addFeature({query, tops ->
+//            addStringDistanceFunction(query, tops, JaroWinkler() )})
+//
+//        ranklibFormatter.addFeature({query, tops ->
+//            addStringDistanceFunction(query, tops, Jaccard() )})
 
 //        ranklibFormatter.addFeature({query, tops ->
 //            sectionSplit(query, tops, 0 )})
@@ -146,7 +147,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 //        ranklibFormatter.addFeature({query, tops ->
 //            sectionSplit(query, tops, 3 )})
         ranklibFormatter.addFeature(this::addAverageQueryScore)
-        ranklibFormatter.addFeature(this::addScoreMixtureSims)
+//        ranklibFormatter.addFeature(this::addScoreMixtureSims)
         ranklibFormatter.writeToRankLibFile("mytestlib.txt")
         queryRetriever.writeQueriesToFile(queries)
     }
