@@ -36,7 +36,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
                                             acc.add(termQuery, BooleanClause.Occur.SHOULD) })
             .build()
 
-        println(indexSearcher.doc(tops.scoreDocs[0].doc).getValues("spotlight"))
+        indexSearcher.doc(tops.scoreDocs[0].doc).getValues("spotlight").forEach(::println)
         return tops.scoreDocs
             .map { scoreDoc -> indexSearcher.explain(termQuery, scoreDoc.doc).value.toDouble() }
             .toList()
