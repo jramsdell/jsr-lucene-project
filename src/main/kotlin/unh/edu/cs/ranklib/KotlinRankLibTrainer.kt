@@ -137,16 +137,16 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
         ranklibFormatter.addFeature({query, tops ->
             addStringDistanceFunction(query, tops, Jaccard() )})
 
-        ranklibFormatter.addFeature({query, tops ->
-            sectionSplit(query, tops, 0 )})
-        ranklibFormatter.addFeature({query, tops ->
-            sectionSplit(query, tops, 1 )})
-        ranklibFormatter.addFeature({query, tops ->
-            sectionSplit(query, tops, 2 )})
-        ranklibFormatter.addFeature({query, tops ->
-            sectionSplit(query, tops, 3 )})
+//        ranklibFormatter.addFeature({query, tops ->
+//            sectionSplit(query, tops, 0 )})
+//        ranklibFormatter.addFeature({query, tops ->
+//            sectionSplit(query, tops, 1 )})
+//        ranklibFormatter.addFeature({query, tops ->
+//            sectionSplit(query, tops, 2 )})
+//        ranklibFormatter.addFeature({query, tops ->
+//            sectionSplit(query, tops, 3 )})
         ranklibFormatter.addFeature(this::addAverageQueryScore)
-//        ranklibFormatter.addFeature(this::addScoreMixtureSims)
+        ranklibFormatter.addFeature(this::addScoreMixtureSims)
         ranklibFormatter.writeToRankLibFile("mytestlib.txt")
         queryRetriever.writeQueriesToFile(queries)
     }
