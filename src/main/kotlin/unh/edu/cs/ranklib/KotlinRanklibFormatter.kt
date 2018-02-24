@@ -6,6 +6,7 @@ import unh.edu.cs.PID
 import unh.edu.cs.pmap
 import java.io.File
 import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
 
 data class ParagraphContainer(val pid: String, val qid: Int,
@@ -45,15 +46,18 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
         }.toList()
 
 
-    fun addFeature(f: (String, TopDocs) -> List<Double>) =
-            queryContainers.pmap { (query, tops, paragraphs) ->
-                f(query, tops)          // Apply the scoring function given to us
-                    .zip(paragraphs)    // Annotate paragraph containers with this score
+    fun addFeature(f: (String, TopDocs) -> List<Double>) {
+        val counter = AtomicInteger(0)
+        queryContainers.pmap { (query, tops, paragraphs) ->
+            println(counter.incrementAndGet())
+            f(query, tops)          // Apply the scoring function given to us
+                .zip(paragraphs)    // Annotate paragraph containers with this score
 //                    .forEach { (score, paragraph) -> paragraph.features += score }
-            }.toList().forEach { results ->
-                results
-                    .forEach { (score, paragraph) -> paragraph.features += score }
-            }
+        }.toList().forEach { results ->
+            results
+                .forEach { (score, paragraph) -> paragraph.features += score }
+        }
+    }
 
 
 //    fun addFeature(f: (String, TopDocs) -> List<Double>) =
