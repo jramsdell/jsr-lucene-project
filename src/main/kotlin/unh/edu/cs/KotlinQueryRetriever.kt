@@ -76,6 +76,8 @@ class QueryRetriever(val indexSearcher: IndexSearcher) {
     fun writeQueriesToFile(queries: List<Pair<String, TopDocs>>, out: String = "results.txt") {
         val writer = File(out).bufferedWriter()
         queries.forEach { (query, tops) -> writeRankingsToFile(tops, query, writer)}
+        writer.flush()
+        writer.close()
     }
 }
 
