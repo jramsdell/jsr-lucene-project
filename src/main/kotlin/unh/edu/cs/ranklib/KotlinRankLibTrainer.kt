@@ -120,14 +120,18 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
     fun train() {
         ranklibFormatter.addFeature({query, tops ->
             addStringDistanceFunction(query, tops, Levenshtein() )})
+
         ranklibFormatter.addFeature({query, tops ->
             addStringDistanceFunction(query, tops, LongestCommonSubsequence() )})
+
         ranklibFormatter.addFeature({query, tops ->
             addStringDistanceFunction(query, tops, JaroWinkler() )})
+
         ranklibFormatter.addFeature({query, tops ->
             addStringDistanceFunction(query, tops, Jaccard() )})
+
 //        ranklibFormatter.addFeature(this::addSpotlightSims)
-        ranklibFormatter.addFeature(this::addScoreMixtureSims)
+//        ranklibFormatter.addFeature(this::addScoreMixtureSims)
         ranklibFormatter.writeToRankLibFile("mytestlib.txt")
     }
 }
