@@ -14,6 +14,8 @@ import java.nio.file.Paths
 import java.util.*
 import kotlin.coroutines.experimental.buildSequence
 import info.debatty.java.stringsimilarity.*
+import info.debatty.java.stringsimilarity.interfaces.MetricStringDistance
+import info.debatty.java.stringsimilarity.interfaces.StringDistance
 
 class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: String) {
     val indexSearcher = kotlin.run {
@@ -49,7 +51,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 //            .build()
 //    }
 
-    fun addSpotlightSims(query: String, tops: TopDocs): List<Double> {
+    fun addStringDistanceFunction(query: String, tops: TopDocs, dist: StringDistance): List<Double> {
         val replaceNumbers = """(%\d+|[_-])""".toRegex()
         val termQueries = query
 //            .replace("_", " ")
@@ -62,15 +64,14 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 //                                            acc.add(termQuery, BooleanClause.Occur.SHOULD) })
 //            .build()
 
-        val lev = Levenshtein()
 
         return tops.scoreDocs
 //            .map { scoreDoc -> indexSearcher.explain(termQuery, scoreDoc.doc).value.toDouble() }
             .map { scoreDoc ->
                 val doc = indexSearcher.doc(scoreDoc.doc)
                 val entities = doc.getValues("spotlight").map { it.replace("_", " ") }
-                termQueries.flatMap { q -> entities.map { e -> lev.distance(q, e)  } }.average()
-
+                if (entities.isEmpty()) 0.0 else
+                termQueries.flatMap { q -> entities.map { e -> dist.distance(q, e)  } }.average()
             }
             .toList()
     }
@@ -117,7 +118,14 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
     }
 
     fun train() {
-        ranklibFormatter.addFeature(this::addSpotlightSims)
+        ranklibFormatter.addFeature({query, tops ->
+            addStringDistanceFunction(query, tops, Levenshtein() )})
+        ranklibFormatter.addFeature({query, tops ->
+            addStringDistanceFunction(query, tops, LongestCommonSubsequence() )})
+        ranklibFormatter.addFeature({query, tops ->
+            addStringDistanceFunction(query, tops, JaroWinkler() )})
+        ranklibFormatter.addFeature({query, tops ->
+            addStringDistanceFunction(query, tops, Jaccard() )})
 //        ranklibFormatter.addFeature(this::addSpotlightSims)
 //        ranklibFormatter.addFeature(this::addScoreMixtureSims)
         ranklibFormatter.writeToRankLibFile("mytestlib.txt")
