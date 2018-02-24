@@ -65,10 +65,36 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
         return tops.scoreDocs
 //            .map { scoreDoc -> indexSearcher.explain(termQuery, scoreDoc.doc).value.toDouble() }
             .map { scoreDoc ->
+                val doc = indexSearcher.doc(scoreDoc.doc)
+                val entities = doc.getValues("spotlight")
+                entities.map { TermQuery(Term("text", it)) }
+                    .map { BooleanQuery.Builder().add(it, BooleanClause.Occur.SHOULD).build() }
+                    .map { clause -> indexSearcher.explain(clause, scoreDoc.doc).value.toDouble() }
+                    .average()
+            }
+            .toList()
+    }
+
+    fun addAverageQueryScore(query: String, tops: TopDocs): List<Double> {
+        val replaceNumbers = """(%\d+|[_-])""".toRegex()
+        val termQueries = query
+//            .replace("_", " ")
+//            .replace("-", " ")
+            .replace(replaceNumbers, " ")
+            .split(" ")
+            .map { TermQuery(Term("text", it))}
+            .map { BooleanQuery.Builder().add(it, BooleanClause.Occur.SHOULD).build()}
+//            .fold(BooleanQuery.Builder(), { acc, termQuery ->
+//                                            acc.add(termQuery, BooleanClause.Occur.SHOULD) })
+//            .build()
+
+
+        return tops.scoreDocs
+//            .map { scoreDoc -> indexSearcher.explain(termQuery, scoreDoc.doc).value.toDouble() }
+            .map { scoreDoc ->
                 termQueries.map { indexSearcher.explain(it, scoreDoc.doc).value.toDouble() }
                     .average()
             }
-            .onEach(::println)
             .toList()
     }
 
@@ -92,6 +118,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 
     fun train() {
         ranklibFormatter.addFeature(this::addSpotlightSims)
+//        ranklibFormatter.addFeature(this::addSpotlightSims)
 //        ranklibFormatter.addFeature(this::addScoreMixtureSims)
         ranklibFormatter.writeToRankLibFile("mytestlib.txt")
     }
