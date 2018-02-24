@@ -108,6 +108,10 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
             }
     }
 
+    fun tester(query: String, tops:TopDocs): List<Double> {
+        return tops.scoreDocs.map { it.score.toDouble() }
+    }
+
     fun addScoreMixtureSims(query: String, tops:TopDocs): List<Double> {
         val sinks = HashMap<String, Double>()
         val mixtures = graphAnalyzer.getMixtures(tops)
@@ -157,6 +161,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 
     }
 
+
     fun rescore() {
         ranklibFormatter.addFeature({query, tops ->
             addStringDistanceFunction(query, tops, JaroWinkler() )})
@@ -189,6 +194,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 //        ranklibFormatter.addFeature({query, tops ->
 //            sectionSplit(query, tops, 3 )})
         ranklibFormatter.addFeature(this::addAverageQueryScore)
+        ranklibFormatter.addFeature(this::tester)
 //        normalizeFeatures()
 //        ranklibFormatter.addFeature(this::addScoreMixtureSims)
         ranklibFormatter.writeToRankLibFile("mytestlib.txt")

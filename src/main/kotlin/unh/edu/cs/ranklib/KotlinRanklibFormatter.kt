@@ -56,7 +56,7 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
         val counter = AtomicInteger(0)
         queryContainers.pmap { (query, tops, paragraphs) ->
             println(counter.incrementAndGet())
-            f(query, tops).run(::normalizeResults)
+            f(query, tops)
                 .zip(paragraphs)    // Annotate paragraph containers with this score
 //                    .forEach { (score, paragraph) -> paragraph.features += score }
         }.forEach { results ->
