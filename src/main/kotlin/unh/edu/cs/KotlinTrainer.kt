@@ -67,49 +67,6 @@ data class Topic(val name: String) {
     }
 }
 
-class QueryRetriever(val indexSearcher: IndexSearcher) {
-
-//     Initialize index searcher
-//    val indexSearcher = kotlin.run {
-//        val  indexPath = Paths.get (path)
-//        val indexDir = FSDirectory.open(indexPath)
-//        val indexReader = DirectoryReader.open(indexDir)
-//        IndexSearcher(indexReader)
-//    }
-
-    val analyzer = StandardAnalyzer()
-
-    fun createQueryString(page: Data.Page, sectionPath: List<Data.Section>): String =
-            page.pageName + sectionPath.joinToString { section -> " " + section.heading  }
-
-
-    fun createQuery(query: String): BooleanQuery {
-        val tokenStream = analyzer.tokenStream("text", StringReader(query)).apply { reset() }
-
-        val streamSeq = buildSequence<String> {
-            while (tokenStream.incrementToken()) {
-                yield(tokenStream.getAttribute(CharTermAttribute::class.java).toString())
-            }
-            tokenStream.end()
-            tokenStream.close()
-        }
-
-        return streamSeq
-                .map { token -> TermQuery(Term("text", token))}
-                .fold(BooleanQuery.Builder(), { acc, termQuery ->
-                    acc.add(termQuery, BooleanClause.Occur.SHOULD)
-                })
-                .build()
-    }
-
-    fun getQueries(queryLocation: String): List<Pair<String, TopDocs>> =
-        DeserializeData.iterableAnnotations(File(queryLocation).inputStream())
-                .map { page ->
-                    val queryId = page.pageId
-                    val queryStr = createQueryString(page, emptyList())
-                    queryId to indexSearcher.search(createQuery(queryStr), 100)
-                }.toList()
-}
 
 class KotlinRegularizer(indexPath: String, queryPath: String, weightLocation: String,
                         alpha: String) {

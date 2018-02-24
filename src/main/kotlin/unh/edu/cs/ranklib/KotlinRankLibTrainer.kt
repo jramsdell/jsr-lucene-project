@@ -28,7 +28,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
     val db = KotlinDatabase("graph_database.db")
     val graphAnalyzer = KotlinGraphAnalyzer(indexSearcher, db)
     val queryRetriever = QueryRetriever(indexSearcher)
-    val queries = queryRetriever.getQueries(queryPath)
+    val queries = queryRetriever.getSectionQueries(queryPath)
     val ranklibFormatter = KotlinRanklibFormatter(queries, qrelPath, indexSearcher)
     val analyzer = StandardAnalyzer()
 
@@ -54,19 +54,11 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
     fun addStringDistanceFunction(query: String, tops: TopDocs, dist: StringDistance): List<Double> {
         val replaceNumbers = """(%\d+|[_-])""".toRegex()
         val termQueries = query
-//            .replace("_", " ")
-//            .replace("-", " ")
             .replace(replaceNumbers, " ")
             .split(" ")
-//            .map { TermQuery(Term("text", it))}
-//            .map { BooleanQuery.Builder().add(it, BooleanClause.Occur.SHOULD).build()}
-//            .fold(BooleanQuery.Builder(), { acc, termQuery ->
-//                                            acc.add(termQuery, BooleanClause.Occur.SHOULD) })
-//            .build()
 
 
         return tops.scoreDocs
-//            .map { scoreDoc -> indexSearcher.explain(termQuery, scoreDoc.doc).value.toDouble() }
             .map { scoreDoc ->
                 val doc = indexSearcher.doc(scoreDoc.doc)
                 val entities = doc.getValues("spotlight").map { it.replace("_", " ") }

@@ -32,24 +32,8 @@ data class ParagraphMixture(
         var mixture: HashMap<String, Double> = HashMap())
 
 class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDatabase) {
-//    private val db: DB
-//    private val cmap: ConcurrentMap<String, String>
-//    public val entityMap: ConcurrentMap<String, String>
-//    public val parMap: ConcurrentMap<String, String>
     private val storedParagraphs = ConcurrentHashMap<String, List<String>>()
     private val storedEntities = ConcurrentHashMap<String, List<String>>()
-
-
-//    init {
-//        db = DBMaker.fileDB("entity_db_3.db")
-//                .readOnly()
-//                .fileMmapEnable()
-//                .closeOnJvmShutdown()
-//                .make()
-//        cmap = db.hashMap("dist_map", Serializer.STRING, Serializer.STRING).createOrOpen();
-//        parMap = db.hashMap("par_map", Serializer.STRING, Serializer.STRING).createOrOpen();
-//        entityMap = db.hashMap("entity_map", Serializer.STRING, Serializer.STRING).createOrOpen();
-//    }
 
     fun getParagraphMixture(docInfo: Pair<Int, Float>): ParagraphMixture {
         val doc = indexSearcher.doc(docInfo.first)
