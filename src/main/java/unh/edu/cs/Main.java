@@ -44,7 +44,7 @@ public class Main {
 
         // This is an example of adding a position argument (query_type) that has multiple choices
         queryParser.addArgument("query_type")
-                .choices("bm25") // Each string is a choice for this param
+                .choices("page", "section") // Each string is a choice for this param
                 .help("The type of query method to use.");
 
         // Another positional argument
@@ -94,6 +94,8 @@ public class Main {
 
         ranklibTrainerParser.addArgument("qrel")
                 .help("Locations of matching qrel file.");
+
+
 
 
         return parser;
