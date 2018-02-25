@@ -11,9 +11,12 @@ import java.io.BufferedInputStream
 import java.io.File
 import java.net.URL
 
-//        run { if (condition()) block() else this}
 
-
+/**
+ * Class: KotlinSpotlightRunner
+ * Description: Starts a local instance of a Spotlight server and runs it. If the required files are unavailable, it
+ * will download them remotely first.
+ */
 class KotlinSpotlightRunner() {
     val process: Process
 
@@ -32,6 +35,10 @@ class KotlinSpotlightRunner() {
     }
 
 
+    /**
+     * Function: downloadFromUrl
+     * Description: Takes a url and output filename and downloads file from url (using copyURLToFile)
+     */
     fun downloadFromUrl(url: String, out: String) {
         println("Downloading from $url to $out")
         val site = URL(url)
@@ -39,7 +46,10 @@ class KotlinSpotlightRunner() {
         FileUtils.copyURLToFile(site, destination)
     }
 
-
+    /**
+     * Function: beginDownloads
+     * Description: Will download spotlight server and model from dbpedia when they are not already availlable.
+     */
     fun beginDownloads() {
         val serverLoc = File("spotlight_server")
                 .applyIf({!exists()}) { mkdir() } // create directory if it doesn't already exist
@@ -75,20 +85,3 @@ class KotlinSpotlightRunner() {
         }
     }
 }
-
-fun main(args: Array<String>) {
-//    val runner = KotlinSpotlightRunner()
-//    runner.beginDownloads()
-//    runner.downloadFromUrl("http://downloads.dbpedia-spotlight.org/spotlight/dbpedia-spotlight-0.7.1.jar", "spotlight.jar")
-
-    val bar = ProgressBar("Documents Linked", 100, ProgressBarStyle.ASCII)
-    bar.start()
-    (0..100).forEach {
-        bar.step()
-        Thread.sleep(100)
-    }
-    bar.stop()
-}
-
-// 24642
-

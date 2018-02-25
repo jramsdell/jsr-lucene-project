@@ -36,24 +36,6 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
     val ranklibFormatter = KotlinRanklibFormatter(queries, qrelPath, indexSearcher)
     val analyzer = StandardAnalyzer()
 
-//    fun createQuery(query: String): BooleanQuery {
-//        val tokenStream = analyzer.tokenStream("text", StringReader(query)).apply { reset() }
-//
-//        val streamSeq = buildSequence<String> {
-//            while (tokenStream.incrementToken()) {
-//                yield(tokenStream.getAttribute(CharTermAttribute::class.java).toString())
-//            }
-//            tokenStream.end()
-//            tokenStream.close()
-//        }
-//
-//        return streamSeq
-//            .map { token -> TermQuery(Term("spotlight", token))}
-//            .fold(BooleanQuery.Builder(), { acc, termQuery ->
-//                acc.add(termQuery, BooleanClause.Occur.SHOULD)
-//            })
-//            .build()
-//    }
 
     fun addStringDistanceFunction(query: String, tops: TopDocs, dist: StringDistance): List<Double> {
         val replaceNumbers = """(%\d+|[_-])""".toRegex()

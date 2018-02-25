@@ -36,16 +36,6 @@ class KotlinGraphBuilder(indexLocation: String) {
     // Open up database where we will be storing graphs
     val db = KotlinDatabase("graph_database.db")
     val graphAnalyzer = KotlinGraphAnalyzer(indexSearcher, db)
-//    val db = DBMaker.fileDB("graph_database.db")
-//            .fileMmapEnable()
-//            .closeOnJvmShutdown()
-//            .make()
-//
-//    // Initialize the graph maps
-//    val entityMap = db.hashMap("entity_map", Serializer.STRING, Serializer.STRING).createOrOpen()
-//    val parMap = db.hashMap("par_map", Serializer.STRING, Serializer.STRING).createOrOpen()
-//    val e2eDistMap = db.hashMap("e2e_dist", Serializer.STRING, Serializer.STRING).createOrOpen()
-//    val p2eDistMap = db.hashMap("p2e_dist", Serializer.STRING, Serializer.STRING).createOrOpen()
 
 
     /**

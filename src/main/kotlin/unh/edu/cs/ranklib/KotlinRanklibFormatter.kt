@@ -21,6 +21,8 @@ data class ParagraphContainer(val pid: String, val qid: Int,
 
 data class QueryContainer(val query: String, val tops: TopDocs, val paragraphs: List<ParagraphContainer>)
 
+enum class NormType { NONE, SUM, ZSCORE, LINEAR }
+
 class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
                              qrelFileLocation: String, val indexSearcher: IndexSearcher) {
 
@@ -40,26 +42,44 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
                         pid = pid,
                         qid = index + 1,
                         isRelevant = Pair(query, pid) in relevancies,
-//                        features = arrayListOf(sc.score.toDouble()))
                         features = arrayListOf(),
                         docId = sc.doc)
             }
             QueryContainer(query = query, tops = tops, paragraphs = containers)
         }.toList()
 
-    fun normalizeResults(values: List<Double>): List<Double> {
+
+    fun normSum(values: List<Double>): List<Double> =
+            values.sum()
+                .let { total -> values.map { value ->  value / total } }
+
+    fun normZscore(values: List<Double>): List<Double> {
         val mean = values.average()
         val std = Math.sqrt(values.sumByDouble { Math.pow(it - mean, 2.0) })
-        return values.map { ((it - mean)/std).run{
-            if (this == Double.NaN) 0.0 else this
-        } }
+        return values.map { ((it - mean) / std) }
     }
 
-    fun addFeature(f: (String, TopDocs) -> List<Double>, weight:Double = 1.0, normalize: Boolean = true) {
+    fun normLinear(values: List<Double>): List<Double> {
+        val minValue = values.min()!!
+        val maxValue = values.max()!!
+        return values.map { value -> (value - minValue) / (maxValue - minValue) }
+    }
+
+    fun normalizeResults(values: List<Double>, normType: NormType): List<Double> {
+        return when (normType) {
+            NormType.NONE -> values
+            NormType.SUM -> normSum(values)
+            NormType.ZSCORE -> normZscore(values)
+            NormType.LINEAR -> normLinear(values)
+        }
+    }
+
+    fun addFeature(f: (String, TopDocs) -> List<Double>, weight:Double = 1.0,
+                   normType: NormType = NormType.ZSCORE) {
         val counter = AtomicInteger(0)
         queryContainers.pmap { (query, tops, paragraphs) ->
             println(counter.incrementAndGet())
-            f(query, tops).applyIf(normalize, {normalizeResults(this)})
+            f(query, tops).run { normalizeResults(this, normType) }
                 .zip(paragraphs)    // Annotate paragraph containers with this score
 //                    .forEach { (score, paragraph) -> paragraph.features += score }
         }.forEach { results ->
@@ -69,12 +89,6 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
     }
 
 
-//    fun addFeature(f: (String, TopDocs) -> List<Double>) =
-//            queryContainers.forEach { (query, tops, paragraphs) ->
-//                f(query, tops)          // Apply the scoring function given to us
-//                    .zip(paragraphs)    // Annotate paragraph containers with this score
-//                    .forEach { (score, paragraph) -> paragraph.features += score }
-//            }
 
     fun writeToRankLibFile(outName: String) {
         queryContainers
@@ -82,18 +96,4 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
                 .joinToString(separator = "\n", transform = ParagraphContainer::toString)
                 .let { File(outName).writeText(it) }
     }
-}
-
-
-//fun <A, B, C>Iterable<Pair<A,B>>.map2(f: (A,B) -> C): List<C> {
-//    return map({f(it.first, it.second)})
-//}
-//
-//fun <A:Triple<B,C,D>, B, C, D, E>Iterable<A>.map3(f: (B,C,D) -> E): List<E> {
-//    return map({f(it.first, it.second, it.third)})
-//}
-
-
-fun main(args: Array<String>) {
-
 }

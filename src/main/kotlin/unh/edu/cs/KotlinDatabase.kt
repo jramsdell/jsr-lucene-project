@@ -4,6 +4,10 @@ import org.mapdb.DBMaker
 import org.mapdb.Serializer
 
 
+/**
+ * Class: KotlinDatabase
+ * Description: Used to open a MapDB database. Shared between classes.
+ */
 class KotlinDatabase(dbLocation: String) {
     val db = DBMaker.fileDB(dbLocation)
             .fileMmapEnable()
