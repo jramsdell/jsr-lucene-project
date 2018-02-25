@@ -107,15 +107,27 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
 
 
     fun rescore() {
-        ranklibFormatter.addFeature(this::bm25, weight = 0.72954024466881)
+        val weights = listOf(0.09982696, -0.757945, 0.165654875, 0.1700368, 0.0360435, -0.108164, -0.187676, -0.156803)
+        ranklibFormatter.addFeature(this::bm25, weight = weights[0])
         ranklibFormatter.addFeature({query, tops ->
-            addStringDistanceFunction(query, tops, JaroWinkler() )}, weight = 0.04743997)
+            addStringDistanceFunction(query, tops, JaroWinkler() )}, weight = weights[1])
 
         ranklibFormatter.addFeature({query, tops ->
-            addStringDistanceFunction(query, tops, Jaccard() )}, weight = 0.023103116067)
+            addStringDistanceFunction(query, tops, Jaccard() )}, weight = weights[2])
 
-        ranklibFormatter.addFeature(this::addAverageQueryScore, weight = -0.19821227474)
-        ranklibFormatter.addFeature(this::addScoreMixtureSims, weight = 0.0014976)
+        ranklibFormatter.addFeature(this::addAverageQueryScore, weight = weights[3])
+//        ranklibFormatter.addFeature(this::addScoreMixtureSims, weight = weights[4])
+
+        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 0) },
+                weight = weights[4])
+        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 1) },
+                weight = weights[5])
+        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 2) },
+                weight = weights[6])
+        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 3) },
+                weight = weights[7])
+
+
         ranklibFormatter.queryContainers.forEach { queryContainer ->
             queryContainer.paragraphs.map { it.score = it.features.sumByDouble(this::sanitizeDouble); it }
                 .sortedByDescending { it.score }
@@ -148,7 +160,7 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
     }
 
     fun train() {
-//        rescore()
-        doTrain()
+        rescore()
+//        doTrain()
     }
 }

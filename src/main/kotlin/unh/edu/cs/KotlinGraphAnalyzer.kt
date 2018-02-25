@@ -89,6 +89,7 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
         val counts = HashMap<String, Double>()
         val nWalks = 100
         val nSteps = 2
+        val firstPar = db.parMap[pid]!!.split(" ")
 
         (0 until nWalks).forEach { _ ->
             var volume = 1.0
