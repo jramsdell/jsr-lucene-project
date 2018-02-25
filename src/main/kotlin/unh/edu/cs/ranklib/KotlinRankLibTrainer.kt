@@ -160,7 +160,12 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 
 
     }
-
+    fun sanitizeDouble(d: Double): Double {
+        return when (d) {
+            Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY -> 0.0
+            else -> d
+        }
+    }
 
     fun rescore() {
         ranklibFormatter.addFeature(this::bm25, weight = 0.81314951)
@@ -172,7 +177,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 
         ranklibFormatter.addFeature(this::addAverageQueryScore, weight = -0.102719)
         ranklibFormatter.queryContainers.forEach { queryContainer ->
-            queryContainer.paragraphs.map { it.features.sum() }
+            queryContainer.paragraphs.map { it.features.sumByDouble(this::sanitizeDouble) }
                 .zip(queryContainer.tops.scoreDocs)
                 .sortedByDescending { it.first }
                 .forEachIndexed { index, (score, sd) ->
