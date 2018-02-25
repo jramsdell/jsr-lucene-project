@@ -131,8 +131,8 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
                 }
 
                 // Update progress bar (have to make sure it's thread-safe)
-                lock.withLock { bar.stepBy(5000) }
             }
+            lock.withLock { bar.stepBy(5000) }
 
         }
 
