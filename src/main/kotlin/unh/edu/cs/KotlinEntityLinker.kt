@@ -118,14 +118,9 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
         bar.start()
         val lock = ReentrantLock()
 
-        (0 until totalDocs)
-            .chunked(1000)
-            .forEachParallel { chunk ->
-                var total = AtomicInteger(0)
-                chunk.forEach { docId ->
+        (0 until totalDocs).forEachParallel { docId ->
                     val doc = indexSearcher.doc(docId)
                     val entities = queryServer(doc.get(CONTENT))
-                    if (entities.isNotEmpty()) { total.incrementAndGet() }
 
                     // Only attempt to annotate paragraph if there are no entities already
                     if (doc.getValues("spotlight").isEmpty()) {
@@ -134,10 +129,8 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
                         }
                     }
 
-                }
                 // Update progress bar (have to make sure it's thread-safe)
-                println(total.get())
-                lock.withLock { bar.stepBy(1000) }
+                lock.withLock { bar.stepBy(1) }
 
         }
 
