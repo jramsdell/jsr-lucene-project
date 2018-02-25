@@ -160,7 +160,7 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
     }
 
     fun train() {
-        rescore()
-//        doTrain()
+//        rescore()
+        doTrain()
     }
 }
