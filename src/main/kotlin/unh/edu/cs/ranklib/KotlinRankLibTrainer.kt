@@ -155,12 +155,13 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
 
     fun doTrain() {
         ranklibFormatter.addFeature(this::bm25, normType = NormType.NONE)
-        ranklibFormatter.addFeature({query, tops ->
-            addStringDistanceFunction(query, tops, JaroWinkler())}, normType = NormType.NONE)
-
-        ranklibFormatter.addFeature({query, tops ->
-            addStringDistanceFunction(query, tops, Jaccard() )}, normType = NormType.NONE)
-        ranklibFormatter.addFeature(this::addAverageQueryScore, normType = NormType.NONE)
+//        ranklibFormatter.addFeature({query, tops ->
+//            addStringDistanceFunction(query, tops, JaroWinkler())}, normType = NormType.NONE)
+//
+//        ranklibFormatter.addFeature({query, tops ->
+//            addStringDistanceFunction(query, tops, Jaccard() )}, normType = NormType.NONE)
+//        ranklibFormatter.addFeature(this::addAverageQueryScore, normType = NormType.NONE)
+        ranklibFormatter.addFeature(this::addEntityQueries, normType = NormType.NONE)
 //        ranklibFormatter.addFeature(this::addScoreMixtureSims, name = "mixtures")
 
 //        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 0) })
