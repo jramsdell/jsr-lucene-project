@@ -29,7 +29,7 @@ class KotlinSpotlightRunner(private val serverLocation: String) {
 //        process = Runtime.getRuntime().exec("java -jar $serverLocation/spotlight.jar " +
 //                "$serverLocation/en_2+2/ http://localhost:9310/jsr-spotlight")
         processBuilder = ProcessBuilder("java -jar $serverLocation/spotlight.jar " +
-                "$serverLocation/en_2+2/ http://localhost:9310/jsr-spotlight")
+                "$serverLocation/en_2+2/ http://localhost:9310/jsr-spotlight".split(" "))
 //        processBuilder.redirectOutput(File("/dev/null"))
 //            .redirectErrorStream(true)
         process = processBuilder.start()
