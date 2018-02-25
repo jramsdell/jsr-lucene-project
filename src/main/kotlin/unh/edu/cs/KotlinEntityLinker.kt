@@ -75,6 +75,7 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
               try { entities = retrieveEntities(content); break
             } catch (e: SocketTimeoutException) { Thread.sleep(ThreadLocalRandom.current().nextLong(500))
             } catch (e: ConnectException) { Thread.sleep(ThreadLocalRandom.current().nextLong(500))}
+            print(i)
         }
         return entities
     }
@@ -124,8 +125,6 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
                     val doc = indexSearcher.doc(docId)
                     val entities = queryServer(doc.get(CONTENT))
                     if (entities.isNotEmpty()) { println(entities.size) }
-                    println(doc.get(CONTENT))
-                    println(entities.joinToString(separator = ","))
 
                     // Only attempt to annotate paragraph if there are no entities already
                     if (doc.getValues("spotlight").isEmpty()) {
