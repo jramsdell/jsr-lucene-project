@@ -13,7 +13,7 @@ data class ParagraphContainer(val pid: String, val qid: Int,
                               val docId: Int, var score:Double = 0.0) {
 
     override fun toString(): String =
-            "${if (isRelevant) 1 else 0} qid:$qid " +
+            "${if (isRelevant) 1 else 0} qid:0 " +
                     (1..features.size).zip(features)
                     .joinToString(separator = " ") { (id,feat) -> "$id:$feat" }
 
