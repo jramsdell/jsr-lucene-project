@@ -58,18 +58,16 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
 
     fun addEntityQueries(query: String, tops: TopDocs): List<Double> {
         val replaceNumbers = """(\d+|enwiki:)""".toRegex()
-        val termQueries = query
+        val entityQuery = query
             .replace(replaceNumbers, "")
             .run { queryRetriever.createTokenSequence(this) }
-            .map { token -> TermQuery(Term(CONTENT, token))}
-            .map { termQuery -> BooleanQuery.Builder().add(termQuery, BooleanClause.Occur.SHOULD).build()}
-            .toList()
+            .map { token -> TermQuery(Term("spotlight", token))}
+            .fold(BooleanQuery.Builder()) { builder, termQuery ->
+                builder.add(termQuery, BooleanClause.Occur.SHOULD) }
+            .build()
 
         return tops.scoreDocs.map { scoreDoc ->
-            termQueries.map { booleanQuery ->
-                indexSearcher.explain(booleanQuery, scoreDoc.doc).value.toDouble() }
-                .average()
-        }
+                indexSearcher.explain(entityQuery, scoreDoc.doc).value.toDouble() }
     }
 
     fun sectionSplit(query: String, tops: TopDocs, secIndex: Int): List<Double> {
