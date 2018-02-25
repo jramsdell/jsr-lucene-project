@@ -165,15 +165,15 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
     }
 
     fun rescore() {
-        ranklibFormatter.addFeature(this::bm25, weight = 0.72954024466881)
+        ranklibFormatter.addFeature(this::bm25, name = "bm25", weight = 0.72954024466881)
         ranklibFormatter.addFeature({query, tops ->
-            addStringDistanceFunction(query, tops, JaroWinkler() )}, weight = 0.04743997)
+            addStringDistanceFunction(query, tops, JaroWinkler() )}, name = "jaro_winkler", weight = 0.04743997)
 
         ranklibFormatter.addFeature({query, tops ->
-            addStringDistanceFunction(query, tops, Jaccard() )}, weight = 0.023103116067)
+            addStringDistanceFunction(query, tops, Jaccard() )}, name = "jaccard", weight = 0.023103116067)
 
-        ranklibFormatter.addFeature(this::addAverageQueryScore, weight = -0.19821227474)
-        ranklibFormatter.addFeature(this::addScoreMixtureSims, weight = 0.0014976)
+        ranklibFormatter.addFeature(this::addAverageQueryScore, name = "average_query", weight = -0.19821227474)
+        ranklibFormatter.addFeature(this::addScoreMixtureSims, name = "mixture", weight = 0.0014976)
         ranklibFormatter.queryContainers.forEach { queryContainer ->
             queryContainer.paragraphs.map { it.score = it.features.sumByDouble(this::sanitizeDouble); it }
                 .sortedByDescending { it.score }
@@ -187,33 +187,21 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 
     }
 
+    fun doTrain() {
+        ranklibFormatter.addFeature(this::bm25, name = "bm25")
+        ranklibFormatter.addFeature({query, tops ->
+            addStringDistanceFunction(query, tops, JaroWinkler())}, name = "jaro_winkler")
+
+        ranklibFormatter.addFeature({query, tops ->
+            addStringDistanceFunction(query, tops, Jaccard() )}, name = "jaccard")
+        ranklibFormatter.addFeature(this::addAverageQueryScore, name = "average_query")
+//        ranklibFormatter.addFeature(this::addScoreMixtureSims, name = "mixtures")
+        ranklibFormatter.writeToRankLibFile("mytestlib.txt")
+
+    }
+
     fun train() {
-        rescore()
-////        ranklibFormatter.addFeature({query, tops ->
-////            addStringDistanceFunction(query, tops, NormalizedLevenshtein() )})
-////
-////        ranklibFormatter.addFeature({query, tops ->
-////            addStringDistanceFunction(query, tops, SorensenDice() )})
-//
-//        ranklibFormatter.addFeature(this::bm25)
-//        ranklibFormatter.addFeature({query, tops ->
-//            addStringDistanceFunction(query, tops, JaroWinkler() )})
-//
-//        ranklibFormatter.addFeature({query, tops ->
-//            addStringDistanceFunction(query, tops, Jaccard() )})
-//
-////        ranklibFormatter.addFeature({query, tops ->
-////            sectionSplit(query, tops, 0 )})
-////        ranklibFormatter.addFeature({query, tops ->
-////            sectionSplit(query, tops, 1 )})
-////        ranklibFormatter.addFeature({query, tops ->
-////            sectionSplit(query, tops, 2 )})
-////        ranklibFormatter.addFeature({query, tops ->
-////            sectionSplit(query, tops, 3 )})
-//        ranklibFormatter.addFeature(this::addAverageQueryScore)
-////        normalizeFeatures()
-//        ranklibFormatter.addFeature(this::addScoreMixtureSims)
-//        ranklibFormatter.writeToRankLibFile("mytestlib.txt")
-////        queryRetriever.writeQueriesToFile(queries)
+//        rescore()
+        doTrain()
     }
 }
