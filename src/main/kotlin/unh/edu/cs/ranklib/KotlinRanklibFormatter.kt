@@ -17,7 +17,7 @@ data class ParagraphContainer(val pid: String, val qid: Int,
     override fun toString(): String =
             "${if (isRelevant) 1 else 0} qid:$qid " +
                     (1..features.size).zip(features)
-                    .joinToString(separator = " ") { (id,feat) -> "$id:${trans.getOrDefault(id, "wee")}" }
+                    .joinToString(separator = " ") { (id,feat) -> "${trans.getOrDefault(id, "wee")}:$feat" }
 
 }
 
