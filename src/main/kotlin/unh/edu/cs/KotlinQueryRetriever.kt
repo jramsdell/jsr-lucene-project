@@ -31,30 +31,34 @@ class QueryRetriever(val indexSearcher: IndexSearcher) {
     fun createQueryString(page: Data.Page, sectionPath: List<Data.Section>): String =
             page.pageName + sectionPath.joinToString { section -> " " + section.heading  }
 
-
     /**
-     * Class: createQuery
-     * Description: Given a query string, will create a boolean query by breaking it into tokens.
-     * @return BooleanQuery: (tokens joined with OR clauses)
+     * Class: createTokenSequence
+     * Description: Given a query string, tokenizes it and returns a sequence of String tokens
+     * @return Sequence<String>
      */
-    fun createQuery(query: String): BooleanQuery {
+    fun createTokenSequence(query: String): Sequence<String> {
         val tokenStream = analyzer.tokenStream("text", StringReader(query)).apply { reset() }
 
-        val streamSeq = buildSequence<String> {
+        return buildSequence<String> {
             while (tokenStream.incrementToken()) {
                 yield(tokenStream.getAttribute(CharTermAttribute::class.java).toString())
             }
             tokenStream.end()
             tokenStream.close()
         }
-
-        return streamSeq
-            .map { token -> TermQuery(Term("text", token)) }
-            .fold(BooleanQuery.Builder(), { acc, termQuery ->
-                acc.add(termQuery, BooleanClause.Occur.SHOULD)
-            })
-            .build()
     }
+
+    /**
+     * Class: createQuery
+     * Description: Given a query string, will create a boolean query by breaking it into tokens.
+     * @return BooleanQuery: (tokens joined with OR clauses)
+     */
+    fun createQuery(query: String): BooleanQuery =
+            createTokenSequence(query)
+                .map { token -> TermQuery(Term("text", token)) }
+                .fold(BooleanQuery.Builder(), { acc, termQuery ->
+                    acc.add(termQuery, BooleanClause.Occur.SHOULD) })
+                .build()
 
     /**
      * Function: getPageQueries
