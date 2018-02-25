@@ -75,7 +75,6 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
               try { entities = retrieveEntities(content); break
             } catch (e: SocketTimeoutException) { Thread.sleep(ThreadLocalRandom.current().nextLong(500))
             } catch (e: ConnectException) { Thread.sleep(ThreadLocalRandom.current().nextLong(500))}
-            println(content)
         }
         return entities
     }
@@ -107,24 +106,23 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
     fun run() {
         // Give a moment for server to warm up and keep poking it until it's ready to accept connections
         println("Waiting for server to get ready")
-        server.process.waitFor(10, TimeUnit.SECONDS)
+        server.process.waitFor(15, TimeUnit.SECONDS)
         keepPokingServer()
 
         // Set up progress bar and begin iterating over Lucene index documents
         val totalDocs = indexSearcher.indexReader.maxDoc()
         println("Indexing a total of $totalDocs documents")
-//        val bar = ProgressBar("Documents Linked", totalDocs.toLong(),
-//                ProgressBarStyle.ASCII)
-//        bar.start()
+        val bar = ProgressBar("Documents Linked", totalDocs.toLong(),
+                ProgressBarStyle.ASCII)
+        bar.start()
         val lock = ReentrantLock()
 
         (0 until totalDocs)
             .chunked(1000)
             .forEach { chunk ->
-                chunk.forEach { docId ->
+                chunk.forEachParallel { docId ->
                     val doc = indexSearcher.doc(docId)
                     val entities = queryServer(doc.get(CONTENT))
-                    if (entities.isNotEmpty()) { println(entities.size) }
 
                     // Only attempt to annotate paragraph if there are no entities already
                     if (doc.getValues("spotlight").isEmpty()) {
@@ -134,12 +132,12 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
                     }
 
                     // Update progress bar (have to make sure it's thread-safe)
-//                    lock.withLock { bar.stepBy(1000) }
+                    lock.withLock { bar.stepBy(1000) }
                 }
 
         }
 
-//        bar.stop()
+        bar.stop()
         println("Finished annotating index!")
     }
 }
