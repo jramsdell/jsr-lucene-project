@@ -165,15 +165,15 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
     }
 
     fun rescore() {
-        ranklibFormatter.addFeature(this::bm25, weight = 0.69571)
+        ranklibFormatter.addFeature(this::bm25, weight = 0.72954024466881)
         ranklibFormatter.addFeature({query, tops ->
-            addStringDistanceFunction(query, tops, JaroWinkler() )}, weight = 0.0311469)
+            addStringDistanceFunction(query, tops, JaroWinkler() )}, weight = 0.04743997)
 
         ranklibFormatter.addFeature({query, tops ->
-            addStringDistanceFunction(query, tops, Jaccard() )}, weight = 0.06929)
+            addStringDistanceFunction(query, tops, Jaccard() )}, weight = 0.023103116067)
 
-        ranklibFormatter.addFeature(this::addAverageQueryScore, weight = -0.171908)
-        ranklibFormatter.addFeature(this::addScoreMixtureSims, weight = 0.031944)
+        ranklibFormatter.addFeature(this::addAverageQueryScore, weight = -0.19821227474)
+        ranklibFormatter.addFeature(this::addScoreMixtureSims, weight = 0.0014976)
         ranklibFormatter.queryContainers.forEach { queryContainer ->
             queryContainer.paragraphs.map { it.score = it.features.sumByDouble(this::sanitizeDouble); it }
                 .sortedByDescending { it.score }
