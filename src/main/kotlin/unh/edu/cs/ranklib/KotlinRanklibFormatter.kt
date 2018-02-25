@@ -49,7 +49,9 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
     fun normalizeResults(values: List<Double>): List<Double> {
         val mean = values.average()
         val std = Math.sqrt(values.sumByDouble { Math.pow(it - mean, 2.0) })
-        return values.map { (it - mean)/std }
+        return values.map { ((it - mean)/std).run{
+            if (this == Double.NaN) 0.0 else this
+        } }
     }
 
     fun addFeature(f: (String, TopDocs) -> List<Double>, weight:Double = 1.0, normalize: Boolean = true) {
