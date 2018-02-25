@@ -107,7 +107,7 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
     fun run() {
         // Give a moment for server to warm up and keep poking it until it's ready to accept connections
         println("Waiting for server to get ready")
-        server.process.waitFor(5, TimeUnit.SECONDS)
+//        server.process.waitFor(5, TimeUnit.SECONDS)
         keepPokingServer()
 
         // Set up progress bar and begin iterating over Lucene index documents

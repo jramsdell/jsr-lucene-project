@@ -18,17 +18,25 @@ import java.net.URL
  * will download them remotely first.
  */
 class KotlinSpotlightRunner(private val serverLocation: String) {
+//    val process: Process
+    val processBuilder: ProcessBuilder
     val process: Process
 
     init {
         beginDownloads()
 
         // run server
-        process = Runtime.getRuntime().exec("java -jar $serverLocation/spotlight.jar " +
+//        process = Runtime.getRuntime().exec("java -jar $serverLocation/spotlight.jar " +
+//                "$serverLocation/en_2+2/ http://localhost:9310/jsr-spotlight")
+        processBuilder = ProcessBuilder("java -jar $serverLocation/spotlight.jar " +
                 "$serverLocation/en_2+2/ http://localhost:9310/jsr-spotlight")
+        processBuilder.redirectOutput(File("NUL"))
+            .redirectErrorStream(true)
+        process = processBuilder.start()
 
         // Ensure process is destroyed when we terminate the JVM
         Runtime.getRuntime().addShutdownHook(Thread {
+//            process.destroy()
             process.destroy()
         })
 
