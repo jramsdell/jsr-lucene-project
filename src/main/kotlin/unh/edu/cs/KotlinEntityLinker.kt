@@ -122,11 +122,7 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String, val corpusFil
 
         val file = File(corpusFile).inputStream()
 
-        DeserializeData.iterableParagraphs(file).forEachParallel { page ->
-            val text = page.getTextOnly()
-            val entities = queryServer(text)
-            lock.withLock { bar.step() }
-        }
+        println("Count: ${DeserializeData.iterableParagraphs(file).count()}")
 //        Iterable<Data.Paragraph> ip = DeserializeData.iterableParagraphs(fStream);
 
 //        (0 until totalDocs).chunked(5000).forEach { chunk ->
