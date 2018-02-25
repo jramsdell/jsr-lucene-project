@@ -161,10 +161,11 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 
     }
     fun sanitizeDouble(d: Double): Double {
-        return when (d) {
-            Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY -> 0.0
-            else -> d
-        }
+        return if (d.isInfinite() || d.isNaN()) 0.0 else d
+//        return when (d) {
+//            Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY -> 0.0
+//            else -> d
+//        }
     }
 
     fun rescore() {
