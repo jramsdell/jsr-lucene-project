@@ -76,8 +76,6 @@ public class Main {
                 .help("Path to directory where dbpedia spotlight server and model are located. If none exists, " +
                         "linker will automatically download the server and model to the given location.");
 
-        linkerParser.addArgument("corpus")
-                .help("corupus location");
 
         // Graph Builder
         Subparser graphBuilderParser = subparsers.addParser("graph_builder")
@@ -87,6 +85,20 @@ public class Main {
         graphBuilderParser.addArgument("index")
                 .help("Location of the Lucene index directory");
 
+        // Ranklib Trainer
+        Subparser ranklibQueryParser = subparsers.addParser("ranklib_query")
+                .setDefault("func", new Exec(Main::runRanklibTrainer))
+                .help("Runs queries using ranklib trained methods.");
+
+        ranklibQueryParser.addArgument("method")
+                .choices("bm25", "entity_similarity", "average_query", "split_sections", "mixtures", "combined");
+
+        ranklibQueryParser.addArgument("index").help("Location of Lucene index directory.");
+        ranklibQueryParser.addArgument("query").help("Location of query file (.cbor)");
+        ranklibQueryParser.addArgument("qrel").help("Location of query relevancy file (.qrels)");
+        ranklibQueryParser.addArgument("--graph_database")
+                .setDefault("")
+                .help("(only used for mixtures method): Location of graph_database.db file.");
 
         // Ranklib Trainer
         Subparser ranklibTrainerParser = subparsers.addParser("ranklib_trainer")
@@ -142,9 +154,8 @@ public class Main {
     private static void runLinker(Namespace namespace) {
         String indexLocation = namespace.getString("index");
         String serverLocation = namespace.getString("server_location");
-        String corpus = namespace.getString("corpus");
         KotlinEntityLinker linker =
-                new KotlinEntityLinker(indexLocation, serverLocation, corpus);
+                new KotlinEntityLinker(indexLocation, serverLocation);
         linker.run();
     }
 
@@ -155,6 +166,16 @@ public class Main {
     }
 
     private static void runRanklibTrainer(Namespace namespace) {
+        String indexLocation = namespace.getString("index");
+        String qrelLocation = namespace.getString("qrel");
+        String queryLocation = namespace.getString("query");
+        String graphLocation = namespace.getString("graph_database");
+        KotlinRankLibTrainer kotTrainer =
+                new KotlinRankLibTrainer(indexLocation, queryLocation, qrelLocation, graphLocation);
+        kotTrainer.train();
+    }
+
+    private static void runRanklibQuery(Namespace namespace) {
         String indexLocation = namespace.getString("index");
         String qrelLocation = namespace.getString("qrel");
         String queryLocation = namespace.getString("query");

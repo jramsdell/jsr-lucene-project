@@ -92,9 +92,6 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
             }
     }
 
-    fun bm25(query: String, tops:TopDocs): List<Double> {
-        return tops.scoreDocs.map { it.score.toDouble() }
-    }
 
     fun addScoreMixtureSims(query: String, tops:TopDocs): List<Double> {
         val sinks = HashMap<String, Double>()
@@ -114,12 +111,42 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
             .toList()
     }
 
+    fun queryStandard() {
+
+    }
+
+    fun querySimilarity() {
+    }
+
+    fun queryAverage() {
+    }
+
+    fun querySplit() {
+    }
+
+    fun queryMixtures() {
+    }
+
+    fun queryCombined() {
+    }
+
+    fun runRanklibQuery(method: String) {
+        when (method) {
+            "bm25" -> queryStandard()
+            "entity_similarity" -> querySimilarity()
+            "average_query" -> queryAverage()
+            "split_sections" -> querySplit()
+            "mixtures" -> queryMixtures()
+            "combined" -> queryCombined()
+            else -> println("Unknown method!")
+        }
+    }
 
 
 
     fun rescore() {
         val weights = listOf(0.075174, 0.24885699, 0.554, 0.1219)
-        ranklibFormatter.addFeature(this::bm25, weight = weights[0], normType = NormType.NONE)
+        ranklibFormatter.addBM25(weight = weights[0], normType = NormType.NONE)
         ranklibFormatter.addFeature({query, tops ->
             addStringDistanceFunction(query, tops, JaroWinkler() )}, weight = weights[1], normType = NormType.NONE)
 
@@ -154,14 +181,14 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
     }
 
     fun doTrain() {
-        ranklibFormatter.addFeature(this::bm25, normType = NormType.NONE)
-//        ranklibFormatter.addFeature({query, tops ->
-//            addStringDistanceFunction(query, tops, JaroWinkler())}, normType = NormType.NONE)
-//
-//        ranklibFormatter.addFeature({query, tops ->
-//            addStringDistanceFunction(query, tops, Jaccard() )}, normType = NormType.NONE)
+        ranklibFormatter.addBM25(weight = 1.0, normType = NormType.ZSCORE)
+        ranklibFormatter.addFeature({query, tops ->
+            addStringDistanceFunction(query, tops, JaroWinkler())}, normType = NormType.ZSCORE)
+        ranklibFormatter.addFeature({query, tops ->
+            addStringDistanceFunction(query, tops, Jaccard() )}, normType = NormType.ZSCORE)
+
 //        ranklibFormatter.addFeature(this::addAverageQueryScore, normType = NormType.NONE)
-        ranklibFormatter.addFeature(this::addEntityQueries, normType = NormType.NONE)
+//        ranklibFormatter.addFeature(this::addEntityQueries, normType = NormType.NONE)
 //        ranklibFormatter.addFeature(this::addScoreMixtureSims, name = "mixtures")
 
 //        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 0) })

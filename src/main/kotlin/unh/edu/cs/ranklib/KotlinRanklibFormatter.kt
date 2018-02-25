@@ -92,6 +92,13 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
         return if (d.isInfinite() || d.isNaN()) 0.0 else d
     }
 
+    private fun bm25(query: String, tops:TopDocs): List<Double> {
+        return tops.scoreDocs.map { it.score.toDouble() }
+    }
+
+    fun addBM25(weight: Double = 1.0, normType: NormType = NormType.NONE) =
+            addFeature(this::bm25, weight = weight, normType = normType)
+
     fun rerankQueries() =
         queryContainers.forEach { queryContainer ->
             queryContainer.paragraphs.map { it.score = it.features.sumByDouble(this::sanitizeDouble); it }

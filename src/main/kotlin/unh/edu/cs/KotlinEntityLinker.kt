@@ -28,7 +28,7 @@ import kotlin.concurrent.withLock
  * Description: Queries spotlight server with string and retrieve list of linked entities.
  * @return List of linked entities (strings). Empty if no entities were linked or if errors were encountered.
  */
-class KotlinEntityLinker(indexLoc: String, serverLocation: String, val corpusFile: String) {
+class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
     val url = "http://localhost:9310/jsr-spotlight/annotate"        // Hardcoded url to local server
 
     // Opens up a new index searcher using the directory given to us as an argument
@@ -120,28 +120,24 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String, val corpusFil
         bar.start()
         val lock = ReentrantLock()
 
-        val file = File(corpusFile).inputStream()
 
-        println("Count: ${DeserializeData.iterableParagraphs(file).count()}")
-//        Iterable<Data.Paragraph> ip = DeserializeData.iterableParagraphs(fStream);
+        (0 until totalDocs).chunked(5000).forEach { chunk ->
+            chunk.forEachParallel { docId ->
+                val doc = indexSearcher.doc(docId)
+                val entities = queryServer(doc.get(CONTENT))
 
-//        (0 until totalDocs).chunked(5000).forEach { chunk ->
-//            chunk.forEachParallel { docId ->
-//                val doc = indexSearcher.doc(docId)
-//                val entities = queryServer(doc.get(CONTENT))
-//
-//                // Only attempt to annotate paragraph if there are no entities already
-//                if (doc.getValues("spotlight").isEmpty()) {
-//                    entities.forEach { entity ->
-//                        doc.add(StringField("spotlight", entity, Field.Store.YES))
-//                    }
-//                }
-//
-//                // Update progress bar (have to make sure it's thread-safe)
-//            }
-//            lock.withLock { bar.stepBy(5000) }
-//
-//        }
+                // Only attempt to annotate paragraph if there are no entities already
+                if (doc.getValues("spotlight").isEmpty()) {
+                    entities.forEach { entity ->
+                        doc.add(StringField("spotlight", entity, Field.Store.YES))
+                    }
+                }
+
+                // Update progress bar (have to make sure it's thread-safe)
+            }
+            lock.withLock { bar.stepBy(5000) }
+
+        }
 
 //        (0 until totalDocs).chunked(5000).forEachParallel { docId ->
 //            val doc = indexSearcher.doc(docId)
