@@ -49,12 +49,12 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
     }
 
     fun addAverageQueryScore(query: String, tops: TopDocs): List<Double> {
-        val replaceNumbers = """(\d+)""".toRegex()
+        val replaceNumbers = """(\d+|enwiki:)""".toRegex()
         val termQueries = query
             .replace(replaceNumbers, "")
             .run { queryRetriever.createTokenSequence(this) }
-            .map { TermQuery(Term(CONTENT, it))}
-            .map { BooleanQuery.Builder().add(it, BooleanClause.Occur.SHOULD).build()}
+            .map { token -> TermQuery(Term(CONTENT, token))}
+            .map { termQuery -> BooleanQuery.Builder().add(termQuery, BooleanClause.Occur.SHOULD).build()}
         queryRetriever.createQuery(query)
 
         return tops.scoreDocs
