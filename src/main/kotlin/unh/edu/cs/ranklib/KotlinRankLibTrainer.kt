@@ -162,10 +162,6 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
     }
     fun sanitizeDouble(d: Double): Double {
         return if (d.isInfinite() || d.isNaN()) 0.0 else d
-//        return when (d) {
-//            Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY -> 0.0
-//            else -> d
-//        }
     }
 
     fun rescore() {
@@ -192,32 +188,32 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
     }
 
     fun train() {
-        rescore()
-////        ranklibFormatter.addFeature({query, tops ->
-////            addStringDistanceFunction(query, tops, NormalizedLevenshtein() )})
-////
-////        ranklibFormatter.addFeature({query, tops ->
-////            addStringDistanceFunction(query, tops, SorensenDice() )})
-//
-//        ranklibFormatter.addFeature(this::bm25)
+//        rescore()
 //        ranklibFormatter.addFeature({query, tops ->
-//            addStringDistanceFunction(query, tops, JaroWinkler() )})
+//            addStringDistanceFunction(query, tops, NormalizedLevenshtein() )})
 //
 //        ranklibFormatter.addFeature({query, tops ->
-//            addStringDistanceFunction(query, tops, Jaccard() )})
-//
-////        ranklibFormatter.addFeature({query, tops ->
-////            sectionSplit(query, tops, 0 )})
-////        ranklibFormatter.addFeature({query, tops ->
-////            sectionSplit(query, tops, 1 )})
-////        ranklibFormatter.addFeature({query, tops ->
-////            sectionSplit(query, tops, 2 )})
-////        ranklibFormatter.addFeature({query, tops ->
-////            sectionSplit(query, tops, 3 )})
-//        ranklibFormatter.addFeature(this::addAverageQueryScore)
-////        normalizeFeatures()
-////        ranklibFormatter.addFeature(this::addScoreMixtureSims)
-//        ranklibFormatter.writeToRankLibFile("mytestlib.txt")
-////        queryRetriever.writeQueriesToFile(queries)
+//            addStringDistanceFunction(query, tops, SorensenDice() )})
+
+        ranklibFormatter.addFeature(this::bm25)
+        ranklibFormatter.addFeature({query, tops ->
+            addStringDistanceFunction(query, tops, JaroWinkler() )})
+
+        ranklibFormatter.addFeature({query, tops ->
+            addStringDistanceFunction(query, tops, Jaccard() )})
+
+//        ranklibFormatter.addFeature({query, tops ->
+//            sectionSplit(query, tops, 0 )})
+//        ranklibFormatter.addFeature({query, tops ->
+//            sectionSplit(query, tops, 1 )})
+//        ranklibFormatter.addFeature({query, tops ->
+//            sectionSplit(query, tops, 2 )})
+//        ranklibFormatter.addFeature({query, tops ->
+//            sectionSplit(query, tops, 3 )})
+        ranklibFormatter.addFeature(this::addAverageQueryScore)
+//        normalizeFeatures()
+        ranklibFormatter.addFeature(this::addScoreMixtureSims)
+        ranklibFormatter.writeToRankLibFile("mytestlib.txt")
+//        queryRetriever.writeQueriesToFile(queries)
     }
 }
