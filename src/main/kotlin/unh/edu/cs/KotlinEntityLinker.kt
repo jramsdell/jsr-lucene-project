@@ -14,6 +14,7 @@ import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.nio.file.Paths
 import java.util.*
+import java.util.concurrent.ThreadLocalRandom
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -71,11 +72,9 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
 
         // Try three times to query server before giving up
         for (i in (0..3)) {
-            try {
-                entities = retrieveEntities(content)
-                break
-            } catch (e: SocketTimeoutException) { Thread.sleep(2000)
-            } catch (e: ConnectException) { Thread.sleep(2000) }
+              try { entities = retrieveEntities(content); break
+            } catch (e: SocketTimeoutException) { Thread.sleep(ThreadLocalRandom.current().nextLong(2000))
+            } catch (e: ConnectException) { Thread.sleep(ThreadLocalRandom.current().nextLong(2000))}
         }
         return entities
     }
