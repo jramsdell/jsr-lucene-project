@@ -76,6 +76,9 @@ public class Main {
                 .help("Path to directory where dbpedia spotlight server and model are located. If none exists, " +
                         "linker will automatically download the server and model to the given location.");
 
+        linkerParser.addArgument("corpus")
+                .help("corupus location");
+
         // Graph Builder
         Subparser graphBuilderParser = subparsers.addParser("graph_builder")
                 .setDefault("func", new Exec(Main::runGraphBuilder))
@@ -139,8 +142,9 @@ public class Main {
     private static void runLinker(Namespace namespace) {
         String indexLocation = namespace.getString("index");
         String serverLocation = namespace.getString("server_location");
+        String corpus = namespace.getString("corpus");
         KotlinEntityLinker linker =
-                new KotlinEntityLinker(indexLocation, serverLocation);
+                new KotlinEntityLinker(indexLocation, serverLocation, corpus);
         linker.run();
     }
 

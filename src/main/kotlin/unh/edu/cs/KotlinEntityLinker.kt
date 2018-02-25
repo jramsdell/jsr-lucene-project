@@ -1,6 +1,7 @@
 @file:JvmName("KotEntityLinker")
 package unh.edu.cs
 
+import edu.unh.cs.treccar_v2.read_data.DeserializeData
 import me.tongfei.progressbar.ProgressBar
 import me.tongfei.progressbar.ProgressBarStyle
 import org.apache.lucene.document.Field
@@ -10,6 +11,7 @@ import org.apache.lucene.search.IndexSearcher
 import org.apache.lucene.store.FSDirectory
 import org.jsoup.Jsoup
 import org.jsoup.select.Elements
+import java.io.File
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.nio.file.Paths
@@ -26,7 +28,7 @@ import kotlin.concurrent.withLock
  * Description: Queries spotlight server with string and retrieve list of linked entities.
  * @return List of linked entities (strings). Empty if no entities were linked or if errors were encountered.
  */
-class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
+class KotlinEntityLinker(indexLoc: String, serverLocation: String, val corpusFile: String) {
     val url = "http://localhost:9310/jsr-spotlight/annotate"        // Hardcoded url to local server
 
     // Opens up a new index searcher using the directory given to us as an argument
@@ -118,23 +120,32 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
         bar.start()
         val lock = ReentrantLock()
 
-        (0 until totalDocs).chunked(5000).forEach { chunk ->
-            chunk.forEachParallel { docId ->
-                val doc = indexSearcher.doc(docId)
-                val entities = queryServer(doc.get(CONTENT))
+        val file = File(corpusFile).inputStream()
 
-                // Only attempt to annotate paragraph if there are no entities already
-                if (doc.getValues("spotlight").isEmpty()) {
-                    entities.forEach { entity ->
-                        doc.add(StringField("spotlight", entity, Field.Store.YES))
-                    }
-                }
-
-                // Update progress bar (have to make sure it's thread-safe)
-            }
-            lock.withLock { bar.stepBy(5000) }
-
+        DeserializeData.iterableParagraphs(file).forEachParallel { page ->
+            val text = page.getTextOnly()
+            val entities = queryServer(text)
+            lock.withLock { bar.step() }
         }
+//        Iterable<Data.Paragraph> ip = DeserializeData.iterableParagraphs(fStream);
+
+//        (0 until totalDocs).chunked(5000).forEach { chunk ->
+//            chunk.forEachParallel { docId ->
+//                val doc = indexSearcher.doc(docId)
+//                val entities = queryServer(doc.get(CONTENT))
+//
+//                // Only attempt to annotate paragraph if there are no entities already
+//                if (doc.getValues("spotlight").isEmpty()) {
+//                    entities.forEach { entity ->
+//                        doc.add(StringField("spotlight", entity, Field.Store.YES))
+//                    }
+//                }
+//
+//                // Update progress bar (have to make sure it's thread-safe)
+//            }
+//            lock.withLock { bar.stepBy(5000) }
+//
+//        }
 
 //        (0 until totalDocs).chunked(5000).forEachParallel { docId ->
 //            val doc = indexSearcher.doc(docId)
