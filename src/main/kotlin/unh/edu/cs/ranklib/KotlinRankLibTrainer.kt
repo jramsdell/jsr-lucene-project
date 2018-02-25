@@ -169,8 +169,8 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 
     fun rescore() {
         ranklibFormatter.addFeature(this::bm25, weight = 0.81314951)
-        ranklibFormatter.addFeature({query, tops ->
-            addStringDistanceFunction(query, tops, JaroWinkler() )}, weight = 0.083779)
+//        ranklibFormatter.addFeature({query, tops ->
+//            addStringDistanceFunction(query, tops, JaroWinkler() )}, weight = 0.083779)
 
 //        ranklibFormatter.addFeature({query, tops ->
 //            addStringDistanceFunction(query, tops, Jaccard() )}, weight = 0)
