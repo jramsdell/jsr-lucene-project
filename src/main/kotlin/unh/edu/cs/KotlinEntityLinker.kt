@@ -125,7 +125,7 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
                 chunk.forEachParallel { docId ->
                     val doc = indexSearcher.doc(docId)
                     val entities = queryServer(doc.get(CONTENT))
-                    total.addAndGet(entities.size)
+                    if (entities.isNotEmpty()) { total.incrementAndGet() }
 
                     // Only attempt to annotate paragraph if there are no entities already
                     if (doc.getValues("spotlight").isEmpty()) {
