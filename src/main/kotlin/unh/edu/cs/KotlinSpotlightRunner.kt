@@ -26,19 +26,16 @@ class KotlinSpotlightRunner(private val serverLocation: String) {
         beginDownloads()
 
         // run server
-//        process = Runtime.getRuntime().exec("java -jar $serverLocation/spotlight.jar " +
-//                "$serverLocation/en_2+2/ http://localhost:9310/jsr-spotlight")
         processBuilder = ProcessBuilder("java", "-jar", "$serverLocation/spotlight.jar",
                 "$serverLocation/en_2+2/", "http://localhost:9310/jsr-spotlight")
-//        processBuilder = ProcessBuilder("java -jar $serverLocation/spotlight.jar " +
-//                "$serverLocation/en_2+2/ http://localhost:9310/jsr-spotlight".split(" "))
+
+        // Gotta eat the process's output, otherwise it seems to stall when the buffer's full
         processBuilder.redirectOutput(File("/dev/null"))
             .redirectErrorStream(true)
         process = processBuilder.start()
 
         // Ensure process is destroyed when we terminate the JVM
         Runtime.getRuntime().addShutdownHook(Thread {
-//            process.destroy()
             process.destroy()
         })
 
