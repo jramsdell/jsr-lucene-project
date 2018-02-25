@@ -14,7 +14,7 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
             : this(getIndexSearcher(indexPath), queryPath, qrelPath, graphPath)
 
     val db = KotlinDatabase(graphPath)
-    val graphAnalyzer = KotlinGraphAnalyzer(indexSearcher, db)
+    val graphAnalyzer = if (graphPath == "") null else KotlinGraphAnalyzer(indexSearcher, db)
     val queryRetriever = QueryRetriever(indexSearcher)
     val queries = queryRetriever.getSectionQueries(queryPath)
     val ranklibFormatter = KotlinRanklibFormatter(queries, qrelPath, indexSearcher)
@@ -95,7 +95,7 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
 
     fun addScoreMixtureSims(query: String, tops:TopDocs): List<Double> {
         val sinks = HashMap<String, Double>()
-        val mixtures = graphAnalyzer.getMixtures(tops)
+        val mixtures = graphAnalyzer!!.getMixtures(tops)
 
         mixtures.forEach { pm ->
             pm.mixture.forEach { entity, probability ->
@@ -116,18 +116,29 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
     }
 
     fun querySimilarity() {
+        ranklibFormatter.addBM25(weight = 0.884669653, normType = NormType.ZSCORE)
+        ranklibFormatter.addFeature({query, tops ->
+            addStringDistanceFunction(query, tops, JaroWinkler())}, weight = -0.001055, normType = NormType.ZSCORE)
+        ranklibFormatter.addFeature({query, tops ->
+            addStringDistanceFunction(query, tops, Jaccard() )}, weight = 0.11427, normType = NormType.ZSCORE)
+        ranklibFormatter.rerankQueries()
+        queryRetriever.writeQueriesToFile(queries)
     }
 
-    fun queryAverage() {
+    private fun queryAverage() {
     }
 
-    fun querySplit() {
+    private fun querySplit() {
     }
 
-    fun queryMixtures() {
+    private fun queryMixtures() {
+        if (graphAnalyzer == null) {
+            println("You must supply a --graph_database location for this method!")
+            return
+        }
     }
 
-    fun queryCombined() {
+    private fun queryCombined() {
     }
 
     fun runRanklibQuery(method: String) {

@@ -87,7 +87,7 @@ public class Main {
 
         // Ranklib Trainer
         Subparser ranklibQueryParser = subparsers.addParser("ranklib_query")
-                .setDefault("func", new Exec(Main::runRanklibTrainer))
+                .setDefault("func", new Exec(Main::runRanklibQuery))
                 .help("Runs queries using ranklib trained methods.");
 
         ranklibQueryParser.addArgument("method")
@@ -180,9 +180,10 @@ public class Main {
         String qrelLocation = namespace.getString("qrel");
         String queryLocation = namespace.getString("query");
         String graphLocation = namespace.getString("graph_database");
+        String method = namespace.getString("method");
         KotlinRankLibTrainer kotTrainer =
                 new KotlinRankLibTrainer(indexLocation, queryLocation, qrelLocation, graphLocation);
-        kotTrainer.train();
+        kotTrainer.runRanklibQuery(method);
     }
 
 
