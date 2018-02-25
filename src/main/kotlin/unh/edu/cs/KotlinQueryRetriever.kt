@@ -106,7 +106,7 @@ class QueryRetriever(val indexSearcher: IndexSearcher) {
             val score = sd.score
             val searchRank = index + 1
 
-            writer.write("$queryId Q$queryNumber $paragraphid $searchRank $score Query\n")
+            writer.write("$queryId Q0 $paragraphid $searchRank $score Query\n")
         }
     }
 

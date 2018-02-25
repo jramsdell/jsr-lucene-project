@@ -89,7 +89,7 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
         val counts = HashMap<String, Double>()
         val nWalks = 100
         val nSteps = 2
-        val firstPar = db.parMap[pid]!!.split(" ")
+        val pars = db.parMap[pid]!!.split(" ")
 
         (0 until nWalks).forEach { _ ->
             var volume = 1.0
@@ -105,9 +105,9 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
                 val entity = entities[ThreadLocalRandom.current().nextInt(entities.size)]
 
                 // Retrieve a random paragrath linked to entity (memoize result)
-                val paragraphs = storedParagraphs.computeIfAbsent(entity,
-                        { key -> db.entityMap[key]!!.split(" ") })
-//                val paragraphs = db.entityMap[entity]!!.split(" ")
+//                val paragraphs = storedParagraphs.computeIfAbsent(entity,
+//                        { key -> db.entityMap[key]!!.split(" ") })
+                val paragraphs = if (curPar == pid) pars else db.entityMap[entity]!!.split(" ")
                 curPar = paragraphs[ThreadLocalRandom.current().nextInt(paragraphs.size)]
 
 //                if (first != 0) {
@@ -134,6 +134,9 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
 
         return counts
     }
+
+
+
 
     fun getMixtures(tops: TopDocs): List<ParagraphMixture> =
             tops.scoreDocs
