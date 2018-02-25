@@ -1,23 +1,13 @@
 @file:JvmName("KotRankLibTrainer")
 package unh.edu.cs.ranklib
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer
-import org.apache.lucene.analysis.tokenattributes.CharTermAttribute
-import org.apache.lucene.index.DirectoryReader
 import org.apache.lucene.index.Term
 import org.apache.lucene.search.*
-import org.apache.lucene.store.FSDirectory
 import unh.edu.cs.*
-import java.io.StringReader
 import java.lang.Double.sum
-import java.nio.file.Paths
 import java.util.*
-import kotlin.coroutines.experimental.buildSequence
 import info.debatty.java.stringsimilarity.*
-import info.debatty.java.stringsimilarity.interfaces.MetricStringDistance
 import info.debatty.java.stringsimilarity.interfaces.StringDistance
-import java.lang.Math.pow
-import java.lang.Math.sqrt
 
 class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, qrelPath: String) {
     constructor(indexPath: String, queryPath: String, qrelPath: String)
@@ -28,7 +18,6 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
     val queryRetriever = QueryRetriever(indexSearcher)
     val queries = queryRetriever.getSectionQueries(queryPath)
     val ranklibFormatter = KotlinRanklibFormatter(queries, qrelPath, indexSearcher)
-    val analyzer = StandardAnalyzer()
 
 
     fun addStringDistanceFunction(query: String, tops: TopDocs, dist: StringDistance): List<Double> {
@@ -55,14 +44,15 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
             .run { queryRetriever.createTokenSequence(this) }
             .map { token -> TermQuery(Term(CONTENT, token))}
             .map { termQuery -> BooleanQuery.Builder().add(termQuery, BooleanClause.Occur.SHOULD).build()}
-            .onEach { println(it) }
+            .toList()
 
-        return tops.scoreDocs
-            .map { scoreDoc ->
-                termQueries.map { indexSearcher.explain(it, scoreDoc.doc).value.toDouble() }
+        println("Queries: ${termQueries.size}")
+
+        return tops.scoreDocs.map { scoreDoc ->
+                termQueries.map { booleanQuery ->
+                    indexSearcher.explain(booleanQuery, scoreDoc.doc).value.toDouble() }
                     .average()
             }
-            .toList()
     }
 
     fun sectionSplit(query: String, tops: TopDocs, secIndex: Int): List<Double> {
@@ -76,9 +66,6 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
 
         val termQuery = TermQuery(Term(CONTENT, termQueries[secIndex]!!))
         val boolQuery = BooleanQuery.Builder().add(termQuery, BooleanClause.Occur.SHOULD).build()
-
-//            .map { TermQuery(Term("text", it))}
-//            .map { BooleanQuery.Builder().add(it, BooleanClause.Occur.SHOULD).build()}
 
         return tops.scoreDocs
             .map { scoreDoc ->
