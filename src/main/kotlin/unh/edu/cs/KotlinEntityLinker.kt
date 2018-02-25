@@ -38,7 +38,7 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
     }
 
     // Start up server (can take a while if we need to download files
-    val server = KotlinSpotlightRunner(serverLocation)
+//    val server = KotlinSpotlightRunner(serverLocation)
 
 
     /**
@@ -107,7 +107,7 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
     fun run() {
         // Give a moment for server to warm up and keep poking it until it's ready to accept connections
         println("Waiting for server to get ready")
-        server.process.waitFor(15, TimeUnit.SECONDS)
+//        server.process.waitFor(15, TimeUnit.SECONDS)
         keepPokingServer()
 
         // Set up progress bar and begin iterating over Lucene index documents
@@ -118,21 +118,39 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
         bar.start()
         val lock = ReentrantLock()
 
-        (0 until totalDocs).forEachParallel { docId ->
-                    val doc = indexSearcher.doc(docId)
-                    val entities = queryServer(doc.get(CONTENT))
+        (0 until totalDocs).chunked(5000).forEachParallel { chunk ->
+            chunk.forEach { docId ->
+                val doc = indexSearcher.doc(docId)
+                val entities = queryServer(doc.get(CONTENT))
 
-                    // Only attempt to annotate paragraph if there are no entities already
-                    if (doc.getValues("spotlight").isEmpty()) {
-                        entities.forEach { entity ->
-                            doc.add(StringField("spotlight", entity, Field.Store.YES))
-                        }
+                // Only attempt to annotate paragraph if there are no entities already
+                if (doc.getValues("spotlight").isEmpty()) {
+                    entities.forEach { entity ->
+                        doc.add(StringField("spotlight", entity, Field.Store.YES))
                     }
+                }
 
                 // Update progress bar (have to make sure it's thread-safe)
-                lock.withLock { bar.stepBy(1) }
+                lock.withLock { bar.stepBy(5000) }
+            }
 
         }
+
+//        (0 until totalDocs).chunked(5000).forEachParallel { docId ->
+//            val doc = indexSearcher.doc(docId)
+//            val entities = queryServer(doc.get(CONTENT))
+//
+//            // Only attempt to annotate paragraph if there are no entities already
+//            if (doc.getValues("spotlight").isEmpty()) {
+//                entities.forEach { entity ->
+//                    doc.add(StringField("spotlight", entity, Field.Store.YES))
+//                }
+//            }
+//
+//            // Update progress bar (have to make sure it's thread-safe)
+//            lock.withLock { bar.stepBy(1) }
+//
+//        }
 
         bar.stop()
         println("Finished annotating index!")
