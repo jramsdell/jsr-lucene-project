@@ -119,7 +119,7 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
 
         (0 until totalDocs)
             .chunked(1000)
-            .forEachParallel { chunk ->
+            .forEach { chunk ->
                 chunk.forEach { docId ->
                     val doc = indexSearcher.doc(docId)
                     val entities = queryServer(doc.get("text"))
