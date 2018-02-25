@@ -55,7 +55,7 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
             .run { queryRetriever.createTokenSequence(this) }
             .map { token -> TermQuery(Term(CONTENT, token))}
             .map { termQuery -> BooleanQuery.Builder().add(termQuery, BooleanClause.Occur.SHOULD).build()}
-        queryRetriever.createQuery(query)
+            .onEach { println(it) }
 
         return tops.scoreDocs
             .map { scoreDoc ->
