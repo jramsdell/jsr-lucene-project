@@ -85,7 +85,7 @@ public class Main {
         graphBuilderParser.addArgument("index")
                 .help("Location of the Lucene index directory");
 
-        // Ranklib Trainer
+        // Ranklib Query
         Subparser ranklibQueryParser = subparsers.addParser("ranklib_query")
                 .setDefault("func", new Exec(Main::runRanklibQuery))
                 .help("Runs queries using ranklib trained methods.");
@@ -106,10 +106,14 @@ public class Main {
                 .help("(linker and graph_builder must be run first) " +
                         "Trains according to ranklib");
 
+        ranklibQueryParser.addArgument("method")
+                .choices("entity_similarity", "average_query", "split_sections", "mixtures", "combined");
         ranklibTrainerParser.addArgument("index").help("Location of the Lucene index directory");
         ranklibTrainerParser.addArgument("query").help("Location of query file (.cbor)");
         ranklibTrainerParser.addArgument("qrel").help("Locations of matching qrel file.");
-        ranklibTrainerParser.addArgument("graph_database").help("Path pointing to a graph_database.db file.");
+        ranklibQueryParser.addArgument("--graph_database")
+                .setDefault("")
+                .help("(only used for mixtures method): Location of graph_database.db file.");
 
 
         return parser;
@@ -170,9 +174,10 @@ public class Main {
         String qrelLocation = namespace.getString("qrel");
         String queryLocation = namespace.getString("query");
         String graphLocation = namespace.getString("graph_database");
+        String method = namespace.getString("method");
         KotlinRankLibTrainer kotTrainer =
                 new KotlinRankLibTrainer(indexLocation, queryLocation, qrelLocation, graphLocation);
-        kotTrainer.train();
+        kotTrainer.train(method);
     }
 
     private static void runRanklibQuery(Namespace namespace) {

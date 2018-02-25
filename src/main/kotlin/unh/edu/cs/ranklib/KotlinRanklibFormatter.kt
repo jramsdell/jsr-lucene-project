@@ -76,9 +76,9 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
 
     fun addFeature(f: (String, TopDocs) -> List<Double>, weight:Double = 1.0,
                    normType: NormType = NormType.ZSCORE) {
-        val counter = AtomicInteger(0)
+//        val counter = AtomicInteger(0)
         queryContainers.pmap { (query, tops, paragraphs) ->
-            println(counter.incrementAndGet())
+//            println(counter.incrementAndGet())
             f(query, tops).run { normalizeResults(this, normType) }
                 .zip(paragraphs)    // Annotate paragraph containers with this score
 //                    .forEach { (score, paragraph) -> paragraph.features += score }

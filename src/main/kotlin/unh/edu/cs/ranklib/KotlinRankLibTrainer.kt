@@ -191,27 +191,56 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
 
     }
 
-    fun doTrain() {
-        ranklibFormatter.addBM25(weight = 1.0, normType = NormType.ZSCORE)
+    private fun trainSimilarity() {
+        ranklibFormatter.addBM25(normType = NormType.ZSCORE)
         ranklibFormatter.addFeature({query, tops ->
             addStringDistanceFunction(query, tops, JaroWinkler())}, normType = NormType.ZSCORE)
         ranklibFormatter.addFeature({query, tops ->
             addStringDistanceFunction(query, tops, Jaccard() )}, normType = NormType.ZSCORE)
+    }
 
-//        ranklibFormatter.addFeature(this::addAverageQueryScore, normType = NormType.NONE)
-//        ranklibFormatter.addFeature(this::addEntityQueries, normType = NormType.NONE)
-//        ranklibFormatter.addFeature(this::addScoreMixtureSims, name = "mixtures")
+    private fun trainSplit() {
+        ranklibFormatter.addBM25(normType = NormType.ZSCORE)
+        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 0) },
+                normType = NormType.ZSCORE)
+        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 1) },
+                normType = NormType.ZSCORE)
+        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 2) },
+                normType = NormType.ZSCORE)
+        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 3) },
+                normType = NormType.ZSCORE)
+    }
 
-//        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 0) })
-//        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 1) })
-//        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 2) })
-//        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 3) })
+    private fun trainMixtures() {
+        ranklibFormatter.addBM25(normType = NormType.ZSCORE)
+        ranklibFormatter.addFeature(this::addScoreMixtureSims, normType = NormType.ZSCORE)
+    }
+
+    private fun trainAverageQuery() {
+        ranklibFormatter.addBM25(normType = NormType.ZSCORE)
+        ranklibFormatter.addFeature(this::addAverageQueryScore, normType = NormType.ZSCORE)
+    }
+
+    private fun trainCombined() {
+        ranklibFormatter.addBM25(weight = 1.0, normType = NormType.NONE)
+        ranklibFormatter.addFeature({query, tops ->
+            addStringDistanceFunction(query, tops, JaroWinkler())}, normType = NormType.NONE)
+        ranklibFormatter.addFeature({query, tops ->
+            addStringDistanceFunction(query, tops, Jaccard() )}, normType = NormType.NONE)
+        ranklibFormatter.addFeature(this::addAverageQueryScore, normType = NormType.NONE)
+    }
+
+    fun train(method: String) {
+        when (method) {
+            "entity_similarity" -> trainSimilarity()
+            "average_query" -> trainAverageQuery()
+            "split_sections" -> trainSplit()
+            "mixtures" -> trainMixtures()
+            "combined" -> trainCombined()
+            else -> println("Unknown method!")
+        }
         ranklibFormatter.writeToRankLibFile("mytestlib.txt")
-
     }
 
-    fun train() {
-//        rescore()
-        doTrain()
-    }
+
 }
