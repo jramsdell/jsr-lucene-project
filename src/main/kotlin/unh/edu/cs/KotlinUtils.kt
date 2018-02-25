@@ -3,6 +3,11 @@ package unh.edu.cs
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
+import org.apache.lucene.index.DirectoryReader
+import org.apache.lucene.search.IndexSearcher
+import org.apache.lucene.store.FSDirectory
+import java.nio.file.Paths
+import java.util.*
 
 // Conditional versions of run/let/apply/also
 fun <T,R> T.runIf(condition: Boolean, block: T.() -> R): R? = if (condition)  run(block)  else null
@@ -40,6 +45,19 @@ fun <K,V>MutableMap<K,V>.removeAll(f: (key:K,value:V) -> Boolean) {
         .forEach { (key,_) ->
             remove(key)
         }
+}
+
+// Retrieves an index searcher (I use this everywhere so might as well put it here)
+val openIndexSearchers = HashSet<String>()
+fun getIndexSearcher(indexLocation: String): IndexSearcher {
+    if (!openIndexSearchers.add(indexLocation)) {
+        println("Warning: you have already opened an index at $indexLocation!!!")
+    }
+
+    val indexPath = Paths.get(indexLocation)
+    val indexDir = FSDirectory.open(indexPath)
+    val indexReader = DirectoryReader.open(indexDir)
+    return IndexSearcher(indexReader)
 }
 
 // Constants referring to Lucene fields

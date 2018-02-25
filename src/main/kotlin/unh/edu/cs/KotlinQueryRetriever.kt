@@ -15,6 +15,8 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.experimental.buildSequence
 
 class QueryRetriever(val indexSearcher: IndexSearcher) {
+    constructor(indexPath: String) : this(getIndexSearcher(indexPath))
+
     val analyzer = StandardAnalyzer()
 
     fun createQueryString(page: Data.Page, sectionPath: List<Data.Section>): String =
@@ -62,7 +64,7 @@ class QueryRetriever(val indexSearcher: IndexSearcher) {
             }.filterNotNull()
     }
 
-    fun writeRankingsToFile(tops: TopDocs, queryId: String, writer: BufferedWriter) {
+    fun writeRankingsToFile(tops: TopDocs, queryId: String, writer: BufferedWriter, queryNumber: Int) {
         (0 until tops.scoreDocs.size).forEach { index ->
             val sd = tops.scoreDocs[index]
             val doc = indexSearcher.doc(sd.doc)
@@ -70,13 +72,13 @@ class QueryRetriever(val indexSearcher: IndexSearcher) {
             val score = sd.score
             val searchRank = index + 1
 
-            writer.write("$queryId Q0 $paragraphid $searchRank $score Lucene-BM25\n")
+            writer.write("$queryId Q$queryNumber $paragraphid $searchRank $score Query\n")
         }
     }
 
     fun writeQueriesToFile(queries: List<Pair<String, TopDocs>>, out: String = "results.txt") {
         val writer = File(out).bufferedWriter()
-        queries.forEach { (query, tops) -> writeRankingsToFile(tops, query, writer)}
+        queries.forEachIndexed { index, (query, tops) -> writeRankingsToFile(tops, query, writer, index)}
         writer.flush()
         writer.close()
     }

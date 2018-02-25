@@ -11,13 +11,11 @@ import java.util.concurrent.locks.ReentrantLock
 data class ParagraphContainer(val pid: String, val qid: Int,
                      val isRelevant: Boolean, val features: ArrayList<Double>,
                               val docId: Int, var score:Double = 0.0) {
-    val trans = hashMapOf(0 to "zero", 1 to "one", 2 to "two", 3 to "three", 4 to "four",
-            5 to "five", 6 to "six", 7 to "seven", 8 to "eight", 9 to "nine", 10 to "ten")
 
     override fun toString(): String =
             "${if (isRelevant) 1 else 0} qid:$qid " +
                     (1..features.size).zip(features)
-                    .joinToString(separator = " ") { (id,feat) -> "${trans.getOrDefault(id, "wee")}:$feat" }
+                    .joinToString(separator = " ") { (id,feat) -> "$id:$feat" }
 
 }
 
@@ -27,7 +25,6 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
                              qrelFileLocation: String, val indexSearcher: IndexSearcher) {
 
     val lock = ReentrantLock()
-    val names = ArrayList<String>()
 
     val relevancies = File(qrelFileLocation)
             .bufferedReader()
@@ -58,10 +55,8 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
         } }
     }
 
-    fun addFeature(f: (String, TopDocs) -> List<Double>, weight:Double = 1.0,
-                   name: String, normalize: Boolean = true) {
+    fun addFeature(f: (String, TopDocs) -> List<Double>, weight:Double = 1.0, normalize: Boolean = true) {
         val counter = AtomicInteger(0)
-        names += name
         queryContainers.pmap { (query, tops, paragraphs) ->
             println(counter.incrementAndGet())
             f(query, tops).applyIf(normalize, {normalizeResults(this)})

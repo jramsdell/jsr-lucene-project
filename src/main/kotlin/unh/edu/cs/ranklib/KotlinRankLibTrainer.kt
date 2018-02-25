@@ -19,13 +19,15 @@ import info.debatty.java.stringsimilarity.interfaces.StringDistance
 import java.lang.Math.pow
 import java.lang.Math.sqrt
 
-class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: String) {
-    val indexSearcher = kotlin.run {
-        val indexPath = Paths.get(indexPath)
-        val indexDir = FSDirectory.open(indexPath)
-        val indexReader = DirectoryReader.open(indexDir)
-        IndexSearcher(indexReader)
-    }
+class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, qrelPath: String) {
+    constructor(indexPath: String, queryPath: String, qrelPath: String)
+            : this(getIndexSearcher(indexPath), queryPath, qrelPath)
+//    val indexSearcher = kotlin.run {
+//        val indexPath = Paths.get(indexPath)
+//        val indexDir = FSDirectory.open(indexPath)
+//        val indexReader = DirectoryReader.open(indexDir)
+//        IndexSearcher(indexReader)
+//    }
 
     val db = KotlinDatabase("graph_database.db")
     val graphAnalyzer = KotlinGraphAnalyzer(indexSearcher, db)
@@ -130,50 +132,22 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
             .toList()
     }
 
-    fun normalizeFeatures() {
-        val featureVectors = HashMap<Int, ArrayList<Double>>()
-        val means = HashMap<Int, Double>()
-        val deviations = HashMap<Int, Double>()
 
-        ranklibFormatter.queryContainers.forEach { queryContainer ->
-            queryContainer.paragraphs.forEach { it.features.forEachIndexed { index, d ->
-                featureVectors.getOrDefault(index, ArrayList()) += d.run { if (this == Double.NaN || this == Double.NEGATIVE_INFINITY || this == Double.POSITIVE_INFINITY) 0.0 else this }
-            } }
-        }
-
-        featureVectors.forEach(::println)
-//        featureVectors.forEach { k, v ->
-//            val average = v.average()
-//            means[k] = average
-//            deviations[k] = sqrt(v.sumByDouble { pow(it - average, 2.0) })
-//        }
-        means.forEach(::println)
-        deviations.forEach(::println)
-
-//        ranklibFormatter.queryContainers.forEach { queryContainer ->
-//            queryContainer.paragraphs.forEach { it.features.forEachIndexed { index, d ->
-//                val newDouble = (d - means[index]!!)/deviations[index]!!
-//                println("Was: $d Now: $newDouble")
-//                it.features[index] = (d - means[index]!!)/deviations[index]!!
-//            } }
-//        }
-
-
-    }
     fun sanitizeDouble(d: Double): Double {
         return if (d.isInfinite() || d.isNaN()) 0.0 else d
     }
 
+
     fun rescore() {
-        ranklibFormatter.addFeature(this::bm25, name = "bm25", weight = 0.72954024466881)
+        ranklibFormatter.addFeature(this::bm25, weight = 0.72954024466881)
         ranklibFormatter.addFeature({query, tops ->
-            addStringDistanceFunction(query, tops, JaroWinkler() )}, name = "jaro_winkler", weight = 0.04743997)
+            addStringDistanceFunction(query, tops, JaroWinkler() )}, weight = 0.04743997)
 
         ranklibFormatter.addFeature({query, tops ->
-            addStringDistanceFunction(query, tops, Jaccard() )}, name = "jaccard", weight = 0.023103116067)
+            addStringDistanceFunction(query, tops, Jaccard() )}, weight = 0.023103116067)
 
-        ranklibFormatter.addFeature(this::addAverageQueryScore, name = "average_query", weight = -0.19821227474)
-        ranklibFormatter.addFeature(this::addScoreMixtureSims, name = "mixture", weight = 0.0014976)
+        ranklibFormatter.addFeature(this::addAverageQueryScore, weight = -0.19821227474)
+        ranklibFormatter.addFeature(this::addScoreMixtureSims, weight = 0.0014976)
         ranklibFormatter.queryContainers.forEach { queryContainer ->
             queryContainer.paragraphs.map { it.score = it.features.sumByDouble(this::sanitizeDouble); it }
                 .sortedByDescending { it.score }
@@ -188,13 +162,13 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
     }
 
     fun doTrain() {
-        ranklibFormatter.addFeature(this::bm25, name = "bm25")
+        ranklibFormatter.addFeature(this::bm25)
         ranklibFormatter.addFeature({query, tops ->
-            addStringDistanceFunction(query, tops, JaroWinkler())}, name = "jaro_winkler")
+            addStringDistanceFunction(query, tops, JaroWinkler())})
 
         ranklibFormatter.addFeature({query, tops ->
-            addStringDistanceFunction(query, tops, Jaccard() )}, name = "jaccard")
-        ranklibFormatter.addFeature(this::addAverageQueryScore, name = "average_query")
+            addStringDistanceFunction(query, tops, Jaccard() )})
+        ranklibFormatter.addFeature(this::addAverageQueryScore)
 //        ranklibFormatter.addFeature(this::addScoreMixtureSims, name = "mixtures")
         ranklibFormatter.writeToRankLibFile("mytestlib.txt")
 
