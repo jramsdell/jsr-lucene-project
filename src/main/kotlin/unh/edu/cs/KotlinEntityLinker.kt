@@ -113,9 +113,9 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
         // Set up progress bar and begin iterating over Lucene index documents
         val totalDocs = indexSearcher.indexReader.maxDoc()
         println("Indexing a total of $totalDocs documents")
-        val bar = ProgressBar("Documents Linked", totalDocs.toLong(),
-                ProgressBarStyle.ASCII)
-        bar.start()
+//        val bar = ProgressBar("Documents Linked", totalDocs.toLong(),
+//                ProgressBarStyle.ASCII)
+//        bar.start()
         val lock = ReentrantLock()
 
         (0 until totalDocs)
@@ -134,12 +134,12 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
                     }
 
                     // Update progress bar (have to make sure it's thread-safe)
-                    lock.withLock { bar.stepBy(1000) }
+//                    lock.withLock { bar.stepBy(1000) }
                 }
 
         }
 
-        bar.stop()
+//        bar.stop()
         println("Finished annotating index!")
     }
 }
