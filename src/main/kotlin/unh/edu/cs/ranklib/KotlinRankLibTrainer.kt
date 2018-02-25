@@ -121,11 +121,11 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
             addStringDistanceFunction(query, tops, JaroWinkler())}, weight = -0.001055, normType = NormType.ZSCORE)
         ranklibFormatter.addFeature({query, tops ->
             addStringDistanceFunction(query, tops, Jaccard() )}, weight = 0.11427, normType = NormType.ZSCORE)
-        ranklibFormatter.rerankQueries()
-        queryRetriever.writeQueriesToFile(queries)
     }
 
     private fun queryAverage() {
+        ranklibFormatter.addBM25(weight = 0.5, normType = NormType.ZSCORE)
+        ranklibFormatter.addFeature(this::addAverageQueryScore, weight = 0.5, normType = NormType.ZSCORE)
     }
 
     private fun querySplit() {
@@ -151,6 +151,8 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
             "combined" -> queryCombined()
             else -> println("Unknown method!")
         }
+        ranklibFormatter.rerankQueries()
+        queryRetriever.writeQueriesToFile(queries)
     }
 
 

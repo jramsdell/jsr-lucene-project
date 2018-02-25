@@ -95,7 +95,6 @@ public class Main {
 
         ranklibQueryParser.addArgument("index").help("Location of Lucene index directory.");
         ranklibQueryParser.addArgument("query").help("Location of query file (.cbor)");
-        ranklibQueryParser.addArgument("qrel").help("Location of query relevancy file (.qrels)");
         ranklibQueryParser.addArgument("--graph_database")
                 .setDefault("")
                 .help("(only used for mixtures method): Location of graph_database.db file.");
@@ -182,12 +181,11 @@ public class Main {
 
     private static void runRanklibQuery(Namespace namespace) {
         String indexLocation = namespace.getString("index");
-        String qrelLocation = namespace.getString("qrel");
         String queryLocation = namespace.getString("query");
         String graphLocation = namespace.getString("graph_database");
         String method = namespace.getString("method");
         KotlinRankLibTrainer kotTrainer =
-                new KotlinRankLibTrainer(indexLocation, queryLocation, qrelLocation, graphLocation);
+                new KotlinRankLibTrainer(indexLocation, queryLocation, "", graphLocation);
         kotTrainer.runRanklibQuery(method);
     }
 

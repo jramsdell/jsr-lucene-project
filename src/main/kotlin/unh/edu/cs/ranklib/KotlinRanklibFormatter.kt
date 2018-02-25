@@ -8,10 +8,21 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
 
+/**
+ * Class: ParagraphContainer
+ * Description: Represents a scored paragraph (from TopDocs).
+ * @param pid: Paragraph Id (obtained from Lucene index)
+ * @param qid: Query ID (index of query that yielded the TopDocs)
+ * @param isRelevant: whether or not this is a relevant paragraph (obtained from qrels)
+ * @param features: Scores (from scoring functions) add added to this array for use in reweighting and rescoring
+ * @param docId: Document id that this paragraph belongs to
+ * @param score: Used when rescoring and reweighting the features
+ */
 data class ParagraphContainer(val pid: String, val qid: Int,
                      val isRelevant: Boolean, val features: ArrayList<Double>,
                               val docId: Int, var score:Double = 0.0) {
 
+    // Convenience override: prints RankLib compatible lines
     override fun toString(): String =
             "${if (isRelevant) 1 else 0} qid:$qid " +
                     (1..features.size).zip(features)
@@ -19,53 +30,108 @@ data class ParagraphContainer(val pid: String, val qid: Int,
 
 }
 
+/**
+ * Class: QueryContainer
+ * Description: One is created for each of the query strings in the query .cbor file.
+ *              Stores corresponding query string and TopDocs (obtained from BM25)
+ */
 data class QueryContainer(val query: String, val tops: TopDocs, val paragraphs: List<ParagraphContainer>)
 
-enum class NormType { NONE, SUM, ZSCORE, LINEAR }
+/**
+ * Enum: NormType
+ * Description: Determines if the the values of an added feature should be normalized
+ */
+enum class NormType {
+    NONE,           // No normalization should be used
+    SUM,            // Value is divided by total sum of all values in query
+    ZSCORE,         // Zscore is calculated for all values in query
+    LINEAR          // Value is normalized to: (value - min) / (max - min)
+}
 
+/**
+ * Class: KotlinRanklibFormatter
+ * Description: Used to apply scoring functions to queries (from .cbor file) and print results as features.
+ *              The results file is compatible with RankLib.
+ * @param queries: List of query string/Topdocs (obtained by QueryRetriever)
+ * @param qrelLoc: Location of the .qrels file (if none is given, then paragraphs won't be marked as relevant)
+ * @param indexSearcher: An IndexSearcher for the Lucene index directory we will be querying.
+ */
 class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
-                             qrelFileLocation: String, val indexSearcher: IndexSearcher) {
+                             qrelLoc: String, val indexSearcher: IndexSearcher) {
 
-    val lock = ReentrantLock()
+    /**
+     * @param indexLoc: A string pointing to location of index (used to create IndexSearcher if none is given)
+     */
+    constructor(queries: List<Pair<String, TopDocs>>, qrelLoc: String, indexLoc: String) :
+            this(queries, qrelLoc, getIndexSearcher(indexLoc))
 
-    val relevancies = File(qrelFileLocation)
-            .bufferedReader()
-            .readLines()
-            .map { it.split(" ").let { it[0] to it[2] } }
-            .toSet()
 
-    val queryContainers =
+    // If a qrel filepath was given, reads file and creates a set of query/paragraph pairs for relevancies
+    private val relevancies =
+            if (qrelLoc == "") null
+            else
+                File(qrelLoc)
+                    .bufferedReader()
+                    .readLines()
+                    .map { it.split(" ").let { it[0] to it[2] } }
+                    .toSet()
+
+    // Maps queries into query containers (stores paragraph and feature information)
+    private val queryContainers =
         queries.mapIndexed {index,  (query, tops) ->
             val containers = tops.scoreDocs.map { sc ->
                 val pid = indexSearcher.doc(sc.doc).get(PID)
+
                 ParagraphContainer(
                         pid = pid,
                         qid = index + 1,
-                        isRelevant = Pair(query, pid) in relevancies,
-                        features = arrayListOf(),
-                        docId = sc.doc)
+                        isRelevant = relevancies?.run { contains(Pair(query, pid)) } ?: false,
+                        docId = sc.doc,
+                        features = arrayListOf())
             }
             QueryContainer(query = query, tops = tops, paragraphs = containers)
         }.toList()
 
 
-    fun normSum(values: List<Double>): List<Double> =
+    /**
+     * Function: normSum
+     * Description: Normalizes list of doubles by each value equal to itself divided by the total
+     * @see NormType
+     */
+    private fun normSum(values: List<Double>): List<Double> =
             values.sum()
                 .let { total -> values.map { value ->  value / total } }
 
-    fun normZscore(values: List<Double>): List<Double> {
+
+    /**
+     * Function: normZscore
+     * Description: Calculates zscore for doubles in list
+     * @see NormType
+     */
+    private fun normZscore(values: List<Double>): List<Double> {
         val mean = values.average()
         val std = Math.sqrt(values.sumByDouble { Math.pow(it - mean, 2.0) })
         return values.map { ((it - mean) / std) }
     }
 
-    fun normLinear(values: List<Double>): List<Double> {
+    /**
+     * Function: normLinear
+     * Description: Linearizes each value: (value - min) / (max - min)
+     * @see NormType
+     */
+    private fun normLinear(values: List<Double>): List<Double> {
         val minValue = values.min()!!
         val maxValue = values.max()!!
         return values.map { value -> (value - minValue) / (maxValue - minValue) }
     }
 
-    fun normalizeResults(values: List<Double>, normType: NormType): List<Double> {
+
+    /**
+     * Function: normalizeResults
+     * Description: Normalizes a list of doubles according to the NormType
+     * @see NormType
+     */
+    private fun normalizeResults(values: List<Double>, normType: NormType): List<Double> {
         return when (normType) {
             NormType.NONE -> values
             NormType.SUM -> normSum(values)
@@ -74,31 +140,51 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
         }
     }
 
+    /**
+     * Function: addFeature
+     * Description: Accepts a functions that take a string (query string) and TopDocs (from BM25 query)
+     *              The function must return a list of Doubles in the same order as the documents they score
+     *              The values are stored as a feature for later reranking or for creating a RankLib file.
+     *
+     * Note: The function, f, is mapped onto all of the queries in parallel. Make sure it is thread-safe.
+     *
+     * @param f: Function (or method reference) that scores each document in TopDocs and returns it as a list of doubles
+     * @param normType: NormType determines the type of normalization (if any) to apply to the new document scores.
+     * @param weight: The final list of doubles is multiplies by this weight
+     */
     fun addFeature(f: (String, TopDocs) -> List<Double>, weight:Double = 1.0,
                    normType: NormType = NormType.ZSCORE) {
-//        val counter = AtomicInteger(0)
-        queryContainers.pmap { (query, tops, paragraphs) ->
-//            println(counter.incrementAndGet())
-            f(query, tops).run { normalizeResults(this, normType) }
-                .zip(paragraphs)    // Annotate paragraph containers with this score
-//                    .forEach { (score, paragraph) -> paragraph.features += score }
-        }.forEach { results ->
-            results
-                .forEach { (score, paragraph) -> paragraph.features += score * weight }
-        }
+
+        queryContainers
+            .pmap { (query, tops, paragraphs) ->
+                    f(query, tops).run { normalizeResults(this, normType) }
+                                  .zip(paragraphs) }
+            .forEach { results ->
+                results.forEach { (score, paragraph) ->
+                                   paragraph.features += score * weight }}
     }
 
-    fun sanitizeDouble(d: Double): Double {
-        return if (d.isInfinite() || d.isNaN()) 0.0 else d
-    }
+    // Convenience function (turns NaN and infinite values into 0.0)
+    private fun sanitizeDouble(d: Double): Double { return if (d.isInfinite() || d.isNaN()) 0.0 else d }
 
     private fun bm25(query: String, tops:TopDocs): List<Double> {
         return tops.scoreDocs.map { it.score.toDouble() }
     }
 
+    /**
+     * Function: addBM25
+     * Description: Adds results of the BM25 query as a feature. Since the scores are already contained in the TopDocs,
+     *              this simply extracts them as a list of doubles.
+     * @see addFeature
+     */
     fun addBM25(weight: Double = 1.0, normType: NormType = NormType.NONE) =
             addFeature(this::bm25, weight = weight, normType = normType)
 
+    /**
+     * Function: rerankQueries
+     * Description: Sums current weighted features together and reranks documents according to their new scores.
+     * @see addFeature
+     */
     fun rerankQueries() =
         queryContainers.forEach { queryContainer ->
             queryContainer.paragraphs.map { it.score = it.features.sumByDouble(this::sanitizeDouble); it }
@@ -110,6 +196,11 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
         }
 
 
+    /**
+     * Function: writeToRankLibFile
+     * Desciption: Writes features to a RankLib-compatible file.
+     * @param outName: Name of the file to write the results to.
+     */
     fun writeToRankLibFile(outName: String) {
         queryContainers
                 .flatMap { queryContainer -> queryContainer.paragraphs  }
