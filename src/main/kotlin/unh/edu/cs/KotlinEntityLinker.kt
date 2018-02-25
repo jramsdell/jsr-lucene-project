@@ -16,6 +16,7 @@ import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -120,9 +121,11 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
         (0 until totalDocs)
             .chunked(1000)
             .forEach { chunk ->
+                var total = AtomicInteger(0)
                 chunk.forEachParallel { docId ->
                     val doc = indexSearcher.doc(docId)
                     val entities = queryServer(doc.get(CONTENT))
+                    total.addAndGet(entities.size)
 
                     // Only attempt to annotate paragraph if there are no entities already
                     if (doc.getValues("spotlight").isEmpty()) {
@@ -131,9 +134,10 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
                         }
                     }
 
-                    // Update progress bar (have to make sure it's thread-safe)
-                    lock.withLock { bar.stepBy(1000) }
                 }
+                // Update progress bar (have to make sure it's thread-safe)
+                println(total.get())
+                lock.withLock { bar.stepBy(1000) }
 
         }
 
