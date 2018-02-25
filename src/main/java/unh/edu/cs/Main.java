@@ -106,7 +106,7 @@ public class Main {
                 .help("(linker and graph_builder must be run first) " +
                         "Trains according to ranklib");
 
-        ranklibQueryParser.addArgument("method")
+        ranklibTrainerParser.addArgument("method")
                 .choices("entity_similarity", "average_query", "split_sections", "mixtures", "combined");
         ranklibTrainerParser.addArgument("index").help("Location of the Lucene index directory");
         ranklibTrainerParser.addArgument("query").help("Location of query file (.cbor)");
