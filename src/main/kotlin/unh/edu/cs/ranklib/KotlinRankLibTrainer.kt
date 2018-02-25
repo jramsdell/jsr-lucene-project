@@ -21,10 +21,14 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
 
 
     fun addStringDistanceFunction(query: String, tops: TopDocs, dist: StringDistance): List<Double> {
-        val replaceNumbers = """(%\d+|[_-])""".toRegex()
+        val replaceNumbers = """(\d+|enwiki:)""".toRegex()
+//        val termQueries = query
+//            .replace(replaceNumbers, " ")
+//            .split(" ")
         val termQueries = query
-            .replace(replaceNumbers, " ")
-            .split(" ")
+            .replace(replaceNumbers, "")
+            .run { queryRetriever.createTokenSequence(this) }
+            .toList()
 
 
         return tops.scoreDocs
@@ -34,7 +38,6 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
                 if (entities.isEmpty()) 0.0 else
                 termQueries.flatMap { q -> entities.map { e -> dist.distance(q, e)  } }.average()
             }
-            .toList()
     }
 
     fun addAverageQueryScore(query: String, tops: TopDocs): List<Double> {
@@ -46,8 +49,6 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
             .map { termQuery -> BooleanQuery.Builder().add(termQuery, BooleanClause.Occur.SHOULD).build()}
             .toList()
 
-        println("Queries: ${termQueries.size}")
-
         return tops.scoreDocs.map { scoreDoc ->
                 termQueries.map { booleanQuery ->
                     indexSearcher.explain(booleanQuery, scoreDoc.doc).value.toDouble() }
@@ -56,16 +57,20 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
     }
 
     fun sectionSplit(query: String, tops: TopDocs, secIndex: Int): List<Double> {
-        val replaceNumbers = """(%\d+|[_-])""".toRegex()
+        val replaceNumbers = """(\d+|enwiki:)""".toRegex()
         val termQueries = query
-            .replace(replaceNumbers, " ")
-            .split("/")
+            .replace(replaceNumbers, "")
+            .run { queryRetriever.createTokenSequence(this) }
+            .map { token -> TermQuery(Term(CONTENT, token))}
+            .map { termQuery -> BooleanQuery.Builder().add(termQuery, BooleanClause.Occur.SHOULD).build()}
+            .toList()
+
         if (termQueries.size < secIndex + 1) {
             return (0 until tops.scoreDocs.size).map { 0.0 }
         }
 
-        val termQuery = TermQuery(Term(CONTENT, termQueries[secIndex]!!))
-        val boolQuery = BooleanQuery.Builder().add(termQuery, BooleanClause.Occur.SHOULD).build()
+//        val termQuery = TermQuery(Term(CONTENT, termQueries[secIndex]!!))
+        val boolQuery = termQueries[secIndex]!!
 
         return tops.scoreDocs
             .map { scoreDoc ->
@@ -133,6 +138,11 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
             addStringDistanceFunction(query, tops, Jaccard() )})
         ranklibFormatter.addFeature(this::addAverageQueryScore)
 //        ranklibFormatter.addFeature(this::addScoreMixtureSims, name = "mixtures")
+
+        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 0) })
+        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 1) })
+        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 2) })
+        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 3) })
         ranklibFormatter.writeToRankLibFile("mytestlib.txt")
 
     }
