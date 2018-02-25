@@ -73,8 +73,8 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
         // Try three times to query server before giving up
         for (i in (0..3)) {
               try { entities = retrieveEntities(content); break
-            } catch (e: SocketTimeoutException) { Thread.sleep(ThreadLocalRandom.current().nextLong(2000))
-            } catch (e: ConnectException) { Thread.sleep(ThreadLocalRandom.current().nextLong(2000))}
+            } catch (e: SocketTimeoutException) { Thread.sleep(ThreadLocalRandom.current().nextLong(500))
+            } catch (e: ConnectException) { Thread.sleep(ThreadLocalRandom.current().nextLong(500))}
         }
         return entities
     }
@@ -117,19 +117,24 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
         bar.start()
         val lock = ReentrantLock()
 
-        (0 until totalDocs).forEachParallel { docId ->
-            val doc = indexSearcher.doc(docId)
+        (0 until totalDocs)
+            .chunked(1000)
+            .forEachParallel { chunk ->
+                chunk.forEach { docId ->
+                    val doc = indexSearcher.doc(docId)
 
-            // Only attempt to annotate paragraph if there are no entities already
-            if (doc.getValues("spotlight").isEmpty()) {
-                val entities = queryServer(doc.get("text"))
-                entities.forEach { entity ->
-                    doc.add(StringField("spotlight", entity, Field.Store.YES))
+                    // Only attempt to annotate paragraph if there are no entities already
+                    if (doc.getValues("spotlight").isEmpty()) {
+                        val entities = queryServer(doc.get("text"))
+                        entities.forEach { entity ->
+                            doc.add(StringField("spotlight", entity, Field.Store.YES))
+                        }
+                    }
+
+                    // Update progress bar (have to make sure it's thread-safe)
+                    lock.withLock { bar.stepBy(1000) }
                 }
-            }
 
-            // Update progress bar (have to make sure it's thread-safe)
-            lock.withLock { bar.step() }
         }
 
         bar.stop()
