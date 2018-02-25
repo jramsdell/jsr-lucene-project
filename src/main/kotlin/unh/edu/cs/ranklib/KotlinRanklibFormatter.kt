@@ -10,7 +10,8 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
 
 data class ParagraphContainer(val pid: String, val qid: Int,
-                     val isRelevant: Boolean, val features: ArrayList<Double>) {
+                     val isRelevant: Boolean, val features: ArrayList<Double>,
+                              val docId: Int, var score:Double = 0.0) {
 
     override fun toString(): String =
             "${if (isRelevant) 1 else 0} qid:$qid " +
@@ -41,7 +42,8 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
                         qid = index + 1,
                         isRelevant = Pair(query, pid) in relevancies,
 //                        features = arrayListOf(sc.score.toDouble()))
-                        features = arrayListOf())
+                        features = arrayListOf(),
+                        docId = sc.doc)
             }
             QueryContainer(query = query, tops = tops, paragraphs = containers)
         }.toList()

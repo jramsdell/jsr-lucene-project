@@ -177,13 +177,11 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 
 //        ranklibFormatter.addFeature(this::addAverageQueryScore, weight = -0.102719)
         ranklibFormatter.queryContainers.forEach { queryContainer ->
-            queryContainer.paragraphs.map { it.features.sumByDouble(this::sanitizeDouble) }
-                .onEach { if (queryContainer.paragraphs.size != 100) {println(queryContainer.paragraphs.size)} }
-                .zip(queryContainer.tops.scoreDocs)
-                .sortedByDescending { it.first }
-                .forEachIndexed { index, (score, sd) ->
-                    queryContainer.tops.scoreDocs[index].doc = sd.doc
-                    queryContainer.tops.scoreDocs[index].score = score.toFloat()
+            queryContainer.paragraphs.map { it.score = it.features.sumByDouble(this::sanitizeDouble); it }
+                .sortedByDescending { it.score }
+                .forEachIndexed { index, par ->
+                    queryContainer.tops.scoreDocs[index].doc = par.docId
+                    queryContainer.tops.scoreDocs[index].score = par.score.toFloat()
                 }
         }
 
