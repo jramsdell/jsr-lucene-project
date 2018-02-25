@@ -138,7 +138,7 @@ public class Main {
 
     private static void runLinker(Namespace namespace) {
         String indexLocation = namespace.getString("index");
-        String serverLocation = namespace.getString("serverLocation");
+        String serverLocation = namespace.getString("server_location");
         KotlinEntityLinker linker =
                 new KotlinEntityLinker(indexLocation, serverLocation);
         linker.run();
