@@ -1,25 +1,15 @@
 @file:JvmName("KotTrain")
 package unh.edu.cs
 
-import edu.unh.cs.treccar_v2.Data
-import edu.unh.cs.treccar_v2.read_data.DeserializeData
-import org.apache.lucene.analysis.standard.StandardAnalyzer
-import org.apache.lucene.analysis.tokenattributes.CharTermAttribute
 import org.apache.lucene.index.DirectoryReader
-import org.apache.lucene.index.Term
 import org.apache.lucene.search.*
 import org.apache.lucene.store.FSDirectory
-import org.mapdb.DBMaker
-import org.mapdb.Serializer
 import java.io.BufferedWriter
 import java.io.File
-import java.io.StringReader
 import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.coroutines.experimental.buildSequence
 import kotlin.math.exp
-import kotlin.math.ln
 
 data class Topic(val name: String) {
     val relevantDocs = ArrayList<ParagraphMixture>()
@@ -81,7 +71,7 @@ class KotlinRegularizer(indexPath: String, queryPath: String, weightLocation: St
     val db = KotlinDatabase("graph_database.db")
     val graphAnalyzer = KotlinGraphAnalyzer(indexSearcher, db)
     val queryRetriever = QueryRetriever(indexSearcher)
-    val queries = queryRetriever.getQueries(queryPath)
+    val queries = queryRetriever.getPageQueries(queryPath)
 
 
     fun rerankTops(tops: TopDocs) {
@@ -137,7 +127,7 @@ class KotlinTrainer(indexPath: String, queryPath: String, qrelPath: String) {
     val graphAnalyzer = KotlinGraphAnalyzer(indexSearcher, db)
     val queryRetriever = QueryRetriever(indexSearcher)
     val topics = readRelevancy(qrelPath)
-    val queries = queryRetriever.getQueries(queryPath)
+    val queries = queryRetriever.getPageQueries(queryPath)
 
     fun aggFun(key: String, acc: Topic?, element:Pair<String, String>, first: Boolean): Topic {
         val topic = acc ?: Topic(element.first)

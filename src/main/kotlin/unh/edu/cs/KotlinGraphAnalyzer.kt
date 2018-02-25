@@ -140,33 +140,6 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
                     .map({ getParagraphMixture(it) })
                     .toList()
 
-    fun rerankTopDocs(tops: TopDocs, command: String) {
-        val mixtures = getMixtures(tops)
-        val sinks = HashMap<String, Double>()
-
-        mixtures.forEach { pm ->
-            pm.mixture.forEach { (k,v) ->
-                sinks.merge(k, v * pm.score, ::sum)
-            }
-        }
-
-        if (command.equals("query_special")) {
-            mixtures.forEach { pm ->
-                if (!pm.mixture.isEmpty()) {
-                    pm.score = 0.0
-                }
-                pm.mixture.forEach { k, v -> pm.score += sinks[k]!! * v  }
-            }
-        }
-
-        mixtures.sortedByDescending(ParagraphMixture::score)
-                .zip(0 until tops.scoreDocs.size)
-                .forEach { (mixture,index) -> tops.scoreDocs[index].run {
-                    score = mixture.score.toFloat()
-                    doc = mixture.docId
-                }}
-    }
-
 }
 
 
