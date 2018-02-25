@@ -144,23 +144,23 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
     fun doTrain() {
         ranklibFormatter.addFeature(this::bm25, normType = NormType.NONE)
         ranklibFormatter.addFeature({query, tops ->
-            addStringDistanceFunction(query, tops, JaroWinkler())})
+            addStringDistanceFunction(query, tops, JaroWinkler())}, normType = NormType.NONE)
 
         ranklibFormatter.addFeature({query, tops ->
-            addStringDistanceFunction(query, tops, Jaccard() )})
-        ranklibFormatter.addFeature(this::addAverageQueryScore)
+            addStringDistanceFunction(query, tops, Jaccard() )}, normType = NormType.NONE)
+        ranklibFormatter.addFeature(this::addAverageQueryScore, normType = NormType.NONE)
 //        ranklibFormatter.addFeature(this::addScoreMixtureSims, name = "mixtures")
 
-        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 0) })
-        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 1) })
-        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 2) })
-        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 3) })
+//        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 0) })
+//        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 1) })
+//        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 2) })
+//        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 3) })
         ranklibFormatter.writeToRankLibFile("mytestlib.txt")
 
     }
 
     fun train() {
-        rescore()
-//        doTrain()
+//        rescore()
+        doTrain()
     }
 }
