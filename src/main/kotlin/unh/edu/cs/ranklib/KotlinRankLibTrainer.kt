@@ -142,7 +142,7 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
     }
 
     fun doTrain() {
-        ranklibFormatter.addFeature(this::bm25)
+        ranklibFormatter.addFeature(this::bm25, normType = NormType.NONE)
         ranklibFormatter.addFeature({query, tops ->
             addStringDistanceFunction(query, tops, JaroWinkler())})
 
@@ -160,7 +160,7 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
     }
 
     fun train() {
-        rescore()
-//        doTrain()
+//        rescore()
+        doTrain()
     }
 }
