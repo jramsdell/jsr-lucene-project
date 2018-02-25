@@ -74,9 +74,8 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
             try {
                 entities = retrieveEntities(content)
                 break
-            } catch (e: SocketTimeoutException) {
-                Thread.sleep(2000)
-            }
+            } catch (e: SocketTimeoutException) { Thread.sleep(2000)
+            } catch (e: ConnectException) { Thread.sleep(2000) }
         }
         return entities
     }
@@ -113,7 +112,7 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
 
         // Set up progress bar and begin iterating over Lucene index documents
         val totalDocs = indexSearcher.indexReader.maxDoc()
-        println(totalDocs)
+        println("Indexing a total of $totalDocs documents")
         val bar = ProgressBar("Documents Linked", totalDocs.toLong(),
                 ProgressBarStyle.ASCII)
         bar.start()
