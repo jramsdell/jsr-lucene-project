@@ -95,7 +95,7 @@ class KotlinRegularizer(indexPath: String, queryPath: String, weightLocation: St
         (0 until tops.scoreDocs.size).forEach { index ->
             val sd = tops.scoreDocs[index]
             val doc = indexSearcher.doc(sd.doc)
-            val paragraphid = doc.get("paragraphid")
+            val paragraphid = doc.get(PID)
             val score = sd.score
             val searchRank = index + 1
 

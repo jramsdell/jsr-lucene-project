@@ -24,7 +24,7 @@ import kotlin.concurrent.withLock
  * Description: Queries spotlight server with string and retrieve list of linked entities.
  * @return List of linked entities (strings). Empty if no entities were linked or if errors were encountered.
  */
-class KotlinEntityLinker(indexLoc: String) {
+class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
     val url = "http://localhost:9310/jsr-spotlight/annotate"        // Hardcoded url to local server
 
     // Opens up a new index searcher using the directory given to us as an argument
@@ -36,7 +36,7 @@ class KotlinEntityLinker(indexLoc: String) {
     }
 
     // Start up server (can take a while if we need to download files
-    val server = KotlinSpotlightRunner()
+    val server = KotlinSpotlightRunner(serverLocation)
 
 
     /**

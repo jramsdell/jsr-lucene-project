@@ -30,7 +30,7 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
 
     fun getParagraphMixture(docInfo: Pair<Int, Float>): ParagraphMixture {
         val doc = indexSearcher.doc(docInfo.first)
-        val paragraphId = doc.get("paragraphid")
+        val paragraphId = doc.get(PID)
         val pm = ParagraphMixture(
                 docId = docInfo.first,
                 paragraphId = paragraphId,

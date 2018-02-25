@@ -72,6 +72,10 @@ public class Main {
         linkerParser.addArgument("index")
                 .help("Location of the Lucene index directory");
 
+        linkerParser.addArgument("server_location")
+                .help("Path to directory where dbpedia spotlight server and model are located. If none exists, " +
+                        "linker will automatically download the server and model to the given location.");
+
         // Graph Builder
         Subparser graphBuilderParser = subparsers.addParser("graph_builder")
                 .setDefault("func", new Exec(Main::runGraphBuilder))
@@ -80,22 +84,17 @@ public class Main {
         graphBuilderParser.addArgument("index")
                 .help("Location of the Lucene index directory");
 
+
         // Ranklib Trainer
         Subparser ranklibTrainerParser = subparsers.addParser("ranklib_trainer")
                 .setDefault("func", new Exec(Main::runRanklibTrainer))
                 .help("(linker and graph_builder must be run first) " +
                         "Trains according to ranklib");
 
-        ranklibTrainerParser.addArgument("index")
-                .help("Location of the Lucene index directory");
-
-        ranklibTrainerParser.addArgument("query")
-                .help("Location of query file (.cbor)");
-
-        ranklibTrainerParser.addArgument("qrel")
-                .help("Locations of matching qrel file.");
-
-
+        ranklibTrainerParser.addArgument("index").help("Location of the Lucene index directory");
+        ranklibTrainerParser.addArgument("query").help("Location of query file (.cbor)");
+        ranklibTrainerParser.addArgument("qrel").help("Locations of matching qrel file.");
+        ranklibTrainerParser.addArgument("graph_database").help("Path pointing to a graph_database.db file.");
 
 
         return parser;
@@ -139,8 +138,9 @@ public class Main {
 
     private static void runLinker(Namespace namespace) {
         String indexLocation = namespace.getString("index");
+        String serverLocation = namespace.getString("serverLocation");
         KotlinEntityLinker linker =
-                new KotlinEntityLinker(indexLocation);
+                new KotlinEntityLinker(indexLocation, serverLocation);
         linker.run();
     }
 
@@ -154,8 +154,9 @@ public class Main {
         String indexLocation = namespace.getString("index");
         String qrelLocation = namespace.getString("qrel");
         String queryLocation = namespace.getString("query");
+        String graphLocation = namespace.getString("graph_database");
         KotlinRankLibTrainer kotTrainer =
-                new KotlinRankLibTrainer(indexLocation, queryLocation, qrelLocation);
+                new KotlinRankLibTrainer(indexLocation, queryLocation, qrelLocation, graphLocation);
         kotTrainer.train();
     }
 
@@ -173,103 +174,4 @@ public class Main {
     }
 
 
-//    public static void main2(String[] args) throws IOException {
-//        String mode = "";
-//        try {
-//            mode = args[0];
-//        } catch (ArrayIndexOutOfBoundsException e) {
-//            printUsages();
-//            System.exit(1);
-//        }
-//
-//        switch (mode) {
-//            // Runs indexer command
-//            case "index":
-//                try {
-//                    final String indexType = args[1].toUpperCase();
-//                    final String corpusFile = args[2];
-//                    final String indexOutLocation = args[3];
-//                    runIndexer(indexType, corpusFile, indexOutLocation);
-//                } catch (IndexOutOfBoundsException e) {
-//                    printIndexerUsage();
-//                }
-//                break;
-//
-//            // Runs query command (query_entity and query_bigram are sub-commands)
-//            case "query":
-//            case "query_entity":
-//            case "query_bigram":
-//            case "query_special":
-//            case "query_kld":
-//            case "query_random":
-//                try {
-//                    String command = args[0];
-//                    String queryType = args[1].toUpperCase();
-//                    String indexLocation = args[2];
-//                    String queryLocation = args[3];
-//                    String rankingOutputLocation = args[4];
-//                } catch (ArrayIndexOutOfBoundsException e) {
-//                    printQueryUsage();
-//                } finally {
-//                    String command = args[0];
-//                    String queryType = args[1].toUpperCase();
-//                    String indexLocation = args[2];
-//                    String queryLocation = args[3];
-//                    String rankingOutputLocation = args[4];
-//                    runQuery(command, queryType, indexLocation, queryLocation, rankingOutputLocation);
-//                }
-//                break;
-//            case "make_db":
-//                try {
-//                    GraphAnalyzer.makeDB(args);
-//                } catch (ArrayIndexOutOfBoundsException e) {
-//                    printQueryVectorUsage();
-//                }
-//                break;
-//            case "train":
-//                try {
-//                    String command = args[0];
-//                    String indexLocation = args[1];
-//                    String queryLocation = args[2];
-//                    String qrelLocation = args[3];
-//                    KotlinTrainer trainer = new KotlinTrainer(indexLocation, queryLocation, qrelLocation);
-//                    HashMap<String,Double> weights = trainer.train();
-//                    trainer.writeWeights(weights);
-//                } catch (ArrayIndexOutOfBoundsException e) {
-//                    printTrainUsage();
-//                }
-//                break;
-//            case "write_entities":
-//                try {
-//                    String command = args[0];
-//                    String indexLocation = args[1];
-//                    String queryLocation = args[2];
-//                    String qrelLocation = args[3];
-//                    KotlinTrainer trainer = new KotlinTrainer(indexLocation, queryLocation, qrelLocation);
-//                    trainer.writeEntityModels();
-//                } catch (ArrayIndexOutOfBoundsException e) {
-//                    e.printStackTrace();
-//                    printTrainUsage();
-//                }
-//                break;
-//            case "reg":
-//                try {
-//                    String command = args[0];
-//                    String indexLocation = args[1];
-//                    String queryLocation = args[2];
-//                    String weightLocation = args[3];
-//                    String alpha = args[4];
-//                    KotlinRegularizer regularizer = new KotlinRegularizer(indexLocation, queryLocation, weightLocation,
-//                            alpha);
-//                    regularizer.rerankQueries();
-//                } catch (ArrayIndexOutOfBoundsException e) {
-//                    printRegUsage();
-//                }
-//                break;
-//            default:
-//                printUsages();
-//                break;
-//        }
-//
-//    }
 }

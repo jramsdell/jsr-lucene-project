@@ -13,7 +13,7 @@ data class ParagraphContainer(val pid: String, val qid: Int,
                               val docId: Int, var score:Double = 0.0) {
 
     override fun toString(): String =
-            "${if (isRelevant) 1 else 0} qid:0 " +
+            "${if (isRelevant) 1 else 0} qid:$qid " +
                     (1..features.size).zip(features)
                     .joinToString(separator = " ") { (id,feat) -> "$id:$feat" }
 
@@ -88,6 +88,19 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
         }
     }
 
+    fun sanitizeDouble(d: Double): Double {
+        return if (d.isInfinite() || d.isNaN()) 0.0 else d
+    }
+
+    fun rerankQueries() =
+        queryContainers.forEach { queryContainer ->
+            queryContainer.paragraphs.map { it.score = it.features.sumByDouble(this::sanitizeDouble); it }
+                .sortedByDescending { it.score }
+                .forEachIndexed { index, par ->
+                    queryContainer.tops.scoreDocs[index].doc = par.docId
+                    queryContainer.tops.scoreDocs[index].score = par.score.toFloat()
+                }
+        }
 
 
     fun writeToRankLibFile(outName: String) {

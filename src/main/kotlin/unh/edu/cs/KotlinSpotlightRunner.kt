@@ -17,15 +17,15 @@ import java.net.URL
  * Description: Starts a local instance of a Spotlight server and runs it. If the required files are unavailable, it
  * will download them remotely first.
  */
-class KotlinSpotlightRunner() {
+class KotlinSpotlightRunner(private val serverLocation: String) {
     val process: Process
 
     init {
         beginDownloads()
 
         // run server
-        process = Runtime.getRuntime().exec("java -jar spotlight_server/spotlight.jar " +
-                "spotlight_server/en_2+2/ http://localhost:9310/jsr-spotlight")
+        process = Runtime.getRuntime().exec("java -jar $serverLocation/spotlight.jar " +
+                "$serverLocation/en_2+2/ http://localhost:9310/jsr-spotlight")
 
         // Ensure process is destroyed when we terminate the JVM
         Runtime.getRuntime().addShutdownHook(Thread {
@@ -51,21 +51,21 @@ class KotlinSpotlightRunner() {
      * Description: Will download spotlight server and model from dbpedia when they are not already availlable.
      */
     fun beginDownloads() {
-        val serverLoc = File("spotlight_server")
+        val serverLoc = File(serverLocation)
                 .applyIf({!exists()}) { mkdir() } // create directory if it doesn't already exist
 
         // Get Spotlight Jar file (download it from server if it doesn't exist in spotlight directory)
-        val spotLoc = "spotlight_server/spotlight.jar"
+        val spotLoc = "$serverLocation/spotlight.jar"
         val spotlightJar = File(spotLoc).applyIf({!exists()}) {
             downloadFromUrl("http://downloads.dbpedia-spotlight.org/spotlight/dbpedia-spotlight-0.7.1.jar", spotLoc)
         }
 
         // Make sure the model data is also downloaded
-        val model_loc = "spotlight_server/en_2+2"
-        val compressed_loc = "spotlight_server/en.tar.gz"
+        val model_loc = "$serverLocation/en_2+2"
+        val compressed_loc = "$serverLocation/en.tar.gz"
         val modelFile = File(model_loc)
 
-        if (!modelFile.exists() || modelFile.list().size == 0) {
+        if (!modelFile.exists() || modelFile.list().isEmpty()) {
             modelFile.mkdir()
             val archive = File(compressed_loc).applyIf({!exists()}) {
                 downloadFromUrl("http://downloads.dbpedia-spotlight.org/2016-04/en/model/en.tar.gz", compressed_loc)
@@ -75,7 +75,7 @@ class KotlinSpotlightRunner() {
             manager.initialize()
             val unarchiver = TarGZipUnArchiver().apply {
                 sourceFile = archive
-                destDirectory = File("spotlight_server/")
+                destDirectory = File(serverLocation)
                 enableLogging(manager.getLoggerForComponent("compress"))
             }
             unarchiver.extract()

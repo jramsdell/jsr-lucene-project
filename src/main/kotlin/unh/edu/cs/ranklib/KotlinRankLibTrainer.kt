@@ -9,11 +9,11 @@ import java.util.*
 import info.debatty.java.stringsimilarity.*
 import info.debatty.java.stringsimilarity.interfaces.StringDistance
 
-class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, qrelPath: String) {
-    constructor(indexPath: String, queryPath: String, qrelPath: String)
-            : this(getIndexSearcher(indexPath), queryPath, qrelPath)
+class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, qrelPath: String, graphPath: String) {
+    constructor(indexPath: String, queryPath: String, qrelPath: String, graphPath: String)
+            : this(getIndexSearcher(indexPath), queryPath, qrelPath, graphPath)
 
-    val db = KotlinDatabase("graph_database.db")
+    val db = KotlinDatabase(graphPath)
     val graphAnalyzer = KotlinGraphAnalyzer(indexSearcher, db)
     val queryRetriever = QueryRetriever(indexSearcher)
     val queries = queryRetriever.getSectionQueries(queryPath)
@@ -101,9 +101,6 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
     }
 
 
-    fun sanitizeDouble(d: Double): Double {
-        return if (d.isInfinite() || d.isNaN()) 0.0 else d
-    }
 
 
     fun rescore() {
@@ -128,14 +125,15 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
 //                weight = weights[7])
 
 
-        ranklibFormatter.queryContainers.forEach { queryContainer ->
-            queryContainer.paragraphs.map { it.score = it.features.sumByDouble(this::sanitizeDouble); it }
-                .sortedByDescending { it.score }
-                .forEachIndexed { index, par ->
-                    queryContainer.tops.scoreDocs[index].doc = par.docId
-                    queryContainer.tops.scoreDocs[index].score = par.score.toFloat()
-                }
-        }
+        ranklibFormatter.rerankQueries()
+//        ranklibFormatter.queryContainers.forEach { queryContainer ->
+//            queryContainer.paragraphs.map { it.score = it.features.sumByDouble(this::sanitizeDouble); it }
+//                .sortedByDescending { it.score }
+//                .forEachIndexed { index, par ->
+//                    queryContainer.tops.scoreDocs[index].doc = par.docId
+//                    queryContainer.tops.scoreDocs[index].score = par.score.toFloat()
+//                }
+//        }
 
         queryRetriever.writeQueriesToFile(queries)
 
