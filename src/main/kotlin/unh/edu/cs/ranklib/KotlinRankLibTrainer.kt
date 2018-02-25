@@ -137,7 +137,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 
         ranklibFormatter.queryContainers.forEach { queryContainer ->
             queryContainer.paragraphs.forEach { it.features.forEachIndexed { index, d ->
-                featureVectors.getOrDefault(index, ArrayList()) += d
+                featureVectors.getOrDefault(index, ArrayList()) += d.run { if (this == Double.NaN || this == Double.NEGATIVE_INFINITY || this == Double.POSITIVE_INFINITY) 0.0 else this }
             } }
         }
 
