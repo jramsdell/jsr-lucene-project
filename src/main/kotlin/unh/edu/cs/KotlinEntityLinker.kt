@@ -117,10 +117,9 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
                 ProgressBarStyle.ASCII)
         bar.start()
         val lock = ReentrantLock()
-        println("Making list")
 
-        (0 until totalDocs).chunked(5000).asSequence().forEachParallel { chunk ->
-            chunk.forEach { docId ->
+        (0 until totalDocs).chunked(5000).forEach { chunk ->
+            chunk.forEachParallel { docId ->
                 val doc = indexSearcher.doc(docId)
                 val entities = queryServer(doc.get(CONTENT))
 
