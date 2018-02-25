@@ -33,6 +33,15 @@ fun <A>Sequence<A>.forEachParallel(f: suspend (A) -> Unit): Unit = runBlocking {
     map { async(CommonPool) { f(it) } }.forEach { it.await() }
 }
 
+// Map Extensions
+fun <K,V>MutableMap<K,V>.removeAll(f: (key:K,value:V) -> Boolean) {
+    this.entries
+        .filter{(key,value) -> f(key,value)}
+        .forEach { (key,_) ->
+            remove(key)
+        }
+}
+
 // Constants referring to Lucene fields
 const val PID: String = "paragraphid"
 const val CONTENT = "text"

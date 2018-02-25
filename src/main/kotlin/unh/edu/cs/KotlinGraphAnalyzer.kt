@@ -16,13 +16,6 @@ import kotlin.math.ln
 import java.util.concurrent.ThreadLocalRandom
 
 
-fun <K,V>MutableMap<K,V>.removeAll(f: (key:K,value:V) -> Boolean) {
-    this.entries
-            .filter{(key,value) -> f(key,value)}
-            .forEach { (key,_) ->
-                remove(key)
-            }
-}
 
 
 data class ParagraphMixture(
