@@ -22,12 +22,6 @@ import java.lang.Math.sqrt
 class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, qrelPath: String) {
     constructor(indexPath: String, queryPath: String, qrelPath: String)
             : this(getIndexSearcher(indexPath), queryPath, qrelPath)
-//    val indexSearcher = kotlin.run {
-//        val indexPath = Paths.get(indexPath)
-//        val indexDir = FSDirectory.open(indexPath)
-//        val indexReader = DirectoryReader.open(indexDir)
-//        IndexSearcher(indexReader)
-//    }
 
     val db = KotlinDatabase("graph_database.db")
     val graphAnalyzer = KotlinGraphAnalyzer(indexSearcher, db)
@@ -55,12 +49,13 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
     }
 
     fun addAverageQueryScore(query: String, tops: TopDocs): List<Double> {
+        println(queryRetriever.createQuery(query))
         val replaceNumbers = """(%\d+|[_-])""".toRegex()
         val termQueries = query
             .replace(replaceNumbers, " ")
             .replace("/", " ")
             .split(" ")
-            .map { TermQuery(Term("text", it))}
+            .map { TermQuery(Term(CONTENT, it))}
             .map { BooleanQuery.Builder().add(it, BooleanClause.Occur.SHOULD).build()}
 
         return tops.scoreDocs
@@ -80,7 +75,7 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
             return (0 until tops.scoreDocs.size).map { 0.0 }
         }
 
-        val termQuery = TermQuery(Term("text", termQueries[secIndex]!!))
+        val termQuery = TermQuery(Term(CONTENT, termQueries[secIndex]!!))
         val boolQuery = BooleanQuery.Builder().add(termQuery, BooleanClause.Occur.SHOULD).build()
 
 //            .map { TermQuery(Term("text", it))}
