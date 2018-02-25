@@ -107,25 +107,25 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
 
 
     fun rescore() {
-        val weights = listOf(0.0243988, 0.0213, 0.0317, 0.069, 0.048, -0.624, 0.137, 0.04247)
+        val weights = listOf(0.075174, 0.24885699, 0.554, 0.1219)
         ranklibFormatter.addFeature(this::bm25, weight = weights[0], normType = NormType.NONE)
         ranklibFormatter.addFeature({query, tops ->
-            addStringDistanceFunction(query, tops, JaroWinkler() )}, weight = weights[1])
+            addStringDistanceFunction(query, tops, JaroWinkler() )}, weight = weights[1], normType = NormType.NONE)
 
         ranklibFormatter.addFeature({query, tops ->
-            addStringDistanceFunction(query, tops, Jaccard() )}, weight = weights[2])
+            addStringDistanceFunction(query, tops, Jaccard() )}, weight = weights[2], normType = NormType.NONE)
 
-        ranklibFormatter.addFeature(this::addAverageQueryScore, weight = weights[3])
+        ranklibFormatter.addFeature(this::addAverageQueryScore, weight = weights[3], normType = NormType.NONE)
 //        ranklibFormatter.addFeature(this::addScoreMixtureSims, weight = weights[4])
 
-        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 0) },
-                weight = weights[4])
-        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 1) },
-                weight = weights[5])
-        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 2) },
-                weight = weights[6])
-        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 3) },
-                weight = weights[7])
+//        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 0) },
+//                weight = weights[4])
+//        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 1) },
+//                weight = weights[5])
+//        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 2) },
+//                weight = weights[6])
+//        ranklibFormatter.addFeature({query, tops -> sectionSplit(query, tops, 3) },
+//                weight = weights[7])
 
 
         ranklibFormatter.queryContainers.forEach { queryContainer ->
@@ -160,7 +160,7 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
     }
 
     fun train() {
-//        rescore()
-        doTrain()
+        rescore()
+//        doTrain()
     }
 }
