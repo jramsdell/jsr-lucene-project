@@ -1,3 +1,14 @@
+#### Install Instructions
+A precompiled jar file can be found in bin/program.jar
+
+You may also compile the source code by entering the following command while in the project directory:
+
+```bash
+mvn clean compile assembly:single
+```
+
+This will create an executable jar file in the target/ directory.
+
 
 #### Indexer
 Creates a bipartite graph between entities and paragraphs based on entities linked by Spotlight.
@@ -29,4 +40,27 @@ program graph_builder index
 
 Where **index** is the directory of the Lucene index.
 
+#### Query Heading
+Contains methods for querying based on headings and word embedding.
 
+```bash
+program query_heading query_type index query_file [--out query_results.run]
+```
+
+Where:
+
+**query_type** is one of:
+ - **page**: Page query using BM25
+ - **section**: Section path query using BM25
+ - **just_the_page**: Section path query using only page name
+ - **lowest_heading**: Section path query using only the lowest heading of the query.
+ - **interior_heading**: Section path query using only the interior heading of the query.
+ - **word_embedding**: Word embedding of the query headers.
+ 
+ **index**: Is the location of the Lucene index directory.
+ 
+ **query_file**: Is the query (.cbor) file to be used in querying the Lucene index.
+ 
+ **--out**: Is the name of the trec_car compatible run file to create. Default: query_results.run
+ 
+ 
