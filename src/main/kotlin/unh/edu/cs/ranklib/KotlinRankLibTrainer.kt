@@ -191,7 +191,8 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
             println("You must supply a --graph_database location for this method!")
             return
         }
-        formatter.addFeature(this::addScoreMixtureSims, normType = NormType.NONE)
+        formatter.addBM25(weight = 0.9703138257, normType = NormType.ZSCORE)
+        formatter.addFeature(this::addScoreMixtureSims, weight = 0.029686174, normType = NormType.ZSCORE)
     }
 
     private fun queryDirichlet() {
