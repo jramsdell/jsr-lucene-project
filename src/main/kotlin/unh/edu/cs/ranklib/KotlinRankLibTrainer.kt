@@ -139,6 +139,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 
         mixtures.forEach { pm ->
             pm.mixture.forEach { entity, probability ->
+                println(probability)
                 sinks.merge(entity, probability * pm.score, ::sum)
             }
         }
