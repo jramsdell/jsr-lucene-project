@@ -1,4 +1,4 @@
-# Ranklib Query and Ranklib Train Subcommands
+# Ranklib Query and Ranklib Trainer Subcommands
 
 
 ##### Ranklib Query Command
@@ -29,6 +29,27 @@ Where:
  **--out**: Is the name of the runfile to create after querying. Default: query_results.run
  
  **--graph_database**: This option is only used for the mixtures method. It specifies the location of the graph_database.db database.
+ 
+ ##### Ranklib Trainer Command
+ ```bash
+program ranklib_trainer method index query qrel [--out "query_results.run"] [--graph_database ""] 
+```
+ 
+ Where:
+
+**method**: Are the same methods described in Ranklib Query
+ 
+ **index**: Is the location of the Lucene index directory.
+ 
+ **query**: Is the query file (.cbor) to query the Lucene index with.
+ 
+ **qrel**: Is the relevancy file (.qrel) used to determine whether or not documents are revant.
+ 
+ **--out**: Is the name of the runfile to create after querying. Default: query_results.run
+ 
+ **--graph_database**: This option is only used for the mixtures method. It specifies the location of the graph_database.db database.
+ 
+ 
  
  ### Description of Methods
  Each of these methods score the Top 100 documents obtained by running BM25 on the concatenated section path against the index.
