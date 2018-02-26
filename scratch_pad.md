@@ -1,4 +1,4 @@
-#### Install Instructions
+## Installation Instructions
 A precompiled jar file can be found in bin/program.jar
 
 You may also compile the source code by entering the following command while in the project directory:
@@ -9,17 +9,17 @@ mvn clean compile assembly:single
 
 This will create an executable jar file in the target/ directory.
 
+## Program Commands
+The program is divided into the following subcommands:
 
-#### Indexer
+#### Indexer (index)
 Creates a bipartite graph between entities and paragraphs based on entities linked by Spotlight.
 The graph is stored in the MapDB database: graph_database.db
 
 
 ```bash
-program index corpus [--spotlight_folder ""] [--out "index"]
+program.jar index corpus [--spotlight_folder ""] [--out "index"]
 ```
-
-
 Where:
 
 **corpus**: Is the paragraphCorpus.cbor to create the Lucene index from.
@@ -29,22 +29,22 @@ Where:
 **--spotlight_folder**: Is the directory where a runnable DBPedia Spotlight Jar and model are located. If the folder does not contain the required files, the contents are automatically downloaded and unpacked to the folder. If no folder is specified, then entity-linking with Spotlight is skipped during indexing. 
 
 
-#### Graph Builder
+#### Graph Builder (graph_builder)
 Creates a bipartite graph between entities and paragraphs based on entities linked by Spotlight.
-The graph is stored in the MapDB database: graph_database.db
+The graph is stored in the MapDB database: graph_database.db. **This command may be skipped if you are using the pre-existing graph_database.db on the server.**
 
 
 ```bash
-program graph_builder index
+program.jar graph_builder index
 ```
 
 Where **index** is the directory of the Lucene index.
 
-#### Query Heading
+#### Query Heading (query_heading)
 Contains methods for querying based on headings and word embedding.
 
 ```bash
-program query_heading query_type index query_file [--out query_results.run]
+program.jar query_heading query_type index query_file [--out query_results.run]
 ```
 
 Where:
