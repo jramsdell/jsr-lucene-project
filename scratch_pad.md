@@ -65,7 +65,7 @@ Where:
  ___
  ##### Ranklib Query (ranklib_quer)
 
-This command runs a query using linear combinations of features obtained by methods described below.
+This command runs a query using linear combinations of features obtained by methods described in the methodology section further down.
 The weights of the features have been trained using RankLib. When run, ranklib_query will output a trec_eval compatible run file (default is to "query_results.run")
 
 ```bash
@@ -94,7 +94,7 @@ Where:
 ___ 
  ##### Ranklib Trainer (ranklib_trainer)
  
- The trainer creates a RankLib compatible file by annotating the BM25 query results with features obtained by using methods described below. The trainer doesn't quite "train" the features yet: it is required that the outputted file be run with RankLib, and the resulting weights are manually assigned to the methods (these are the weights used by the RankLib Query command)
+ The trainer creates a RankLib compatible file by annotating the BM25 query results with features obtained by using methods described further down. The trainer doesn't quite "train" the features yet: it is required that the outputted file be run with RankLib, and the resulting weights are used to determine the weights of the features when querying (these are the weights used by the RankLib Query command)
  
  ```bash
 program.jar ranklib_trainer method index query qrel [--out "query_results.run"] [--graph_database ""] 
