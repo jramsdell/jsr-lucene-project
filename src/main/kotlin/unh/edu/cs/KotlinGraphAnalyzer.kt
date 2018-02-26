@@ -110,7 +110,7 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
         val counts = HashMap<String, Double>()
         val nWalks = 100
         val nSteps = 2
-//        val pars = db.parMap[pid]!!.split(" ")
+        val pars = db.parMap[pid]!!.split(" ")
 
         // Restart random walk multiple times from the origin
         (0 until nWalks).forEach { _ ->
@@ -122,10 +122,10 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
             (0 until nSteps).forEach { _ ->
 
                 // Retrieve a random entity linked to paragraph (memoize result)
-                val entities = storedEntities.computeIfAbsent(curPar,
-                        { key -> db.parMap[key]!!.split(" ") })
+//                val entities = storedEntities.computeIfAbsent(curPar,
+//                        { key -> db.parMap[key]!!.split(" ") })
 //                val entities = if (curPar == pid) pars else db.parMap[curPar]!!.split(" ")
-//                val entities = if (curPar == pid) pars else db.parMap[curPar]!!.split(" ")
+                val entities = if (curPar == pid) pars else db.parMap[curPar]!!.split(" ")
                 val entity = entities[ThreadLocalRandom.current().nextInt(entities.size)]
 
                 // Retrieve a random paragrath linked to entity (memoize result)
@@ -148,8 +148,9 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
         }
 
         // Only consider the top 20 entities (because this is an incredibly long-tailed distribution)
-        val topEntries = counts.entries.sortedByDescending{ it.value }
+        val topEntries = counts.entries
             .filter { it.value != 0.0 }
+            .sortedByDescending{ it.value }
             .take(20)
             .map { it.key }
             .toHashSet()
