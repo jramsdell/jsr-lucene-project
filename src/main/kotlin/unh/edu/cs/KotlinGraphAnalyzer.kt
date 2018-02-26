@@ -149,6 +149,7 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
 
         // Only consider the top 20 entities (because this is an incredibly long-tailed distribution)
         val topEntries = counts.entries
+            .filter { it.value > 0 }
             .sortedByDescending{ it.value }
             .take(20)
             .map { it.key }
