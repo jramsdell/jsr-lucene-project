@@ -203,8 +203,10 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
     }
 
     private fun queryCombined() {
-        val weights = listOf(0.3106317698753524,-0.025891305471130843,
-                0.34751201103557083, -0.2358113441529167, -0.08015356975284649)
+//        val weights = listOf(0.3106317698753524,-0.025891305471130843,
+//                0.34751201103557083, -0.2358113441529167, -0.08015356975284649)
+        val weights = listOf(0.3721311632212514, 0.05740273762841476, 0.3050911823589306, -0.19965906725197807,
+                -0.06571584953942528)
 
         formatter.addBM25(weight = weights[0], normType = NormType.ZSCORE)
 
