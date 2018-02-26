@@ -31,6 +31,9 @@ Where:
  **--graph_database**: This option is only used for the mixtures method. It specifies the location of the graph_database.db database.
  
  ##### Ranklib Trainer Command
+ 
+ The trainer creates a RankLib compatible file by annotating the BM25 query results with features obtained by using methods described below. The trainer doesn't quite "train" the features yet: it is required that the outputted file be run with RankLib, and the resulting weights are manually assigned to the methods (these are the weights used by the RankLib Query command)
+ 
  ```bash
 program ranklib_trainer method index query qrel [--out "query_results.run"] [--graph_database ""] 
 ```
@@ -53,7 +56,7 @@ program ranklib_trainer method index query qrel [--out "query_results.run"] [--g
  
  ### Description of Methods
  Each of these methods score the Top 100 documents obtained by running BM25 on the concatenated section path against the index.
- For all methods, the score from BM25 is added as an additional feature (in addition to those created by the methods) and the weights are trained using RankLib.
+ For all methods, the score from BM25 is added as an additional feature (in addition to those created by the methods) and the weights are trained using RankLib. **The features (including BM25) were normalized by Z-score.**
 
 #### entity_similary
 The query string is first tokenized, and then the score of each paragraph is expressed as the average similiarity score of each query token to each entity in the paragraph. Two similarity metrics are considered in this method: Jaccard and JaroWinkler. The metrics were obtained from the Java library: https://github.com/tdebatty/java-string-similarity
