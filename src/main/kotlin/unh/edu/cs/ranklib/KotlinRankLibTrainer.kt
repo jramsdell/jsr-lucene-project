@@ -203,15 +203,15 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
     }
 
     private fun queryCombined() {
-//        val weights = listOf(0.3106317698753524,-0.025891305471130843,
-//                0.34751201103557083, -0.2358113441529167, -0.08015356975284649)
+        val weights = listOf(0.3106317698753524,-0.025891305471130843,
+                0.34751201103557083, -0.2358113441529167, -0.08015356975284649)
 //        val weights = listOf(0.40138524776868684, 0.2560172622244137, -0.23199890320801206, -0.11059858679888734)
-        val weights = listOf(0.6351872044086408, 0.2425613502855492, -0.0506568027797861424, 0.0715946425079486)
+//        val weights = listOf(0.6351872044086408, 0.2425613502855492, -0.0506568027797861424, 0.0715946425079486)
 
         formatter.addBM25(weight = weights[0], normType = NormType.ZSCORE)
 
-//        formatter.addFeature({ query, tops, _ ->
-//            addStringDistanceFunction(query, tops, Jaccard() )}, weight = weights[1], normType = NormType.ZSCORE)
+        formatter.addFeature({ query, tops, _ ->
+            addStringDistanceFunction(query, tops, Jaccard() )}, weight = weights[1], normType = NormType.ZSCORE)
 
         formatter.addFeature({query, tops, indexSearcher ->
             useLucSim(query, tops, indexSearcher, LMDirichletSimilarity())}, weight = weights[1],
