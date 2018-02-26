@@ -106,7 +106,8 @@ public class Main {
                         "Trains according to ranklib");
 
         ranklibTrainerParser.addArgument("method")
-                .choices("entity_similarity", "average_query", "split_sections", "mixtures", "combined");
+                .choices("entity_similarity", "average_query", "split_sections", "mixtures", "combined",
+                "entity_query");
         ranklibTrainerParser.addArgument("index").help("Location of the Lucene index directory");
         ranklibTrainerParser.addArgument("query").help("Location of query file (.cbor)");
         ranklibTrainerParser.addArgument("qrel").help("Locations of matching qrel file.");

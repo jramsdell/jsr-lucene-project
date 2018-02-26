@@ -12,6 +12,7 @@ import org.apache.lucene.store.FSDirectory
 import org.jsoup.Jsoup
 import org.jsoup.select.Elements
 import java.io.File
+import java.io.IOException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.nio.file.Paths
@@ -75,9 +76,11 @@ class KotlinEntityLinker(indexLoc: String, serverLocation: String) {
 
         // Try three times to query server before giving up
         for (i in (0..3)) {
-              try { entities = retrieveEntities(content); break
-            } catch (e: SocketTimeoutException) { Thread.sleep(ThreadLocalRandom.current().nextLong(500))
-            } catch (e: ConnectException) { Thread.sleep(ThreadLocalRandom.current().nextLong(500))}
+            try {
+                entities = retrieveEntities(content); break
+            } catch (e: IOException) {
+                Thread.sleep(ThreadLocalRandom.current().nextLong(500))
+            }
         }
         return entities
     }

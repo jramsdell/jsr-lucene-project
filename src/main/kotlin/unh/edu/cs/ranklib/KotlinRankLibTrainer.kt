@@ -67,15 +67,24 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
     }
 
 
+    /**
+     * Function: addEntityQueries
+     * Description: This method is supposed to consider query only the
+     */
     fun addEntityQueries(query: String, tops: TopDocs, indexSearcher: IndexSearcher): List<Double> {
         val replaceNumbers = """(\d+|enwiki:)""".toRegex()
         val entityQuery = query
             .replace(replaceNumbers, "")
             .run { formatter.queryRetriever.createTokenSequence(this) }
-            .map { token -> TermQuery(Term("spotlight", token))}
+            .toList()
+//            .map { token -> TermQuery(Term("spotlight", token))}
+            .flatMap { token ->
+                listOf(TermQuery(Term("spotlight", token)), TermQuery(Term(CONTENT, token)))
+            }
             .fold(BooleanQuery.Builder()) { builder, termQuery ->
                 builder.add(termQuery, BooleanClause.Occur.SHOULD) }
             .build()
+
 
         return tops.scoreDocs.map { scoreDoc ->
                 indexSearcher.explain(entityQuery, scoreDoc.doc).value.toDouble() }
@@ -234,6 +243,11 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
         formatter.addFeature(this::addAverageQueryScore, normType = NormType.ZSCORE)
     }
 
+    private fun trainEntityQuery() {
+        formatter.addBM25(normType = NormType.ZSCORE)
+        formatter.addFeature(this::addEntityQueries, normType = NormType.ZSCORE)
+    }
+
     private fun trainCombined() {
         formatter.addBM25(weight = 1.0, normType = NormType.NONE)
         formatter.addFeature({ query, tops, _ ->
@@ -250,6 +264,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
             "split_sections" -> trainSplit()
             "mixtures" -> trainMixtures()
             "combined" -> trainCombined()
+            "entity_query" -> trainEntityQuery()
             else -> println("Unknown method!")
         }
         formatter.writeToRankLibFile("mytestlib.txt")
