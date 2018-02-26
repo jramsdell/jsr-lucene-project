@@ -115,6 +115,9 @@ public class Main {
         ranklibTrainerParser.addArgument("index").help("Location of the Lucene index directory");
         ranklibTrainerParser.addArgument("query").help("Location of query file (.cbor)");
         ranklibTrainerParser.addArgument("qrel").help("Locations of matching qrel file.");
+        ranklibQueryParser.addArgument("--out")
+                .setDefault("ranklib_features.txt")
+                .help("Output name for the RankLib compatible feature file.");
         ranklibTrainerParser.addArgument("--graph_database")
                 .setDefault("")
                 .help("(only used for mixtures method): Location of graph_database.db file.");
@@ -191,10 +194,11 @@ public class Main {
         String qrelLocation = namespace.getString("qrel");
         String queryLocation = namespace.getString("query");
         String graphLocation = namespace.getString("graph_database");
+        String out = namespace.getString("out");
         String method = namespace.getString("method");
         KotlinRankLibTrainer kotTrainer =
                 new KotlinRankLibTrainer(indexLocation, queryLocation, qrelLocation, graphLocation);
-        kotTrainer.train(method);
+        kotTrainer.train(method, out);
     }
 
     private static void runRanklibQuery(Namespace namespace) {

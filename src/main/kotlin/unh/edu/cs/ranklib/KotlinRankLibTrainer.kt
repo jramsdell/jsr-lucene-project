@@ -310,26 +310,17 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
     private fun trainCombined() {
         formatter.addBM25(weight = 1.0, normType = NormType.NONE)
         formatter.addFeature({ query, tops, _ ->
-            addStringDistanceFunction(query, tops, JaroWinkler())}, normType = NormType.NONE)
-        formatter.addFeature({ query, tops, _ ->
             addStringDistanceFunction(query, tops, Jaccard() )}, normType = NormType.NONE)
         formatter.addFeature(this::addAverageQueryScore, normType = NormType.NONE)
         formatter.addFeature({query, tops, indexSearcher ->
             useLucSim(query, tops, indexSearcher, LMDirichletSimilarity())}, normType = NormType.ZSCORE)
-        formatter.addFeature({query, tops, indexSearcher ->
-            useLucSim(query, tops, indexSearcher, LMJelinekMercerSimilarity(LMSimilarity.DefaultCollectionModel(),
-                    0.5f))}, normType = NormType.ZSCORE)
-        formatter.addFeature({ query, tops, indexSearcher ->
-            sectionSplit(query, tops, indexSearcher, 0) }, normType = NormType.ZSCORE)
         formatter.addFeature({ query, tops, indexSearcher ->
             sectionSplit(query, tops, indexSearcher, 1) }, normType = NormType.ZSCORE)
         formatter.addFeature({ query, tops, indexSearcher ->
             sectionSplit(query, tops, indexSearcher, 2) }, normType = NormType.ZSCORE)
-        formatter.addFeature({ query, tops, indexSearcher ->
-            sectionSplit(query, tops, indexSearcher, 3) }, normType = NormType.ZSCORE)
     }
 
-    fun train(method: String) {
+    fun train(method: String, out: String) {
         when (method) {
             "entity_similarity" -> trainSimilarity()
             "average_query" -> trainAverageQuery()
@@ -341,7 +332,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
             "lm_mercer" -> trainJelinekMercerSimilarity()
             else -> println("Unknown method!")
         }
-        formatter.writeToRankLibFile("mytestlib.txt")
+        formatter.writeToRankLibFile(out)
     }
 
 
