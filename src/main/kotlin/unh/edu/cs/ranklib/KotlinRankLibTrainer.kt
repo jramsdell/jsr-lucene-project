@@ -9,6 +9,7 @@ import java.util.*
 import info.debatty.java.stringsimilarity.*
 import info.debatty.java.stringsimilarity.interfaces.StringDistance
 import org.apache.lucene.search.similarities.*
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Function: KotlinRankLibTrainer
@@ -133,6 +134,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
     }
 
 
+    val scount = AtomicInteger(0)
     fun addScoreMixtureSims(query: String, tops:TopDocs, indexSearcher: IndexSearcher): List<Double> {
         val sinks = HashMap<String, Double>()
         val mixtures = graphAnalyzer!!.getMixtures(tops)
@@ -145,6 +147,8 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 
         val total = sinks.values.sum()
         sinks.replaceAll { k, v -> v / total }
+
+        println(scount.incrementAndGet())
 
         return mixtures
             .map { pm -> pm.mixture.entries.sumByDouble { (k, v) -> sinks[k]!! * v * pm.score } }
