@@ -44,7 +44,7 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
                 docId = docInfo.first,
                 paragraphId = paragraphId,
                 score = docInfo.second.toDouble(),
-                mixture = try { doWalkModel(paragraphId) } catch (e: NullPointerException) { HashMap<String, Double>()}
+                mixture = doWalkModel(paragraphId)
                 )
         return pm
     }
@@ -110,7 +110,7 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
         val counts = HashMap<String, Double>()
         val nWalks = 100
         val nSteps = 2
-        val pars = db.parMap[pid]!!.split(" ")
+//        val pars = db.parMap[pid]!!.split(" ")
 
         // Restart random walk multiple times from the origin
         (0 until nWalks).forEach { _ ->
@@ -122,10 +122,10 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
             (0 until nSteps).forEach { _ ->
 
                 // Retrieve a random entity linked to paragraph (memoize result)
-//                val entities = storedEntities.computeIfAbsent(curPar,
-//                        { key -> db.parMap[key]!!.split(" ") })
+                val entities = storedEntities.computeIfAbsent(curPar,
+                        { key -> db.parMap[key]!!.split(" ") })
 //                val entities = if (curPar == pid) pars else db.parMap[curPar]!!.split(" ")
-                val entities = if (curPar == pid) pars else db.parMap[curPar]!!.split(" ")
+//                val entities = if (curPar == pid) pars else db.parMap[curPar]!!.split(" ")
                 val entity = entities[ThreadLocalRandom.current().nextInt(entities.size)]
 
                 // Retrieve a random paragrath linked to entity (memoize result)
@@ -133,7 +133,7 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
                         { key -> db.entityMap[key]!!.split(" ") })
 //                val paragraphs = if (curPar == pid) pars else db.entityMap[entity]!!.split(" ")
                 curPar = paragraphs[ThreadLocalRandom.current().nextInt(paragraphs.size)]
-                volume = 1/(ln(entities.size.toDouble()))
+                volume = 0.1 + 1/(ln(entities.size.toDouble()))
 
 //                if (first != 0) {
 //                    first = 1
