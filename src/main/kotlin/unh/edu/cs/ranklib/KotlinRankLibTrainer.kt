@@ -210,14 +210,14 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
         formatter.addFeature({ query, tops, _ ->
             addStringDistanceFunction(query, tops, Jaccard() )}, weight = weights[1], normType = NormType.ZSCORE)
         formatter.addFeature({query, tops, indexSearcher ->
-            useLucSim(query, tops, indexSearcher, LMDirichletSimilarity())}, weight = weights[3],
+            useLucSim(query, tops, indexSearcher, LMDirichletSimilarity())}, weight = weights[2],
                 normType = NormType.ZSCORE)
 
         formatter.addFeature({ query, tops, indexSearcher ->
-            sectionSplit(query, tops, indexSearcher, 1) }, weight = weights[4], normType = NormType.ZSCORE)
+            sectionSplit(query, tops, indexSearcher, 1) }, weight = weights[3], normType = NormType.ZSCORE)
 
         formatter.addFeature({ query, tops, indexSearcher ->
-            sectionSplit(query, tops, indexSearcher, 2) }, weight = weights[5], normType = NormType.ZSCORE)
+            sectionSplit(query, tops, indexSearcher, 2) }, weight = weights[4], normType = NormType.ZSCORE)
     }
 
     fun runRanklibQuery(method: String, out: String) {
