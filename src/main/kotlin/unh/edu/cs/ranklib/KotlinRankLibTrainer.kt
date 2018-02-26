@@ -151,8 +151,8 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
         println(scount.incrementAndGet())
 
         return mixtures
-//            .map { pm -> pm.mixture.entries.sumByDouble { (k, v) -> sinks[k]!! * v } }
-            .map {pm -> pm.score}
+            .map { pm -> pm.mixture.entries.sumByDouble { (k, v) -> sinks[k]!! * v } }
+//            .map {pm -> pm.score}
 //            .map { pm -> pm.score }
             .toList()
     }
