@@ -178,6 +178,21 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
         }
     }
 
+    private fun queryDirichlet() {
+        formatter.addBM25(weight = 0.80067, normType = NormType.ZSCORE)
+        formatter.addFeature({query, tops, indexSearcher ->
+            useLucSim(query, tops, indexSearcher, LMDirichletSimilarity())}, weight = 0.19932975,
+                normType = NormType.ZSCORE)
+    }
+
+    private fun queryMercer() {
+        formatter.addBM25(weight = 0.82, normType = NormType.ZSCORE)
+
+        formatter.addFeature({query, tops, indexSearcher ->
+            useLucSim(query, tops, indexSearcher, LMJelinekMercerSimilarity(LMSimilarity.DefaultCollectionModel(),
+                    0.5f))}, weight = 0.1798988, normType = NormType.ZSCORE)
+    }
+
     private fun queryCombined() {
     }
 
@@ -188,6 +203,8 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
             "average_query" -> queryAverage()
             "split_sections" -> querySplit()
             "mixtures" -> queryMixtures()
+            "lm_mercer" -> queryMercer()
+            "lm_dirichlet" -> queryDirichlet()
             "combined" -> queryCombined()
             else -> println("Unknown method!")
         }

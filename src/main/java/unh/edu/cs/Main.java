@@ -91,7 +91,8 @@ public class Main {
                 .help("Runs queries using ranklib trained methods.");
 
         ranklibQueryParser.addArgument("method")
-                .choices("bm25", "entity_similarity", "average_query", "split_sections", "mixtures", "combined");
+                .choices("bm25", "entity_similarity", "average_query", "split_sections", "mixtures", "combined",
+                        "lm_mercer", "lm_dirichlet");
 
         ranklibQueryParser.addArgument("index").help("Location of Lucene index directory.");
         ranklibQueryParser.addArgument("query").help("Location of query file (.cbor)");
