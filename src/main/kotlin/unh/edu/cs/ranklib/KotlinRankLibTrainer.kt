@@ -8,6 +8,7 @@ import java.lang.Double.sum
 import java.util.*
 import info.debatty.java.stringsimilarity.*
 import info.debatty.java.stringsimilarity.interfaces.StringDistance
+import org.apache.lucene.search.similarities.*
 
 /**
  * Function: KotlinRankLibTrainer
@@ -22,17 +23,25 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 
 
     /**
+     * Function: retrieveSequence
+     * Description: For qiven query string, filters out numbers (and enwiki) and retruns a list of tokens
+     */
+    fun retrieveSequence(query: String): List<String> {
+        val replaceNumbers = """(\d+|enwiki:)""".toRegex()
+        return query.replace(replaceNumbers, "")
+            .run { formatter.queryRetriever.createTokenSequence(this) }
+            .toList()
+    }
+
+
+    /**
      * Function: addStringDistanceFunction
      * Description: In this method, I try to the distance (or similarity) between the terms (after splitting)
      *              and the entities in each document.
      * @params dist: StingDistance interface (from debatty stringsimilarity library)
      */
     fun addStringDistanceFunction(query: String, tops: TopDocs, dist: StringDistance): List<Double> {
-        val replaceNumbers = """(\d+|enwiki:)""".toRegex()
-        val tokens = query
-            .replace(replaceNumbers, "")
-            .run { formatter.queryRetriever.createTokenSequence(this) }
-            .toList()
+        val tokens = retrieveSequence(query)
 
         // Map this over the score docs, taking the average similarity between query tokens and entities
         return tops.scoreDocs
@@ -51,10 +60,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
      *              I then get the BM25 score of each query to each document and average the results.
      */
     fun addAverageQueryScore(query: String, tops: TopDocs, indexSearcher: IndexSearcher): List<Double> {
-        val replaceNumbers = """(\d+|enwiki:)""".toRegex()
-        val termQueries = query
-            .replace(replaceNumbers, "")
-            .run { formatter.queryRetriever.createTokenSequence(this) }
+        val termQueries = retrieveSequence(query)
             .map { token -> TermQuery(Term(CONTENT, token))}
             .map { termQuery -> BooleanQuery.Builder().add(termQuery, BooleanClause.Occur.SHOULD).build()}
             .toList()
@@ -72,12 +78,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
      * Description: This method is supposed to consider query only the
      */
     fun addEntityQueries(query: String, tops: TopDocs, indexSearcher: IndexSearcher): List<Double> {
-        val replaceNumbers = """(\d+|enwiki:)""".toRegex()
-        val entityQuery = query
-            .replace(replaceNumbers, "")
-            .run { formatter.queryRetriever.createTokenSequence(this) }
-            .toList()
-//            .map { token -> TermQuery(Term("spotlight", token))}
+        val entityQuery = retrieveSequence(query)
             .flatMap { token ->
                 listOf(TermQuery(Term("spotlight", token)), TermQuery(Term(CONTENT, token)))
             }
@@ -90,11 +91,30 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
                 indexSearcher.explain(entityQuery, scoreDoc.doc).value.toDouble() }
     }
 
+
+    /**
+     * Function: useLucSim
+     * Description: Generalized function for testing similarity function from query to paragraph text.
+     */
+    fun useLucSim(query: String, tops: TopDocs, indexSearcher: IndexSearcher, sim: Similarity): List<Double> {
+        val entityQuery = retrieveSequence(query)
+            .map { token -> TermQuery(Term(CONTENT, token)) }
+            .fold(BooleanQuery.Builder()) { builder, termQuery ->
+                builder.add(termQuery, BooleanClause.Occur.SHOULD) }
+            .build()
+
+        val curSim = indexSearcher.getSimilarity(true)
+        indexSearcher.setSimilarity(sim)
+
+        return tops.scoreDocs.map { scoreDoc ->
+                                    indexSearcher.explain(entityQuery, scoreDoc.doc).value.toDouble() }
+            .apply { indexSearcher.setSimilarity(curSim) }  // Gotta remember to set the similarity back
+    }
+
+
+
     fun sectionSplit(query: String, tops: TopDocs, indexSearcher: IndexSearcher, secIndex: Int): List<Double> {
-        val replaceNumbers = """(\d+|enwiki:)""".toRegex()
-        val termQueries = query
-            .replace(replaceNumbers, "")
-            .run { formatter.queryRetriever.createTokenSequence(this) }
+        val termQueries = retrieveSequence(query)
             .map { token -> TermQuery(Term(CONTENT, token))}
             .map { termQuery -> BooleanQuery.Builder().add(termQuery, BooleanClause.Occur.SHOULD).build()}
             .toList()
@@ -248,6 +268,19 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
         formatter.addFeature(this::addEntityQueries, normType = NormType.ZSCORE)
     }
 
+    private fun trainDirichSim() {
+        formatter.addBM25(normType = NormType.ZSCORE)
+        formatter.addFeature({query, tops, indexSearcher ->
+            useLucSim(query, tops, indexSearcher, LMDirichletSimilarity())}, normType = NormType.ZSCORE)
+    }
+
+    private fun trainJelinekMercerSimilarity() {
+        formatter.addBM25(normType = NormType.ZSCORE)
+        formatter.addFeature({query, tops, indexSearcher ->
+            useLucSim(query, tops, indexSearcher, LMJelinekMercerSimilarity(LMSimilarity.DefaultCollectionModel(),
+                    0.5f))}, normType = NormType.ZSCORE)
+    }
+
     private fun trainCombined() {
         formatter.addBM25(weight = 1.0, normType = NormType.NONE)
         formatter.addFeature({ query, tops, _ ->
@@ -265,6 +298,8 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
             "mixtures" -> trainMixtures()
             "combined" -> trainCombined()
             "entity_query" -> trainEntityQuery()
+            "lm_dirichlet" -> trainDirichSim()
+            "lm_mercer" -> trainJelinekMercerSimilarity()
             else -> println("Unknown method!")
         }
         formatter.writeToRankLibFile("mytestlib.txt")
