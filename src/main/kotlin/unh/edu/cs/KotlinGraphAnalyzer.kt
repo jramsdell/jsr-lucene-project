@@ -122,6 +122,7 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
             (0 until nSteps).forEach { _ ->
 
                 // Retrieve a random entity linked to paragraph (memoize result)
+                println(curPar)
                 val entities = storedEntities.computeIfAbsent(curPar,
                         { key -> db.parMap[key]!!.split(" ") })
 //                val entities = db.parMap[curPar]!!.split(" ")

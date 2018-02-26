@@ -169,6 +169,15 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
     }
 
     private fun querySplit() {
+        formatter.addBM25(weight = 0.4824247, normType = NormType.ZSCORE)
+        formatter.addFeature({ query, tops, indexSearcher ->
+            sectionSplit(query, tops, indexSearcher, 0) }, weight = 0.069, normType = NormType.ZSCORE)
+        formatter.addFeature({ query, tops, indexSearcher ->
+            sectionSplit(query, tops, indexSearcher, 1) }, weight = -0.1845, normType = NormType.ZSCORE)
+        formatter.addFeature({ query, tops, indexSearcher ->
+            sectionSplit(query, tops, indexSearcher, 2) }, weight = -0.25063, normType = NormType.ZSCORE)
+        formatter.addFeature({ query, tops, indexSearcher ->
+            sectionSplit(query, tops, indexSearcher, 3) }, weight = 0.0134, normType = NormType.ZSCORE)
     }
 
     private fun queryMixtures() {
