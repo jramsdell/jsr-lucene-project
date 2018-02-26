@@ -56,15 +56,18 @@ enum class NormType {
  * @param qrelLoc: Location of the .qrels file (if none is given, then paragraphs won't be marked as relevant)
  * @param indexSearcher: An IndexSearcher for the Lucene index directory we will be querying.
  */
-class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
+class KotlinRanklibFormatter(queryLocation: String,
                              qrelLoc: String, val indexSearcher: IndexSearcher) {
 
     /**
      * @param indexLoc: A string pointing to location of index (used to create IndexSearcher if none is given)
      */
-    constructor(queries: List<Pair<String, TopDocs>>, qrelLoc: String, indexLoc: String) :
-            this(queries, qrelLoc, getIndexSearcher(indexLoc))
+    constructor(queryLocation: String, qrelLoc: String, indexLoc: String) :
+            this(queryLocation, qrelLoc, getIndexSearcher(indexLoc))
 
+
+    val queryRetriever = QueryRetriever(indexSearcher)
+    val queries = queryRetriever.getSectionQueries(queryLocation)
 
     // If a qrel filepath was given, reads file and creates a set of query/paragraph pairs for relevancies
     private val relevancies =
@@ -153,7 +156,7 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
      * @param weight: The final list of doubles is multiplies by this weight
      */
     fun addFeature(f: (String, TopDocs) -> List<Double>, weight:Double = 1.0,
-                   normType: NormType = NormType.ZSCORE) {
+                   normType: NormType = NormType.NONE) {
 
         queryContainers
             .pmap { (query, tops, paragraphs) ->
@@ -206,5 +209,14 @@ class KotlinRanklibFormatter(val queries: List<Pair<String, TopDocs>>,
                 .flatMap { queryContainer -> queryContainer.paragraphs  }
                 .joinToString(separator = "\n", transform = ParagraphContainer::toString)
                 .let { File(outName).writeText(it) }
+    }
+
+    /**
+     * Function: writeQueriesToFile
+     * Desciption: Uses query formatter to write current queries to trec-car compatible file
+     * @param outName: Name of the file to write the results to.
+     */
+    fun writeQueriesToFile(outName: String) {
+        queryRetriever.writeQueriesToFile(queries)
     }
 }
