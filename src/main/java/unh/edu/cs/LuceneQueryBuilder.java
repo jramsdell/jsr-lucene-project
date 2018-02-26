@@ -14,6 +14,7 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.*;
+import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
@@ -36,20 +37,19 @@ import java.util.stream.Collectors;
 class LuceneQueryBuilder {
     private IndexSearcher indexSearcher;
     private Analyzer analyzer;
-    private QueryType queryType;
+    private String queryType;
     private GraphAnalyzer graphAnalyzer;
-    private final String command;
+    private KotlinGraphAnalyzer kotlinGraphAnalyzer;
     private int counter = 0;
 
-    LuceneQueryBuilder(String com, QueryType qType, Analyzer ana,
-                       Similarity sim, String indexPath) throws IOException {
-        analyzer = ana;
-        command = com;
+    LuceneQueryBuilder(String qType, String indexPath) throws IOException {
+        analyzer = new StandardAnalyzer();
         queryType = qType;
         indexSearcher = createIndexSearcher(indexPath);
-        indexSearcher.setSimilarity(sim);
+        indexSearcher.setSimilarity(new BM25Similarity());
 
         graphAnalyzer = new GraphAnalyzer(indexSearcher);
+//        kotlinGraphAnalyzer = new KotlinGraphAnalyzer(indexSearcher);
     }
 
     // Used by word vector variation: creates a reader from 50D GloVE word vector file.
@@ -87,10 +87,10 @@ class LuceneQueryBuilder {
         list.add(new TermQuery(new Term("text", token)));
 
         // Entity-linking variation: also compare against entities and spotlight entities
-        if (command.equals("query_entity")) {
-            list.add(new TermQuery(new Term("entities", token)));
-            list.add(new TermQuery(new Term("spotlight", token)));
-        }
+//        if (command.equals("query_entity")) {
+//            list.add(new TermQuery(new Term("entities", token)));
+//            list.add(new TermQuery(new Term("spotlight", token)));
+//        }
         return Seq.seq(list);
     }
 
@@ -104,14 +104,14 @@ class LuceneQueryBuilder {
                 .flatMap(this::getQueries)
                 .forEach(termQuery -> queryBuilder.add(termQuery, BooleanClause.Occur.SHOULD));
 
-        if (command.equals("query_bigram")) {
-            BigramAnalyzer bg = new BigramAnalyzer(query);
-            List<String> bigrams = bg.run();
-            for (String bigram : bigrams) {
-                TermQuery tq = new TermQuery(new Term("bigram", bigram));
-                queryBuilder.add(tq, BooleanClause.Occur.SHOULD);
-            }
-        }
+//        if (command.equals("query_bigram")) {
+//            BigramAnalyzer bg = new BigramAnalyzer(query);
+//            List<String> bigrams = bg.run();
+//            for (String bigram : bigrams) {
+//                TermQuery tq = new TermQuery(new Term("bigram", bigram));
+//                queryBuilder.add(tq, BooleanClause.Occur.SHOULD);
+//            }
+//        }
 
         return queryBuilder.build();
     }
@@ -129,9 +129,9 @@ class LuceneQueryBuilder {
         final BufferedWriter out = new BufferedWriter(new FileWriter(rankingsOutput));
         final FileInputStream inputStream = new FileInputStream(new File(queryLocation));
 
-        if (queryType == QueryType.PAGE) {
+        if (queryType.equals("page")) {
             writePageRankings(inputStream, out);
-        } else if (queryType == QueryType.SECTION) {
+        } else if (queryType.equals("section")) {
             writeSectionRankings(inputStream, out);
         }
 
@@ -163,15 +163,14 @@ class LuceneQueryBuilder {
             TopDocs tops = indexSearcher.search(createQuery(queryStr), 100);
 
             // if Word Vector variant, rerank according to cosine sim from query to document terms
-            if (command.equals("query_special") || command.equals("query_kld")) {
-                rerankBySpecial(tops);
-            } else if (command.equals("query_random")) {
-                rerankByRandom(tops);
-            }
+//            if (command.equals("query_special") || command.equals("query_kld")) {
+//                rerankBySpecial(tops);
+//            } else if (command.equals("query_random")) {
+//                rerankByRandom(tops);
+//            }
             ScoreDoc[] scoreDoc = tops.scoreDocs;
             writeRankingsToFile(scoreDoc, queryId, out, ids);
         }
-        graphAnalyzer.writeTerms();
     }
 
     void writeSectionRankings(FileInputStream inputStream, BufferedWriter out) throws IOException {
@@ -187,11 +186,11 @@ class LuceneQueryBuilder {
                 TopDocs tops = indexSearcher.search(createQuery(queryStr), 100);
 
                 // if Word Vector variant, rerank according to cosine sim from query to document terms
-                if (command.equals("query_special") || command.equals("query_kld")) {
-                    rerankBySpecial(tops);
-                } else if (command.equals("query_random")) {
-                    rerankByRandom(tops);
-                }
+//                if (command.equals("query_special") || command.equals("query_kld")) {
+//                    rerankBySpecial(tops);
+//                } else if (command.equals("query_random")) {
+//                    rerankByRandom(tops);
+//                }
                 ScoreDoc[] scoreDoc = tops.scoreDocs;
                 writeRankingsToFile(scoreDoc, queryId, out, ids);
             }
@@ -218,9 +217,8 @@ class LuceneQueryBuilder {
 
 
     private void rerankBySpecial(TopDocs tops) throws IOException {
-        Tester.wee();
-        graphAnalyzer.rerankTopDocs(tops, command);
-//        ga.recordTerms(tops);
+//        graphAnalyzer.rerankTopDocs(tops, command);
+//        kotlinGraphAnalyzer.rerankTopDocs(tops, command);
         System.out.println(counter++);
     }
 

@@ -21,11 +21,9 @@ class LuceneIndexBuilder {
     private IndexWriter indexWriter;
     private final String corpusFile;
     private final String indexOutLocation;
-    private final IndexType indexType;
     private AtomicInteger commitCount = new AtomicInteger(0);
 
-    LuceneIndexBuilder(IndexType iType, String cFile, String iOut) {
-        indexType = iType;
+    LuceneIndexBuilder(String cFile, String iOut) {
         corpusFile = cFile;
         indexOutLocation = iOut;
     }
