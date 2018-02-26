@@ -155,12 +155,12 @@ class KotlinRanklibFormatter(queryLocation: String,
      * @param normType: NormType determines the type of normalization (if any) to apply to the new document scores.
      * @param weight: The final list of doubles is multiplies by this weight
      */
-    fun addFeature(f: (String, TopDocs) -> List<Double>, weight:Double = 1.0,
+    fun addFeature(f: (String, TopDocs, IndexSearcher) -> List<Double>, weight:Double = 1.0,
                    normType: NormType = NormType.NONE) {
 
         queryContainers
             .pmap { (query, tops, paragraphs) ->
-                    f(query, tops).run { normalizeResults(this, normType) }
+                    f(query, tops, indexSearcher).run { normalizeResults(this, normType) }
                                   .zip(paragraphs) }
             .forEach { results ->
                 results.forEach { (score, paragraph) ->
@@ -170,7 +170,7 @@ class KotlinRanklibFormatter(queryLocation: String,
     // Convenience function (turns NaN and infinite values into 0.0)
     private fun sanitizeDouble(d: Double): Double { return if (d.isInfinite() || d.isNaN()) 0.0 else d }
 
-    private fun bm25(query: String, tops:TopDocs): List<Double> {
+    private fun bm25(query: String, tops:TopDocs, indexSearcher: IndexSearcher): List<Double> {
         return tops.scoreDocs.map { it.score.toDouble() }
     }
 

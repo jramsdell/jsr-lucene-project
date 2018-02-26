@@ -9,15 +9,13 @@ import java.util.*
 import info.debatty.java.stringsimilarity.*
 import info.debatty.java.stringsimilarity.interfaces.StringDistance
 
-class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, qrelPath: String, graphPath: String) {
-    constructor(indexPath: String, queryPath: String, qrelPath: String, graphPath: String)
-            : this(getIndexSearcher(indexPath), queryPath, qrelPath, graphPath)
+class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: String, graphPath: String) {
 
     val db = KotlinDatabase(graphPath)
-    val graphAnalyzer = if (graphPath == "") null else KotlinGraphAnalyzer(indexSearcher, db)
 //    val queryRetriever = QueryRetriever(indexSearcher)
 //    val queries = queryRetriever.getSectionQueries(queryPath)
-    val formatter = KotlinRanklibFormatter(queryPath, qrelPath, indexSearcher)
+    val formatter = KotlinRanklibFormatter(queryPath, qrelPath, indexPath)
+    val graphAnalyzer = if (graphPath == "") null else KotlinGraphAnalyzer(formatter.indexSearcher, db)
 
 
     fun addStringDistanceFunction(query: String, tops: TopDocs, dist: StringDistance): List<Double> {
@@ -33,14 +31,14 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
 
         return tops.scoreDocs
             .map { scoreDoc ->
-                val doc = indexSearcher.doc(scoreDoc.doc)
+                val doc = formatter.indexSearcher.doc(scoreDoc.doc)
                 val entities = doc.getValues("spotlight").map { it.replace("_", " ") }
                 if (entities.isEmpty()) 0.0 else
                 termQueries.flatMap { q -> entities.map { e -> dist.distance(q, e)  } }.average()
             }
     }
 
-    fun addAverageQueryScore(query: String, tops: TopDocs): List<Double> {
+    fun addAverageQueryScore(query: String, tops: TopDocs, indexSearcher: IndexSearcher): List<Double> {
         val replaceNumbers = """(\d+|enwiki:)""".toRegex()
         val termQueries = query
             .replace(replaceNumbers, "")
@@ -56,7 +54,7 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
             }
     }
 
-    fun addEntityQueries(query: String, tops: TopDocs): List<Double> {
+    fun addEntityQueries(query: String, tops: TopDocs, indexSearcher: IndexSearcher): List<Double> {
         val replaceNumbers = """(\d+|enwiki:)""".toRegex()
         val entityQuery = query
             .replace(replaceNumbers, "")
@@ -70,7 +68,7 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
                 indexSearcher.explain(entityQuery, scoreDoc.doc).value.toDouble() }
     }
 
-    fun sectionSplit(query: String, tops: TopDocs, secIndex: Int): List<Double> {
+    fun sectionSplit(query: String, tops: TopDocs, indexSearcher: IndexSearcher, secIndex: Int): List<Double> {
         val replaceNumbers = """(\d+|enwiki:)""".toRegex()
         val termQueries = query
             .replace(replaceNumbers, "")
@@ -93,7 +91,7 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
     }
 
 
-    fun addScoreMixtureSims(query: String, tops:TopDocs): List<Double> {
+    fun addScoreMixtureSims(query: String, tops:TopDocs, indexSearcher: IndexSearcher): List<Double> {
         val sinks = HashMap<String, Double>()
         val mixtures = graphAnalyzer!!.getMixtures(tops)
 
@@ -117,9 +115,9 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
 
     fun querySimilarity() {
         formatter.addBM25(weight = 0.884669653, normType = NormType.ZSCORE)
-        formatter.addFeature({ query, tops ->
+        formatter.addFeature({ query, tops, _ ->
             addStringDistanceFunction(query, tops, JaroWinkler())}, weight = -0.001055, normType = NormType.ZSCORE)
-        formatter.addFeature({ query, tops ->
+        formatter.addFeature({ query, tops, _ ->
             addStringDistanceFunction(query, tops, Jaccard() )}, weight = 0.11427, normType = NormType.ZSCORE)
     }
 
@@ -160,10 +158,10 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
     fun rescore() {
         val weights = listOf(0.075174, 0.24885699, 0.554, 0.1219)
         formatter.addBM25(weight = weights[0], normType = NormType.NONE)
-        formatter.addFeature({ query, tops ->
+        formatter.addFeature({ query, tops, _ ->
             addStringDistanceFunction(query, tops, JaroWinkler() )}, weight = weights[1], normType = NormType.NONE)
 
-        formatter.addFeature({ query, tops ->
+        formatter.addFeature({ query, tops, _ ->
             addStringDistanceFunction(query, tops, Jaccard() )}, weight = weights[2], normType = NormType.NONE)
 
         formatter.addFeature(this::addAverageQueryScore, weight = weights[3], normType = NormType.NONE)
@@ -195,22 +193,22 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
 
     private fun trainSimilarity() {
         formatter.addBM25(normType = NormType.ZSCORE)
-        formatter.addFeature({ query, tops ->
+        formatter.addFeature({ query, tops, _ ->
             addStringDistanceFunction(query, tops, JaroWinkler())}, normType = NormType.ZSCORE)
-        formatter.addFeature({ query, tops ->
+        formatter.addFeature({ query, tops, _ ->
             addStringDistanceFunction(query, tops, Jaccard() )}, normType = NormType.ZSCORE)
     }
 
     private fun trainSplit() {
         formatter.addBM25(normType = NormType.ZSCORE)
-        formatter.addFeature({ query, tops -> sectionSplit(query, tops, 0) },
-                normType = NormType.ZSCORE)
-        formatter.addFeature({ query, tops -> sectionSplit(query, tops, 1) },
-                normType = NormType.ZSCORE)
-        formatter.addFeature({ query, tops -> sectionSplit(query, tops, 2) },
-                normType = NormType.ZSCORE)
-        formatter.addFeature({ query, tops -> sectionSplit(query, tops, 3) },
-                normType = NormType.ZSCORE)
+        formatter.addFeature({ query, tops, indexSearcher ->
+            sectionSplit(query, tops, indexSearcher, 0) }, normType = NormType.ZSCORE)
+        formatter.addFeature({ query, tops, indexSearcher ->
+            sectionSplit(query, tops, indexSearcher, 1) }, normType = NormType.ZSCORE)
+        formatter.addFeature({ query, tops, indexSearcher ->
+            sectionSplit(query, tops, indexSearcher, 2) }, normType = NormType.ZSCORE)
+        formatter.addFeature({ query, tops, indexSearcher ->
+            sectionSplit(query, tops, indexSearcher, 3) }, normType = NormType.ZSCORE)
     }
 
     private fun trainMixtures() {
@@ -225,9 +223,9 @@ class KotlinRankLibTrainer(val indexSearcher: IndexSearcher, queryPath: String, 
 
     private fun trainCombined() {
         formatter.addBM25(weight = 1.0, normType = NormType.NONE)
-        formatter.addFeature({ query, tops ->
+        formatter.addFeature({ query, tops, _ ->
             addStringDistanceFunction(query, tops, JaroWinkler())}, normType = NormType.NONE)
-        formatter.addFeature({ query, tops ->
+        formatter.addFeature({ query, tops, _ ->
             addStringDistanceFunction(query, tops, Jaccard() )}, normType = NormType.NONE)
         formatter.addFeature(this::addAverageQueryScore, normType = NormType.NONE)
     }
