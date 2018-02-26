@@ -115,6 +115,13 @@ public class Main {
                 .help("(only used for mixtures method): Location of graph_database.db file.");
 
 
+        // Ranklib Trainer
+        Subparser statsParser = subparsers.addParser("stats")
+                .setDefault("func", new Exec(Main::runStatsParser))
+                .help("Gets stats from Lucene index");
+
+        statsParser.addArgument("index").help("Location of the Lucene index directory");
+
         return parser;
     }
 
@@ -166,6 +173,12 @@ public class Main {
         String indexLocation = namespace.getString("index");
         KotlinGraphBuilder graphBuilder = new KotlinGraphBuilder(indexLocation);
         graphBuilder.run();
+    }
+
+    private static void runStatsParser(Namespace namespace) {
+        String indexLocation = namespace.getString("index");
+        KotlinStatsParser kstat = new KotlinStatsParser(indexLocation);
+        kstat.stats();
     }
 
     private static void runRanklibTrainer(Namespace namespace) {

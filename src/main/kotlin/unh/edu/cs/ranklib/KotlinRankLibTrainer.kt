@@ -9,35 +9,47 @@ import java.util.*
 import info.debatty.java.stringsimilarity.*
 import info.debatty.java.stringsimilarity.interfaces.StringDistance
 
+/**
+ * Function: KotlinRankLibTrainer
+ * Description: This is used to encapsulate my different query methods, and the training methods I used to
+ *              learn their weights.
+ */
 class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: String, graphPath: String) {
 
     val db = KotlinDatabase(graphPath)
-//    val queryRetriever = QueryRetriever(indexSearcher)
-//    val queries = queryRetriever.getSectionQueries(queryPath)
     val formatter = KotlinRanklibFormatter(queryPath, qrelPath, indexPath)
     val graphAnalyzer = if (graphPath == "") null else KotlinGraphAnalyzer(formatter.indexSearcher, db)
 
 
+    /**
+     * Function: addStringDistanceFunction
+     * Description: In this method, I try to the distance (or similarity) between the terms (after splitting)
+     *              and the entities in each document.
+     * @params dist: StingDistance interface (from debatty stringsimilarity library)
+     */
     fun addStringDistanceFunction(query: String, tops: TopDocs, dist: StringDistance): List<Double> {
         val replaceNumbers = """(\d+|enwiki:)""".toRegex()
-//        val termQueries = query
-//            .replace(replaceNumbers, " ")
-//            .split(" ")
-        val termQueries = query
+        val tokens = query
             .replace(replaceNumbers, "")
             .run { formatter.queryRetriever.createTokenSequence(this) }
             .toList()
 
-
+        // Map this over the score docs, taking the average similarity between query tokens and entities
         return tops.scoreDocs
             .map { scoreDoc ->
                 val doc = formatter.indexSearcher.doc(scoreDoc.doc)
                 val entities = doc.getValues("spotlight").map { it.replace("_", " ") }
                 if (entities.isEmpty()) 0.0 else
-                termQueries.flatMap { q -> entities.map { e -> dist.distance(q, e)  } }.average()
+                    // This is the actual part where I average the results using the distance function
+                tokens.flatMap { q -> entities.map { e -> dist.distance(q, e)  } }.average()
             }
     }
 
+    /**
+     * Function: addAverageQueryScore
+     * Description: In this method, I tokenize the query and treat each token as an individual query.
+     *              I then get the BM25 score of each query to each document and average the results.
+     */
     fun addAverageQueryScore(query: String, tops: TopDocs, indexSearcher: IndexSearcher): List<Double> {
         val replaceNumbers = """(\d+|enwiki:)""".toRegex()
         val termQueries = query
@@ -53,6 +65,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
                     .average()
             }
     }
+
 
     fun addEntityQueries(query: String, tops: TopDocs, indexSearcher: IndexSearcher): List<Double> {
         val replaceNumbers = """(\d+|enwiki:)""".toRegex()
