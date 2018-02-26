@@ -185,6 +185,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
             println("You must supply a --graph_database location for this method!")
             return
         }
+        formatter.addFeature(this::addScoreMixtureSims, normType = NormType.NONE)
     }
 
     private fun queryDirichlet() {
@@ -214,7 +215,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
             addStringDistanceFunction(query, tops, Jaccard() )}, weight = weights[1], normType = NormType.ZSCORE)
 
         formatter.addFeature({query, tops, indexSearcher ->
-            useLucSim(query, tops, indexSearcher, LMDirichletSimilarity(1500.0f))}, weight = weights[2],
+            useLucSim(query, tops, indexSearcher, LMDirichletSimilarity())}, weight = weights[2],
                 normType = NormType.ZSCORE)
 
         formatter.addFeature({ query, tops, indexSearcher ->
