@@ -314,6 +314,19 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
         formatter.addFeature({ query, tops, _ ->
             addStringDistanceFunction(query, tops, Jaccard() )}, normType = NormType.NONE)
         formatter.addFeature(this::addAverageQueryScore, normType = NormType.NONE)
+        formatter.addFeature({query, tops, indexSearcher ->
+            useLucSim(query, tops, indexSearcher, LMDirichletSimilarity())}, normType = NormType.ZSCORE)
+        formatter.addFeature({query, tops, indexSearcher ->
+            useLucSim(query, tops, indexSearcher, LMJelinekMercerSimilarity(LMSimilarity.DefaultCollectionModel(),
+                    0.5f))}, normType = NormType.ZSCORE)
+        formatter.addFeature({ query, tops, indexSearcher ->
+            sectionSplit(query, tops, indexSearcher, 0) }, normType = NormType.ZSCORE)
+        formatter.addFeature({ query, tops, indexSearcher ->
+            sectionSplit(query, tops, indexSearcher, 1) }, normType = NormType.ZSCORE)
+        formatter.addFeature({ query, tops, indexSearcher ->
+            sectionSplit(query, tops, indexSearcher, 2) }, normType = NormType.ZSCORE)
+        formatter.addFeature({ query, tops, indexSearcher ->
+            sectionSplit(query, tops, indexSearcher, 3) }, normType = NormType.ZSCORE)
     }
 
     fun train(method: String) {
