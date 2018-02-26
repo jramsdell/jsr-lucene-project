@@ -77,7 +77,7 @@ This uses Lucene's LMJelinekMercerSimilarity metric in place of the BM25 similar
 This uses Lucene's LMDirichletSimilarity metric in place of the BM25 similarity metric, and it is used to score each query against the paragraph's text.
 
 #### combined
-This method combines the following previous methods as separate features:
+This method combines the following previous methods as separate features: BM25, LMDirichletSimilarity (mu 2000), entity_similarity (only using Jaccard string similarity), and first and second heading scores (i.e. pagename/header1/header2)/
 
 
 
