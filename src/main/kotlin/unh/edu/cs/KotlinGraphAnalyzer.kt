@@ -135,11 +135,11 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
                 curPar = paragraphs[ThreadLocalRandom.current().nextInt(paragraphs.size)]
 //                volume = 0.1 + 1/(ln(entities.size.toDouble()))
 
-//                if (first != 0) {
-//                    first = 1
-//                } else {
-//                    volume *= 1/(ln(entities.size.toDouble()) + ln(paragraphs.size.toDouble()))
-//                }
+                if (first != 0) {
+                    first = 1
+                } else {
+                    volume *= 1/(ln(entities.size.toDouble()) + ln(paragraphs.size.toDouble()))
+                }
 
                 counts.merge(entity, volume, ::sum)
 
@@ -149,7 +149,6 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
 
         // Only consider the top 20 entities (because this is an incredibly long-tailed distribution)
         val topEntries = counts.entries
-            .filter { it.value > 0 }
             .sortedByDescending{ it.value }
             .take(20)
             .map { it.key }
