@@ -109,7 +109,7 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
     fun doWalkModel(pid: String): HashMap<String, Double> {
         val counts = HashMap<String, Double>()
         val nWalks = 200
-        val nSteps = 2
+        val nSteps = 3
         val pars = db.parMap[pid]!!.split(" ")
 
         // Restart random walk multiple times from the origin
