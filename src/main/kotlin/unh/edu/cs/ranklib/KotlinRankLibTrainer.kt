@@ -269,7 +269,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
 
     private fun trainMixtures() {
         formatter.addBM25(normType = NormType.ZSCORE)
-        formatter.addFeature(this::addScoreMixtureSims, normType = NormType.NONE)
+        formatter.addFeature(this::addScoreMixtureSims, normType = NormType.ZSCORE)
     }
 
     private fun trainAverageQuery() {
