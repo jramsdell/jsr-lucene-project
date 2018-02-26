@@ -133,7 +133,7 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
                         { key -> db.entityMap[key]!!.split(" ") })
 //                val paragraphs = if (curPar == pid) pars else db.entityMap[entity]!!.split(" ")
                 curPar = paragraphs[ThreadLocalRandom.current().nextInt(paragraphs.size)]
-                volume = 0.1 + 1/(ln(entities.size.toDouble()))
+//                volume = 0.1 + 1/(ln(entities.size.toDouble()))
 
 //                if (first != 0) {
 //                    first = 1
@@ -149,9 +149,10 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
 
         // Only consider the top 20 entities (because this is an incredibly long-tailed distribution)
         val topEntries = counts.entries.sortedByDescending{ it.value }
-                .take(20)
-                .map { it.key }
-                .toHashSet()
+            .filter { it.value != 0.0 }
+            .take(20)
+            .map { it.key }
+            .toHashSet()
 
         counts.removeAll { key, value -> key !in topEntries }
 
