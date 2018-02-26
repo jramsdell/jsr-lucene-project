@@ -44,7 +44,7 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
                 docId = docInfo.first,
                 paragraphId = paragraphId,
                 score = docInfo.second.toDouble(),
-                mixture = doWalkModel(paragraphId)
+                mixture = try { doWalkModel(paragraphId) } catch (e: NullPointerException) { HashMap<String, Double>()}
                 )
         return pm
     }
@@ -171,7 +171,7 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
     fun getMixtures(tops: TopDocs): List<ParagraphMixture> =
             tops.scoreDocs
                     .map { it.doc to it.score }
-                    .map({ getParagraphMixture(it) })
+                    .map({getParagraphMixture(it)})
                     .toList()
 
 }

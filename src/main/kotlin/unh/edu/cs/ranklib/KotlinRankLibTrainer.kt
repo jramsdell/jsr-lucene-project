@@ -205,7 +205,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
     private fun queryCombined() {
     }
 
-    fun runRanklibQuery(method: String) {
+    fun runRanklibQuery(method: String, out: String) {
         when (method) {
             "bm25" -> queryStandard()
             "entity_similarity" -> querySimilarity()
@@ -218,7 +218,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
             else -> println("Unknown method!")
         }
         formatter.rerankQueries()
-        formatter.queryRetriever.writeQueriesToFile(formatter.queries)
+        formatter.queryRetriever.writeQueriesToFile(formatter.queries, out)
     }
 
 
