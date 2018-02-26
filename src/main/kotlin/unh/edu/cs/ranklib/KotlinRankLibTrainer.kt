@@ -207,8 +207,10 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
                 0.34751201103557083, -0.2358113441529167, -0.08015356975284649)
 
         formatter.addBM25(weight = weights[0], normType = NormType.ZSCORE)
+
         formatter.addFeature({ query, tops, _ ->
             addStringDistanceFunction(query, tops, Jaccard() )}, weight = weights[1], normType = NormType.ZSCORE)
+
         formatter.addFeature({query, tops, indexSearcher ->
             useLucSim(query, tops, indexSearcher, LMDirichletSimilarity())}, weight = weights[2],
                 normType = NormType.ZSCORE)
