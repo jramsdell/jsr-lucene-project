@@ -208,20 +208,21 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
         val weights = listOf(0.3721311632212514, 0.05740273762841476, 0.3050911823589306, -0.19965906725197807,
                 -0.06571584953942528)
 
-        formatter.addBM25(weight = weights[0], normType = NormType.ZSCORE)
+//        formatter.addBM25(weight = weights[0], normType = NormType.ZSCORE)
+        formatter.addBM25(weight = 1.0, normType = NormType.ZSCORE)
 
-        formatter.addFeature({ query, tops, _ ->
-            addStringDistanceFunction(query, tops, Jaccard() )}, weight = weights[1], normType = NormType.ZSCORE)
-
-        formatter.addFeature({query, tops, indexSearcher ->
-            useLucSim(query, tops, indexSearcher, LMDirichletSimilarity())}, weight = weights[2],
-                normType = NormType.ZSCORE)
-
-        formatter.addFeature({ query, tops, indexSearcher ->
-            sectionSplit(query, tops, indexSearcher, 1) }, weight = weights[3], normType = NormType.ZSCORE)
-
-        formatter.addFeature({ query, tops, indexSearcher ->
-            sectionSplit(query, tops, indexSearcher, 2) }, weight = weights[4], normType = NormType.ZSCORE)
+//        formatter.addFeature({ query, tops, _ ->
+//            addStringDistanceFunction(query, tops, Jaccard() )}, weight = weights[1], normType = NormType.ZSCORE)
+//
+//        formatter.addFeature({query, tops, indexSearcher ->
+//            useLucSim(query, tops, indexSearcher, LMDirichletSimilarity())}, weight = weights[2],
+//                normType = NormType.ZSCORE)
+//
+//        formatter.addFeature({ query, tops, indexSearcher ->
+//            sectionSplit(query, tops, indexSearcher, 1) }, weight = weights[3], normType = NormType.ZSCORE)
+//
+//        formatter.addFeature({ query, tops, indexSearcher ->
+//            sectionSplit(query, tops, indexSearcher, 2) }, weight = weights[4], normType = NormType.ZSCORE)
     }
 
     fun runRanklibQuery(method: String, out: String) {
