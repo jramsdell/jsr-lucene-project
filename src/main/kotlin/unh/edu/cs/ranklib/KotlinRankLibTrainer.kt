@@ -146,7 +146,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
         }
 
         val total = sinks.values.sum()
-        sinks.replaceAll { k, v -> v / total }
+//        sinks.replaceAll { k, v -> v / total }
 
         println(scount.incrementAndGet())
 
