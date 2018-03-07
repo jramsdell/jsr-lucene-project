@@ -124,7 +124,7 @@ public class Main {
         ranklibTrainerParser.addArgument("--graph_database")
                 .setDefault("")
                 .help("(only used for mixtures method): Location of graph_database.db file.");
-        ranklibQueryParser.addArgument("--page_query")
+        ranklibTrainerParser.addArgument("--page_query")
                 .choices("0", "1")
                 .setDefault("1");
 
