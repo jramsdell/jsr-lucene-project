@@ -108,8 +108,8 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
      */
     fun doWalkModel(pid: String): HashMap<String, Double> {
         val counts = HashMap<String, Double>()
-        val nWalks = 100
-        val nSteps = 2
+        val nWalks = 200
+        val nSteps = 3
         val pars = db.parMap[pid]!!.split(" ")
 
         // Restart random walk multiple times from the origin
@@ -122,23 +122,24 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
             (0 until nSteps).forEach { _ ->
 
                 // Retrieve a random entity linked to paragraph (memoize result)
-                val entities = storedEntities.computeIfAbsent(curPar,
-                        { key -> db.parMap[key]!!.split(" ") })
-//                val entities = db.parMap[curPar]!!.split(" ")
+//                val entities = storedEntities.computeIfAbsent(curPar,
+//                        { key -> db.parMap[key]!!.split(" ") })
+//                val entities = if (curPar == pid) pars else db.parMap[curPar]!!.split(" ")
+                val entities = if (curPar == pid) pars else db.parMap[curPar]!!.split(" ")
                 val entity = entities[ThreadLocalRandom.current().nextInt(entities.size)]
 
                 // Retrieve a random paragrath linked to entity (memoize result)
-//                val paragraphs = storedParagraphs.computeIfAbsent(entity,
-//                        { key -> db.entityMap[key]!!.split(" ") })
-                val paragraphs = if (curPar == pid) pars else db.entityMap[entity]!!.split(" ")
+                val paragraphs = storedParagraphs.computeIfAbsent(entity,
+                        { key -> db.entityMap[key]!!.split(" ") })
+//                val paragraphs = if (curPar == pid) pars else db.entityMap[entity]!!.split(" ")
                 curPar = paragraphs[ThreadLocalRandom.current().nextInt(paragraphs.size)]
-                volume = 1/(ln(entities.size.toDouble()))
+//                volume = 0.1 + 1/(ln(entities.size.toDouble()))
 
-//                if (first != 0) {
-//                    first = 1
-//                } else {
-//                    volume *= 1/(ln(entities.size.toDouble()) + ln(paragraphs.size.toDouble()))
-//                }
+                if (first != 0) {
+                    first = 1
+                } else {
+                    volume *= 1/(ln(entities.size.toDouble()) + ln(paragraphs.size.toDouble()))
+                }
 
                 counts.merge(entity, volume, ::sum)
 
@@ -147,10 +148,11 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
         }
 
         // Only consider the top 20 entities (because this is an incredibly long-tailed distribution)
-        val topEntries = counts.entries.sortedByDescending{ it.value }
-                .take(20)
-                .map { it.key }
-                .toHashSet()
+        val topEntries = counts.entries
+            .sortedByDescending{ it.value }
+            .take(20)
+            .map { it.key }
+            .toHashSet()
 
         counts.removeAll { key, value -> key !in topEntries }
 
@@ -170,7 +172,7 @@ class KotlinGraphAnalyzer(var indexSearcher: IndexSearcher, val db: KotlinDataba
     fun getMixtures(tops: TopDocs): List<ParagraphMixture> =
             tops.scoreDocs
                     .map { it.doc to it.score }
-                    .map({ getParagraphMixture(it) })
+                    .map({getParagraphMixture(it)})
                     .toList()
 
 }

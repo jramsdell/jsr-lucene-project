@@ -117,34 +117,6 @@ class KotlinGraphBuilder(indexLocation: String) {
         bar.stop()
     }
 
-    fun addEntity2EntityDistributions(entities: List<String>) {
-        entities.forEach { entity ->
-            val dist = graphAnalyzer.doWalkModelEntity(entity)
-            db.e2eDistMap[entity] = dist.entries.joinToString(separator = " ") { (k,v) -> "$k:$v" }
-        }
-    }
-
-    fun buildEntity2EntityDist() {
-        println("Starting!")
-        val bar = ProgressBar("Entity Distributions", db.entityMap.sizeLong(), ProgressBarStyle.ASCII)
-        bar.start()
-        val lock = ReentrantLock()
-        db.entityMap.keys.forEachParallel { entity ->
-            val dist = graphAnalyzer.doWalkModelEntity(entity)
-            db.e2eDistMap[entity] = dist.entries.joinToString(separator = " ") { (k,v) -> "$k:$v" }
-            lock.withLock { bar.step() }
-        }
-//        db.entityMap.keys.chunked(10000)
-//                .forEachParallel { chunk ->
-//                    addEntity2EntityDistributions(chunk)
-//                    lock.withLock { bar.stepBy(10000) }
-//                }
-        bar.stop()
-
-        println("Entities distributions finished!")
-    }
-
-
     /**
      * Function: run
      * Description: Builds edges from paragraphs to entities and then from entities to paragraphs.
@@ -154,7 +126,6 @@ class KotlinGraphBuilder(indexLocation: String) {
     fun run() {
         buildParagraphGraph()
         buildEntityGraph()
-//        buildEntity2EntityDist()
         println("Graphs complete!")
     }
 }

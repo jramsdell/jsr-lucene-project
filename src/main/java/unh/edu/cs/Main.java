@@ -96,6 +96,9 @@ public class Main {
 
         ranklibQueryParser.addArgument("index").help("Location of Lucene index directory.");
         ranklibQueryParser.addArgument("query").help("Location of query file (.cbor)");
+        ranklibQueryParser.addArgument("--out")
+                .setDefault("query_results.run")
+                .help("Specifies the output name of the run file.");
         ranklibQueryParser.addArgument("--graph_database")
                 .setDefault("")
                 .help("(only used for mixtures method): Location of graph_database.db file.");
@@ -115,6 +118,9 @@ public class Main {
         ranklibTrainerParser.addArgument("index").help("Location of the Lucene index directory");
         ranklibTrainerParser.addArgument("query").help("Location of query file (.cbor)");
         ranklibTrainerParser.addArgument("qrel").help("Locations of matching qrel file.");
+        ranklibTrainerParser.addArgument("--out")
+                .setDefault("ranklib_features.txt")
+                .help("Output name for the RankLib compatible feature file.");
         ranklibTrainerParser.addArgument("--graph_database")
                 .setDefault("")
                 .help("(only used for mixtures method): Location of graph_database.db file.");
@@ -191,9 +197,11 @@ public class Main {
         String qrelLocation = namespace.getString("qrel");
         String queryLocation = namespace.getString("query");
         String graphLocation = namespace.getString("graph_database");
+        String out = namespace.getString("out");
         String method = namespace.getString("method");
         String pageQuery = namespace.getString("page_query");
         KotlinRankLibTrainer kotTrainer =
+
                 new KotlinRankLibTrainer(indexLocation, queryLocation, qrelLocation, graphLocation,
                         pageQuery.equals("1"));
         kotTrainer.train(method);
@@ -204,6 +212,7 @@ public class Main {
         String queryLocation = namespace.getString("query");
         String graphLocation = namespace.getString("graph_database");
         String method = namespace.getString("method");
+        String out = namespace.getString("out");
         KotlinRankLibTrainer kotTrainer =
                 new KotlinRankLibTrainer(indexLocation, queryLocation, "", graphLocation, false);
         kotTrainer.runRanklibQuery(method);

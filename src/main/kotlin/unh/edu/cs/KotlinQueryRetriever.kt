@@ -86,7 +86,9 @@ class QueryRetriever(val indexSearcher: IndexSearcher) {
             .flatMap { page ->
                 page.flatSectionPaths().pmap { sectionPath ->
                     val queryId = Data.sectionPathId(page.pageId, sectionPath)
-                    val queryStr = createQueryString(page, sectionPath)
+                    var queryStr = createQueryString(page, sectionPath)
+                    val replaceNumbers = """(\d+|enwiki:)""".toRegex()
+                    queryStr = queryStr.replace(replaceNumbers, queryStr)
                     val result = queryId to indexSearcher.search(createQuery(queryStr), 100)
                     result.takeUnless {seen.put(queryId, "") != null}
                 }
