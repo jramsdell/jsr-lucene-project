@@ -57,17 +57,18 @@ enum class NormType {
  * @param indexSearcher: An IndexSearcher for the Lucene index directory we will be querying.
  */
 class KotlinRanklibFormatter(queryLocation: String,
-                             qrelLoc: String, val indexSearcher: IndexSearcher) {
+                             qrelLoc: String, val indexSearcher: IndexSearcher, usePageQuery: Boolean = false) {
 
     /**
      * @param indexLoc: A string pointing to location of index (used to create IndexSearcher if none is given)
      */
-    constructor(queryLocation: String, qrelLoc: String, indexLoc: String) :
-            this(queryLocation, qrelLoc, getIndexSearcher(indexLoc))
+    constructor(queryLocation: String, qrelLoc: String, indexLoc: String, usePageQuery: Boolean = false) :
+            this(queryLocation, qrelLoc, getIndexSearcher(indexLoc), usePageQuery)
 
 
     val queryRetriever = QueryRetriever(indexSearcher)
-    val queries = queryRetriever.getSectionQueries(queryLocation)
+    val queries = if (usePageQuery) queryRetriever.getPageQueries(queryLocation)
+                  else queryRetriever.getSectionQueries(queryLocation)
 
     // If a qrel filepath was given, reads file and creates a set of query/paragraph pairs for relevancies
     private val relevancies =
