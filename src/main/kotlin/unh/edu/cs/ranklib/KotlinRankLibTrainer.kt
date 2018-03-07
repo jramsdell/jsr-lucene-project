@@ -16,10 +16,11 @@ import java.util.concurrent.atomic.AtomicInteger
  * Description: This is used to encapsulate my different query methods, and the training methods I used to
  *              learn their weights.
  */
-class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: String, graphPath: String) {
+class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: String, graphPath: String,
+                           usePageQuery: Boolean = false) {
 
     val db = KotlinDatabase(graphPath)
-    val formatter = KotlinRanklibFormatter(queryPath, qrelPath, indexPath)
+    val formatter = KotlinRanklibFormatter(queryPath, qrelPath, indexPath, usePageQuery)
     val graphAnalyzer = if (graphPath == "") null else KotlinGraphAnalyzer(formatter.indexSearcher, db)
 
 
