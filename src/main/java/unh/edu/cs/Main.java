@@ -204,7 +204,7 @@ public class Main {
 
                 new KotlinRankLibTrainer(indexLocation, queryLocation, qrelLocation, graphLocation,
                         pageQuery.equals("1"));
-        kotTrainer.train(method);
+        kotTrainer.train(method, "ranklib_features.txt");
     }
 
     private static void runRanklibQuery(Namespace namespace) {
@@ -215,7 +215,7 @@ public class Main {
         String out = namespace.getString("out");
         KotlinRankLibTrainer kotTrainer =
                 new KotlinRankLibTrainer(indexLocation, queryLocation, "", graphLocation, false);
-        kotTrainer.runRanklibQuery(method);
+        kotTrainer.runRanklibQuery(method, "ranklib_features.txt");
     }
 
 

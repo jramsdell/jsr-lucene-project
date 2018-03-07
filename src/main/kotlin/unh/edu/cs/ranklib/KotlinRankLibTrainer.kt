@@ -309,7 +309,7 @@ class KotlinRankLibTrainer(indexPath: String, queryPath: String, qrelPath: Strin
             sectionSplit(query, tops, indexSearcher, 2) }, normType = NormType.ZSCORE)
     }
 
-    fun train(method: String, out: String) {
+    fun train(method: String, out: String = "ranklib_features.txt") {
         when (method) {
             "entity_similarity" -> trainSimilarity()
             "average_query" -> trainAverageQuery()
