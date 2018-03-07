@@ -199,12 +199,10 @@ public class Main {
         String graphLocation = namespace.getString("graph_database");
         String out = namespace.getString("out");
         String method = namespace.getString("method");
-        String pageQuery = namespace.getString("page_query");
         KotlinRankLibTrainer kotTrainer =
 
-                new KotlinRankLibTrainer(indexLocation, queryLocation, qrelLocation, graphLocation,
-                        pageQuery.equals("1"));
-        kotTrainer.train(method, "ranklib_features.txt");
+                new KotlinRankLibTrainer(indexLocation, queryLocation, qrelLocation, graphLocation, false);
+        kotTrainer.train(method, out);
     }
 
     private static void runRanklibQuery(Namespace namespace) {
@@ -213,9 +211,11 @@ public class Main {
         String graphLocation = namespace.getString("graph_database");
         String method = namespace.getString("method");
         String out = namespace.getString("out");
+        String pageQuery = namespace.getString("page_query");
         KotlinRankLibTrainer kotTrainer =
-                new KotlinRankLibTrainer(indexLocation, queryLocation, "", graphLocation, false);
-        kotTrainer.runRanklibQuery(method, "ranklib_features.txt");
+                new KotlinRankLibTrainer(indexLocation, queryLocation, "", graphLocation,
+                        pageQuery.equals("1"));
+        kotTrainer.runRanklibQuery(method, out);
     }
 
 
