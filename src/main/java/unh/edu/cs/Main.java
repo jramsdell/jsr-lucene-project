@@ -124,6 +124,9 @@ public class Main {
         ranklibTrainerParser.addArgument("--graph_database")
                 .setDefault("")
                 .help("(only used for mixtures method): Location of graph_database.db file.");
+        ranklibQueryParser.addArgument("--page_query")
+                .choices("0", "1")
+                .setDefault("1");
 
 
         // Ranklib Trainer
@@ -199,9 +202,11 @@ public class Main {
         String graphLocation = namespace.getString("graph_database");
         String out = namespace.getString("out");
         String method = namespace.getString("method");
+        String pageQuery = namespace.getString("page_query");
         KotlinRankLibTrainer kotTrainer =
 
-                new KotlinRankLibTrainer(indexLocation, queryLocation, qrelLocation, graphLocation, false);
+                new KotlinRankLibTrainer(indexLocation, queryLocation, qrelLocation, graphLocation,
+                        pageQuery.equals("1"));
         kotTrainer.train(method, out);
     }
 
