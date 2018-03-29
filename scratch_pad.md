@@ -200,27 +200,28 @@ program.jar ranklib_trainer [--out OUT] [--hyperlink_database HYPERLINK_DATABASE
  **--gram_index**: Location of gram index (stores -gram models for SDM). This defaults to the following location on the server: /trec_data/team_1/gram
  ___
  
- ## Description of RanklibTrainer / RanklibQuery Methods
+ ## Description of Primary RanklibQuery Methods and Training
  Each of these methods score the Top 100 documents obtained by running BM25 on the concatenated section path against the index.
- For all methods, the score from BM25 is added as an additional feature (in addition to those created by the methods) and the weights are trained using RankLib. **The features (including BM25) were normalized by Z-score.**
+ For all individual methods, the score from BM25 is added as an additional feature (in addition to those created by the methods) and the weights are trained using RankLib. **The features (including BM25) were normalized by Z-score.**
 
-#### entity_similarity
-The query string is first tokenized, and then the score of each paragraph is expressed as the average similiarity score of each query token to each entity in the paragraph. Two similarity metrics are considered in this method: Jaccard and JaroWinkler. The metrics were obtained from the Java library: https://github.com/tdebatty/java-string-similarity
+#### sdm
+This represents my (hopefully decent) attempt at implementing the SDM model for the paragraphCorpus. Stemmed unigrams, bigrams, and windowed bigrams were indexed for 33% of the corpus (could not do more due to space limitations). Dirichlet smoothing was used for the language models (to do this, I ran RankLib a bunch of times with different versions of alpha (see KotlinFeatureSelector and the **sdm_alpha** method in ranklib_train) to determine what values of alpha work best). The three -gram scores were also waited according to training with RankLib (this is the **sdm_components** method in ranklib_train).
 
-#### average_query
-The query string is first tokenized and turned into individual boolean queries. The score of each paragraph is expressed as the average score of these boolean queries (using BM25) against the text of the paragraph.
+#### abstract_sdm
+This SDM model was trained on the abstract index and represents an SDM for entities. The way in which this is used is as follows: using the given query string, the abstract database is queried (BM25) and the top 20 results are considered the "entities relevant to the query". For each of these, the abstracts are used to create -gram models and the entities are scored according to their likelihood given the query. The final score for each document is expressed as the average likelihood score given the relevant entities it was annotated with (using Spotlight).
 
-#### split_sections
-The concatenated section query is split into separate sections. These are then scored individually (using BM25) against the text of each paragraph, and each section (when present) is treated as a separate feature.
+The -gram weights were trained using the **abstract_sdm_components** method in ranklib_train, and the alpha components were estimated using the **abstract_alpha** method in RanklibTrain.
 
-#### mixtures
-Each paragraph is assigned a distribution over entities with respect to a random walk model over a bipartite graph of entities and paragraphs. These distributions are mixed together based on the BM25 score from the query to the paragraph. The proportion of each distribution in the mixture is equal to the proportion of the paragraph's BM25 score over the total score of all paragraphs. The final distribution is used to rescore the paragraphs.
+#### average_abstract
+For each query, the "relevant" entities of the query are determined by querying the entity abstract database. The top 20 results are considered "relevant". Each document is scored based on average score of the relevant entities it contains. 
 
-#### lm_mercer
-This uses Lucene's LMJelinekMercerSimilarity metric in place of the BM25 similarity metric, and it is used to score each query against the paragraph's text.
 
-#### lm_dirichlet
-This uses Lucene's LMDirichletSimilarity metric in place of the BM25 similarity metric, and it is used to score each query against the paragraph's text.
+#### section_component
+I do not neccessarily consider this a new method, but what was done here is that the query was split into its sections, and the documents were scored according to BM25 (where the section is the new query). A weighted combination of these section scores was learned using ranklib (see **section_path** in ranklib_train) and then this was turned into a new feature that could be combined with other features. It appears to be strictly superior to BM25 in the tests.
+
+#### hyperlink
+The likelihood of an entity given a query is approximated using the allButBenchmark page corpus, in which the anchor text and entity links are used to generate a probability of entity given anchor text. This is used to determine relevant entities (given the query) and scores the documents (linked using Spotlight) according to the log likelihood of these entity mentions. (It's basically the hyperlink popularity method)
+
 
 #### combined
-This method combines the following previous methods as separate features: BM25, LMDirichletSimilarity (mu 2000), entity_similarity (only using Jaccard string similarity), and first and second heading scores (i.e. pagename/header1/header2)/
+
