@@ -1,21 +1,35 @@
+## Results and Report
+The newest results for prototype 2 can be found in the results_prototype2 directory. The results are as follows
+
+**results_prototype2/report.pdf**: The group report for the current prototype.
+
+**results_prototype2/jordan/**: Runfiles and trec eval stats for each of Jordan's methods
+
+**results_prototype2/kevin/**: Trec eval stats and run files for Kevin's methods.
+
+**results_prototype2/bindu/**: Trec eval stats and run files for Bindu's methods.
+ 
+ **results_prototype2/public_test/** Compressed run files for runs on benchmark_kY1_public_query test data.
+
+___
 ## Installation Instructions
 A precompiled jar file can be found in bin/program.jar
 
-You may also compile the source code by entering the following command while in the project directory:
+You may also compile the source code by entering the following command or by running ./compile.sh while in the project directory:
 
 ```bash
 mvn clean compile assembly:single
 ```
 
 This will create an executable jar file in the target/ directory.
-
+___
 ## Program Commands
 The program is divided into the following subcommands:
 
-___
+
 #### Indexer (index)
-Creates a bipartite graph between entities and paragraphs based on entities linked by Spotlight.
-The graph is stored in the MapDB database: graph_database.db
+Creates a bipartite graph between entities and paragraphs based on entities linked by Spotlight.  
+The graph is stored in the MapDB database: graph_database.db  
 
 ```bash
 program.jar index corpus [--spotlight_folder ""] [--out "index"]
@@ -30,8 +44,8 @@ Where:
 
 ___
 #### Graph Builder (graph_builder)
-Creates a bipartite graph between entities and paragraphs based on entities linked by Spotlight.
-The graph is stored in the MapDB database: graph_database.db. **This command may be skipped if you are using the pre-existing graph_database.db on the server.**
+Creates a bipartite graph between entities and paragraphs based on entities linked by Spotlight.  
+The graph is stored in the MapDB database: graph_database.db. **This command may be skipped if you are using the pre-existing graph_database.db on the server.**  
 
 
 ```bash
@@ -40,8 +54,11 @@ program.jar graph_builder index
 
 Where **index** is the directory of the Lucene index.
 ___
-#### Query Heading (query_heading)
-Contains methods for querying based on headings and word embedding.
+#### Heading Weights Variation:  There are mainly 3 type of heading weight variation.
+BM25 Query of just the page name.  
+BM25 Query of just the lowest heading.  
+BM25 Query of the interior headings.   
+Contains methods for querying based on headings.  
 
 ```bash
 program.jar query_heading query_type index query_file [--out query_results.run]
@@ -52,10 +69,54 @@ Where:
 **query_type** is one of:
  - **page**: Page query using BM25
  - **section**: Section path query using BM25
- - **just_the_page**: Section path query using only page name
- - **lowest_heading**: Section path query using only the lowest heading of the query.
- - **interior_heading**: Section path query using only the interior heading of the query.
- - **word_embedding**: Word embedding of the query headers.
+ - **just_the_page**: using only page name as query id.
+ - **lowest_heading** : using only the lowest heading of the query.
+ - **interior_heading**: using only the interior heading of the query just like  interior section path.
+ - **word_embedding**: Using baseline index and BM25 section path query to retrieve a candidate set (top 100) and then reranking the      candidate set as follows.
+    * Defined query vector as the average of word vectors of all query terms
+    * Define document vector as average of word vectors of all document terms
+    * Ranking by cosine similarity of of query and document vector.
+  
+ 
+ **index**: Is the location of the Lucene index directory.
+ 
+ **query_file**: Is the query (.cbor) file to be used in querying the Lucene index.
+ 
+ **--out**: Is the name of the trec_car compatible run file to create. Default: query_results.run
+ ___
+#### Query Expansion Variation:
+BM25 Query of the page name with expanded query.  
+BM25 Query of the sections path with expanded query.  
+
+```bash
+program.jar query_expansion query_type index query_file [--out query_results.run]
+```
+
+Where:
+
+**query_type** is one of:
+ - **page**: Page query using BM25
+ - **section**: Section path query using BM25
+ 
+ **index**: Is the location of the Lucene index directory.
+ 
+ **query_file**: Is the query (.cbor) file to be used in querying the Lucene index.
+ 
+ **--out**: Is the name of the trec_car compatible run file to create. Default: query_results.run
+ ___
+#### Frequent Bigram Variation:
+Combine BM25 page name query against content field and the Bigram query against bigram field.  
+Combine BM25 section path query against content field and the Bigram query against bigram field.  
+
+```bash
+program.jar frequent_bigram query_type index query_file [--out query_results.run]
+```
+
+Where:
+
+**query_type** is one of:
+ - **page**: Page query using BM25
+ - **section**: Section path query using BM25
  
  **index**: Is the location of the Lucene index directory.
  
@@ -94,15 +155,33 @@ Where:
 ___ 
  ##### Ranklib Trainer (ranklib_trainer)
  
- The trainer creates a RankLib compatible file by annotating the BM25 query results with features obtained by using methods described further down. The trainer doesn't quite "train" the features yet: it is required that the outputted file be run with RankLib, and the resulting weights are used to determine the weights of the features when querying (these are the weights used by the RankLib Query command)
+ The trainer creates a RankLib compatible file by taking the top100 BM25 results and scoring the documents according to the methods below. 
  
  ```bash
-program.jar ranklib_trainer method index query qrel [--out "query_results.run"] [--graph_database ""] 
+program.jar ranklib_trainer [--out OUT] [--hyperlink_database HYPERLINK_DATABASE] [--abstract_index ABSTRACT_INDEX] [--gram_index GRAM_INDEX] method index query qrel
 ```
  
  Where:
 
-**method**: Are the same methods described in Ranklib Query
+**method**: Is one of the following methods:
+ (Primary Methods)
+ - **abstract_sdm**: Training for abstract SDM model (see full description later)
+ - **sdm**: Training for SDM model (see full description later)
+ - **string_similarities**: Training for string_similarity model (see full description later)
+ - **average_abstract**: Training for average_abstract model (see full description later)
+ - **hyperlink**: Training for hyperlink model (see full description later)
+ - **combined**: All methods are combined in this training method, and the FeatureSelection class is used to do subset selection on the features to determine which are the best features to be combined.
+ 
+ (Secondary Methods)
+  - **sdm_alpha**: Generates SDM at various alpha values (used to determine best alpha parameter)
+  - **abstract_alpha**: Generates abstract SDM at various alpha values (used to determine best alpha paramter)
+  - **similarity_section**: Weighted section version of the string_similarities method
+  - **section_path**: Learns weights for section paths (BM25): used to create a single section path feature.
+  - **abstract_sdm_components**: Learns abstract SDM weights for unigram/bigram/windowed bigram scores
+  - **sdm_components**: Learns SDM weights for unigram/bigram/windowed bigram scores
+ 
+ 
+ combined,abstract_sdm,sdm_alpha,sdm_components,section_path,string_similarities,similarity_section,average_abstract,abstract_sdm_components,hyperlink,abstract_alpha,sdm,section_component
  
  **index**: Is the location of the Lucene index directory.
  
@@ -110,7 +189,7 @@ program.jar ranklib_trainer method index query qrel [--out "query_results.run"] 
  
  **qrel**: Is the relevancy file (.qrel) used to determine whether or not documents are revant.
  
- **--out**: Is the name of the runfile to create after querying. Default: query_results.run
+ **--out**: Is the name of the runfile to create after querying. Default: ranklib_features.txt
  
  **--graph_database**: This option is only used for the mixtures method. It specifies the location of the graph_database.db database.
  ___
@@ -119,7 +198,7 @@ program.jar ranklib_trainer method index query qrel [--out "query_results.run"] 
  Each of these methods score the Top 100 documents obtained by running BM25 on the concatenated section path against the index.
  For all methods, the score from BM25 is added as an additional feature (in addition to those created by the methods) and the weights are trained using RankLib. **The features (including BM25) were normalized by Z-score.**
 
-#### entity_similary
+#### entity_similarity
 The query string is first tokenized, and then the score of each paragraph is expressed as the average similiarity score of each query token to each entity in the paragraph. Two similarity metrics are considered in this method: Jaccard and JaroWinkler. The metrics were obtained from the Java library: https://github.com/tdebatty/java-string-similarity
 
 #### average_query
