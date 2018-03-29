@@ -130,28 +130,32 @@ This command runs a query using linear combinations of features obtained by meth
 The weights of the features have been trained using RankLib. When run, ranklib_query will output a trec_eval compatible run file (default is to "query_results.run")
 
 ```bash
-program.jar ranklib_query method index query [--out "query_results.run"] [--graph_database ""] 
+ranklib_query [-h] [--out OUT] [--hyperlink_database HYPERLINK_DATABASE] [--abstract_index ABSTRACT_INDEX] [--gram_index GRAM_INDEX] method index query
 ```
 
 Where:
+average_abstract,combined,abstract_sdm,sdm_components,hyperlink,sdm,section_component
 
 **method**: Is the type of method to use when querying. The choices are:
- - **entity_similarity**
- - **average_query**
- - **split_sections**
- - **mixtures**
- - **lm_mercer**
- - **lm_dirichlet**
- - **combined**
+ - **abstract_sdm**: Query using trained abstract SDM model (see full description later)
+ - **sdm**: Query using trained SDM model (see full description later)
+ - **section_component**: Query using a trained version of BM25 (reweighted according to section paths)
+ - **average_abstract**: Query using trained average abstract model (see full description later)
+ - **hyperlink**: Query using trained hyperlink model (see full description later)
+ - **combined**: Query using weighted combination of methods (see full description later)
  
  
- **index**: Is the location of the Lucene index directory.
+ **index**: Is the location of the Lucene index directory. Should be /trec_data/team_1/myindex if you do not want to generate a new Lucene index from scratch.
  
  **query**: Is the query file (.cbor) to query the Lucene index with.
  
  **--out**: Is the name of the runfile to create after querying. Default: query_results.run
  
- **--graph_database**: This option is only used for the mixtures method. It specifies the location of the graph_database.db database.
+ **--hyperlink_database**: Points to location of hyperlink database (see hyperlink method). This defaults to the database located on the server at: /trec_data/team_1/entity_mentions.db
+ 
+ **--abstract_index**: Location of the Lucene index for the entity abstracts. This defaults to the following location on the server: /trec_data/team_1/abstract/
+ 
+ **--gram_index**: Location of gram index (stores -gram models for SDM). This defaults to the following location on the server: /trec_data/team_1/gram
 ___ 
  ##### Ranklib Trainer (ranklib_trainer)
  
@@ -181,9 +185,7 @@ program.jar ranklib_trainer [--out OUT] [--hyperlink_database HYPERLINK_DATABASE
   - **sdm_components**: Learns SDM weights for unigram/bigram/windowed bigram scores
  
  
- combined,abstract_sdm,sdm_alpha,sdm_components,section_path,string_similarities,similarity_section,average_abstract,abstract_sdm_components,hyperlink,abstract_alpha,sdm,section_component
- 
- **index**: Is the location of the Lucene index directory.
+ **index**: Is the location of the Lucene index directory. Should be /trec_data/team_1/myindex if you do not want to generate a new Lucene index from scratch.
  
  **query**: Is the query file (.cbor) to query the Lucene index with.
  
@@ -191,7 +193,11 @@ program.jar ranklib_trainer [--out OUT] [--hyperlink_database HYPERLINK_DATABASE
  
  **--out**: Is the name of the runfile to create after querying. Default: ranklib_features.txt
  
- **--graph_database**: This option is only used for the mixtures method. It specifies the location of the graph_database.db database.
+ **--hyperlink_database**: Points to location of hyperlink database (see hyperlink method). This defaults to the database located on the server at: /trec_data/team_1/entity_mentions.db
+ 
+ **--abstract_index**: Location of the Lucene index for the entity abstracts. This defaults to the following location on the server: /trec_data/team_1/abstract/
+ 
+ **--gram_index**: Location of gram index (stores -gram models for SDM). This defaults to the following location on the server: /trec_data/team_1/gram
  ___
  
  ## Description of RanklibTrainer / RanklibQuery Methods
